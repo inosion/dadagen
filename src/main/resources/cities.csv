@@ -1,0 +1,607 @@
+city_name,countrycode
+Herat,AFG
+Kabul,AFG
+Qandahar,AFG
+Benguela,AGO
+Huambo,AGO
+Luanda,AGO
+Tirane,ALB
+Abu Zaby,ARE
+Bahia Blanca,ARG
+Buenos Aires,ARG
+Comodoro Rivadavia,ARG
+Cordoba,ARG
+Mendoza,ARG
+Resistencia,ARG
+Rio Gallegos,ARG
+Rosario,ARG
+Santa Fe,ARG
+Yerevan,ARM
+Adelaide,AUS
+Alice Springs,AUS
+Birdum,AUS
+Brisbane,AUS
+Cairns,AUS
+Canberra,AUS
+Darwin,AUS
+Fremantle,AUS
+Hobart,AUS
+Melbourne,AUS
+Newcastle,AUS
+Perth,AUS
+Rockhampton,AUS
+Sydney,AUS
+Townsville,AUS
+Graz,AUT
+Innsbruck,AUT
+Linz,AUT
+Salzburg,AUT
+Vienna,AUT
+Baku,AZE
+Bujumbura,BDI
+Antwerpen,BEL
+Bruxelles,BEL
+Gent,BEL
+Liege,BEL
+Porto Novo,BEN
+Ouagadouou,BFA
+Chittagong,BGD
+Dhaka,BGD
+Khulna,BGD
+Sofiya,BGR
+Sarajevo,BIH
+Minsk,BLR
+Belmopan,BLZ
+La Paz,BOL
+Santa Cruz de La Sierra,BOL
+Sucre,BOL
+Belem,BRA
+Belo Horizonte,BRA
+Boa Vista,BRA
+Brasilia,BRA
+Cuiaba,BRA
+Curitiba,BRA
+Fortaleza,BRA
+Goiania,BRA
+Manaus,BRA
+Natal,BRA
+Porto Alegre,BRA
+Porto Velho,BRA
+Recife,BRA
+Rio de Janeiro,BRA
+Salvador,BRA
+Santarem,BRA
+Santos,BRA
+Sao Luis,BRA
+Sao Paulo,BRA
+Bandar Seri Begawan,BRN
+Thimbu,BTN
+Gaborone,BWA
+Bangui,CAF
+Calgary,CAN
+Churchill,CAN
+Edmonton,CAN
+Goose Bay,CAN
+Halifax,CAN
+Inuvik,CAN
+Montreal,CAN
+Moosonee,CAN
+Ottawa,CAN
+Prince Rupert,CAN
+Quebec,CAN
+Regina,CAN
+Saint John,CAN
+Saskatoon,CAN
+Schefferville,CAN
+Sept-Iles,CAN
+Toronto,CAN
+Vancouver,CAN
+Victoria,CAN
+Whitehorse,CAN
+Winnipeg,CAN
+Yellowknife,CAN
+Bern,CHE
+Antofagasta,CHL
+Concepcion,CHL
+Coquimbo,CHL
+Iquique,CHL
+Puerto Montt,CHL
+Punte Arenas,CHL
+Santiago,CHL
+Valparaiso,CHL
+Anshan,CHN
+Baotou,CHN
+Beijing,CHN
+Changchung,CHN
+Changsha,CHN
+Chengdu,CHN
+Chongqing,CHN
+Dalian,CHN
+Fushun,CHN
+Fuzhou,CHN
+Guangzhou,CHN
+Guiyang,CHN
+Hangzhou,CHN
+Harbin,CHN
+Jilin,CHN
+Jinan,CHN
+Kashi,CHN
+Kunming,CHN
+Lanzhou,CHN
+Lhasa,CHN
+Luoyang,CHN
+Nanchang,CHN
+Nanjing,CHN
+Qingdao,CHN
+Qiqihar,CHN
+Shanghai,CHN
+Shenyang,CHN
+Shijiazhuang,CHN
+Taiyuan,CHN
+Tangshan,CHN
+Tianjin,CHN
+Urumqi,CHN
+Wuhan,CHN
+Xian,CHN
+Zhengzhou,CHN
+Zibo,CHN
+Abidjan,CIV
+Douala,CMR
+Yaounde,CMR
+Kahemba,COD
+Kananga,COD
+Kinshasa,COD
+Kisangani,COD
+Lumumbashi,COD
+Matadi,COD
+Mbandaka,COD
+Brazzaville,COG
+Pointe Noire,COG
+Barranquilla,COL
+Bogota,COL
+Cali,COL
+Medellin,COL
+San Jose,CRI
+Havana,CUB
+Nicosia,CYP
+Brno,CZE
+Praha,CZE
+Berlin,DEU
+Bonn,DEU
+Bremen,DEU
+Dortmund,DEU
+Dresden,DEU
+Duisburg,DEU
+Essen,DEU
+Frankfurt am Main,DEU
+Hamburg,DEU
+Koln,DEU
+Leipzig,DEU
+Munchen,DEU
+Djibouti,DJI
+Kobenhavn,DNK
+Odense,DNK
+Santo Domingo,DOM
+Algiers,DZA
+In Salah,DZA
+Oran,DZA
+Tamanrasset,DZA
+Tindouf,DZA
+Guayaquil,ECU
+Quito,ECU
+Alexandria,EGY
+Aswan,EGY
+Cairo,EGY
+El-Giza,EGY
+Suez,EGY
+Asmara,ERI
+Laayoune,ESH
+Barcelona,ESP
+Bilbao,ESP
+Madrid,ESP
+Sevilla,ESP
+Valencia,ESP
+Zaragoza,ESP
+Tallinn,EST
+Adis Abeba,ETH
+Helsinki,FIN
+Bordeaux,FRA
+Le Havre,FRA
+Lille,FRA
+Lyon,FRA
+Marseille,FRA
+Nantes,FRA
+Paris,FRA
+Strasbourg,FRA
+Toulouse,FRA
+Libreville,GAB
+Port Gentil,GAB
+Belfast,GBR
+Birmingham,GBR
+Cardiff,GBR
+Edinburgh,GBR
+Glasgow,GBR
+Hong Kong,GBR
+Kowloon,GBR
+Leeds,GBR
+Liverpool,GBR
+London,GBR
+Manchester,GBR
+Sheffield,GBR
+T'Bilisi,GEO
+Accra,GHA
+Conakry,GIN
+Banjul,GMB
+Bissau,GNB
+Malabo,GNQ
+Athinai,GRC
+Patrai,GRC
+Thessaloniki,GRC
+Angmagssalik,GRL
+Godhavn,GRL
+Godthab,GRL
+Scoresbyund,GRL
+Thule,GRL
+Guatemala,GTM
+Cayenne,GUF
+Georgetown,GUY
+Tegucigalpa,HND
+Zagreb,HRV
+Port-au-Prince,HTI
+Budapest,HUN
+Ambon,IDN
+Balikpapan,IDN
+Bandung,IDN
+Jakarta,IDN
+Manado,IDN
+Medan,IDN
+Padang,IDN
+Palembang,IDN
+Semarang,IDN
+Surabaja,IDN
+Vjuag Padang,IDN
+Ahmadabad,IND
+Amritsar,IND
+Bangalore,IND
+Benares,IND
+Bombay,IND
+Calcutta,IND
+Cochin,IND
+Delhi,IND
+Hyderabad,IND
+Jaipur,IND
+Kanpur,IND
+Lucknow,IND
+Madras,IND
+Madurai,IND
+Mangalore,IND
+Nagpur,IND
+New Delhi,IND
+Patna,IND
+Pune,IND
+Vishakhapatnam,IND
+Dublin,IRL
+Esfahan,IRN
+Mashhad,IRN
+Shiraz,IRN
+Tabriz,IRN
+Tehran,IRN
+Yazd,IRN
+Zahedan,IRN
+Al Basra,IRQ
+Baghdad,IRQ
+Mosul,IRQ
+Reykjavik,ISL
+Jerusalem,ISR
+Tel Aviv-Yafo,ISR
+Cagliari,ITA
+Firenze,ITA
+Genova,ITA
+Milano,ITA
+Napoli,ITA
+Palermo,ITA
+Roma,ITA
+Torino,ITA
+Trieste,ITA
+Venezia,ITA
+Kingston,JAM
+Amman,JOR
+Aomori,JPN
+Fukuoka,JPN
+Hiroshima,JPN
+Kawasaki,JPN
+Kita Kyushu,JPN
+Kobe,JPN
+Kyoto,JPN
+Nagasaki,JPN
+Nagoya,JPN
+Osaka,JPN
+Sapporo,JPN
+Tokyo,JPN
+Yokohama,JPN
+Almaty,KAZ
+Karaganda,KAZ
+Mombasa,KEN
+Nairobi,KEN
+Frunze,KGZ
+Phnom Penh,KHM
+Inch`on,KOR
+Pusan,KOR
+Seoul,KOR
+Taegu,KOR
+Al Kuwayt,KWT
+Vientiane,LAO
+Beirut,LBN
+Tripoli,LBN
+Monrovia,LBR
+Banghazi,LBY
+Ghadamis,LBY
+Murzuq,LBY
+Tripoli,LBY
+Colombo,LKA
+Maseru,LSO
+Vilnius,LTU
+Luxembourg,LUX
+Riga,LVA
+Casablanca,MAR
+Fes,MAR
+Marrakech,MAR
+Rabat,MAR
+Kishinev,MDA
+Antananarivo,MDG
+Toamasina,MDG
+Toliara,MDG
+Acapulco,MEX
+Chihuaha,MEX
+Guadalajara,MEX
+Mazatlan,MEX
+Merida,MEX
+Mexico City,MEX
+Monterrey,MEX
+Oaxaca,MEX
+Puebla de Zaragoza,MEX
+Tampico,MEX
+Veracruz,MEX
+Skopje,MKD
+Bamako,MLI
+Tombouctoo,MLI
+Mandalay,MMR
+Rangoon,MMR
+Podgorica,MNE
+Ulaanbaatar,MNG
+Uliastay,MNG
+Beira,MOZ
+Maputo,MOZ
+Mocambique,MOZ
+Nouadnibou,MRT
+Nouakchott,MRT
+Lilongwe,MWI
+George Town,MYS
+Kuala Lumpur,MYS
+Kuching,MYS
+Windhoek,NAM
+Agadez,NER
+Maiduguri,NER
+Niamey,NER
+Enugu,NGA
+Ibadan,NGA
+Kano,NGA
+Lagos,NGA
+Managua,NIC
+Amsterdam,NLD
+Rotterdam,NLD
+The Hague,NLD
+Bergen,NOR
+Hammerfest,NOR
+Longyearbyen,NOR
+Narvik,NOR
+Oslo,NOR
+Kathmandu,NPL
+Auckland,NZL
+Christchurch,NZL
+Dunedin,NZL
+Invercargill,NZL
+Nelson,NZL
+Wellington,NZL
+Masqat,OMN
+Faisalabad,PAK
+Hyderabad,PAK
+Islamabad,PAK
+Karachi,PAK
+Lahore,PAK
+Rawalpindi,PAK
+Panama,PAN
+Arequipa,PER
+Callao,PER
+Chiclayo,PER
+Chimbote,PER
+Cuzco,PER
+Iquitos,PER
+Lima,PER
+Trujillo,PER
+Davao,PHL
+Manila,PHL
+Quezon City,PHL
+Port Moresby,PNG
+Gdansk,POL
+Krakow,POL
+Lodz,POL
+Warsaw,POL
+Wroclaw,POL
+San Juan,PRI
+Pyongyang,PRK
+Lisboa,PRT
+Porto,PRT
+Asuncion,PRY
+Doha,QAT
+Bucuresti,ROU
+Anadyr,RUS
+Arkhangelsk,RUS
+Astrakhan,RUS
+Chatanga,RUS
+Chelyabinsk,RUS
+Chita,RUS
+Druzba,RUS
+Igarka,RUS
+Irkutsk,RUS
+Kazan',RUS
+Khabarovsk,RUS
+Kotlas,RUS
+Magadan,RUS
+Moskva,RUS
+Murmansk,RUS
+Nikolayevsk,RUS
+Nizhniy Novgorod,RUS
+Noril`sk,RUS
+Novokuznetsk,RUS
+Novosibirsk,RUS
+Okhotsk,RUS
+Omsk,RUS
+Perm',RUS
+Petropavloski-Kamchatskiy,RUS
+Rostov-na-Donu,RUS
+Saint Petersburg,RUS
+Salekhard,RUS
+Samara,RUS
+Tiksi,RUS
+Ufa,RUS
+Verkhoyvensk,RUS
+Vladivostok,RUS
+Volgograd,RUS
+Vorkuta,RUS
+Yakutsk,RUS
+Yekaterinburg,RUS
+Yuzhno-Sakhalinsk,RUS
+Kigali,RWA
+Al Madinah,SAU
+Ar Riyad,SAU
+Jiddah,SAU
+Mecca,SAU
+Bur Sudan,SDN
+El Obeid,SDN
+Khartoum,SDN
+Omdurman,SDN
+Wadi Halfa,SDN
+Dakar,SEN
+Saint Louis,SEN
+Singapore,SGP
+Freetown,SLE
+San Salvador,SLV
+Muqdisho,SOM
+Beograd,SRB
+Paramaribo,SUR
+Bratislava,SVK
+Ljubljana,SVN
+Goteborg,SWE
+Stockholm,SWE
+Mbabne,SWZ
+Aleppo,SYR
+Damascus,SYR
+Homs,SYR
+N'Djamena,TCD
+Lome,TGO
+Bangkok,THA
+Dushanfe,TJK
+Ashkhabad,TKM
+Port of Spain,TTO
+Sfax,TUN
+Tunis,TUN
+Adana,TUR
+Ankara,TUR
+Erzurum,TUR
+Istanbul,TUR
+Izmir,TUR
+Samsun,TUR
+Chingmei,TWN
+Kao-Hsiung,TWN
+T`ai-chung,TWN
+T`ai-nan,TWN
+Taipei,TWN
+Dar es Salaam,TZA
+Dodoma,TZA
+Kigoma,TZA
+Mtwara,TZA
+Kampala,UGA
+Dnepropetrovsk,UKR
+Donets'k,UKR
+Kharkov,UKR
+Kiev,UKR
+Lvov,UKR
+Odessa,UKR
+Montevideo,URY
+Salto,URY
+Anchorage,USA
+Atlanta,USA
+Baltimore,USA
+Boston,USA
+Buffalo,USA
+Charlotte,USA
+Chicago,USA
+Cincinnati,USA
+Cleveland,USA
+Columbus,USA
+Dallas,USA
+Denver,USA
+Detroit,USA
+El Paso,USA
+Fairbanks,USA
+Hilo,USA
+Honolulu,USA
+Houston,USA
+Jacksonville,USA
+Juneau,USA
+Kansas City,USA
+Los Angeles,USA
+Memphis,USA
+Miami,USA
+Milwaukee,USA
+Minneapolis,USA
+New Orleans,USA
+New York,USA
+Newark,USA
+Nome,USA
+Norfolk,USA
+Oklahoma City,USA
+Olympia,USA
+Philadelphia,USA
+Phoenix,USA
+Pittsburgh,USA
+Portland,USA
+Rochester,USA
+Sacramento,USA
+Salt Lake City,USA
+San Antonio,USA
+San Diego,USA
+San Francisco,USA
+San Jose,USA
+Seattle,USA
+Seward,USA
+St. Louis,USA
+Tampa,USA
+Washington D.C.,USA
+Samarkand,UZB
+Toshkent,UZB
+Barquisimeto,VEN
+Caracas,VEN
+Maracaibo,VEN
+San Cristobal,VEN
+Valencia,VEN
+Haiphong,VNM
+Hanoi,VNM
+Ho Chi Minh City,VNM
+Hue,VNM
+Aden,YEM
+Sanaa,YEM
+Bloemfontein,ZAF
+Cape Town,ZAF
+Durban,ZAF
+East London,ZAF
+Johannesburg,ZAF
+Kimberley,ZAF
+Port Elizabeth,ZAF
+Pretoria,ZAF
+Walvis Bay,ZAF
+Livingstone,ZMB
+Lusaka,ZMB
+Bulawayo,ZWE
+Harare,ZWE

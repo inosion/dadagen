@@ -1,0 +1,41 @@
+apply plugin: 'scala'
+apply plugin: 'java'
+
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '2.2.1'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile 'org.scala-lang:scala-library:2.11.5'
+
+    // for inspecting Beans and the like
+    compile 'commons-beanutils:commons-beanutils:1.8.3'
+
+    // for generating regexpression strings
+    compile 'com.github.mifmif:generex:0.0.2'
+
+    // excellent config support
+    compile 'com.typesafe:config:1.2.1'
+
+    compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.+'
+    compile group: 'ch.qos.logback', name: 'logback-classic', version: '1.+'
+
+    // opencsv wrapper
+    // compile "com.bizo:mighty-csv_2.11:0.2"
+
+    compile "com.fasterxml.jackson.dataformat:jackson-dataformat-csv:2.4.0"
+
+    compile "org.scala-stm:scala-stm_2.11:0.7"
+
+    provided "org.codehaus.groovy:groovy-all:2.4"
+
+    // testing
+    testCompile 'org.scalatest:scalatest_2.11:2.2.1'
+
+    // testing
+}
