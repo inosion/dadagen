@@ -19,7 +19,7 @@ object BaseSettings {
     net.virtualvoid.sbt.graph.Plugin.graphSettings ++
       Seq(
         organizationHomepage := Some(new URL("https://rdg.straight.io")),
-        organization := "io.straight.rdg",
+        organization := "org.inosion.rdg",
         scalaVersion := Version.Scala,
         version := Version.ThisVersion,
         scalacOptions in Compile ++= Seq(

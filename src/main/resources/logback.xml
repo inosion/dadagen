@@ -8,7 +8,7 @@
     </appender>
 
     <appender name="FILE" class="ch.qos.logback.core.FileAppender">
-        <file>radg.log</file>
+        <file>datdom.log</file>
         <append>false</append>
         <!-- encoders are assigned the type
              ch.qos.logback.classic.encoder.PatternLayoutEncoder by default -->
@@ -17,7 +17,7 @@
        </encoder>
     </appender>
 
-    <logger name="io.straight" level="DEBUG">
+    <logger name="org.inosion" level="DEBUG">
         <appender-ref ref="FILE" />
     </logger>
 
