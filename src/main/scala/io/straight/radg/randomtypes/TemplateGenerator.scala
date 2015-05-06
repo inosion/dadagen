@@ -9,7 +9,7 @@ case class TemplateGenerator( name:String,
                               template:String
                               ) extends DataGenerator[String] {
 
-  // our regexp for finding our variables in out templates
+  // our regexp for finding our variables within a template
   val varRegex = """(\$\{(\w+)\})""".r
 
   val description = "Template Variable. Use ${..} names for other fields to build up a custom value"

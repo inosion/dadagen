@@ -3,7 +3,8 @@ package io.straight.radg
 import io.straight.radg.randomtypes.DataGenerator
 
 /**
- * Create an array of array of strings (used for direct output to CSV or some such)
+ * Create an Seq of Seq of strings (used for direct output to CSV or some such)
+ * The Tuple holds the Column Names -> Data
  */
 case class SeqOfSeqOfStringsGenerator(
   rows:Int,

@@ -7,6 +7,8 @@ import scala.collection.mutable.{ HashMap => MHashMap }
 abstract class RandomDataGenerator[A] {
   def generators: Seq[DataGenerator[_]]
   def generate(): A
+
+  // internal class used for creating named dependency graphs
   case class SimpleNode(name:String,deps:List[String])
 
   /**
@@ -35,9 +37,9 @@ abstract class RandomDataGenerator[A] {
     gs match {
       case g :: gs => {
         // TODO here instead of returning .name ws should return the "Node" found by that name..
-        // As it is, we take the name and reuse that "outside of here" (see dependencyOrdered .. map at the enf od the
+        // As it is, we take the name and reuse that "outside of here" (see dependencyOrdered .. map at the end of the
         // topoSort call. Doing it this way below we need to rebuild in the outer using the name list.
-        // the way this sort works is to pass an ever reducing dependncy list of SimpleNode's into the depths.
+        // the way this sort works is to pass an ever reducing dependency list of SimpleNode's into the depths.
         if (g.deps.isEmpty) g.name :: topoSort( gs.diff(List(g)).map(x => SimpleNode(x.name,x.deps.diff(List(g.name)))))
         else topoSort(gs :+ g)
       }
@@ -48,7 +50,7 @@ abstract class RandomDataGenerator[A] {
 
 
 /**
- * Context object is the "during execution"
+ * Context object used "during execution"
  */
 class Context(currentRow:Int) {
   val dataFieldState: MHashMap[String, Any] = MHashMap.empty

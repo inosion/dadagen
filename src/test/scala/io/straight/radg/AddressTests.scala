@@ -13,9 +13,14 @@ class AddressTests  extends FlatSpec with Matchers {
       AddressGenerator("fulllineaddress",FullAddress)
     ))
 
+
     val result = ramondom.generate()
-    for (row <- result._2) {
-      println(row)
-    }
+
+    // TODO - write a regexp to show that address style addresses come out.
+
+    // for now, just see we have 100
+    result._2.length should be (100)
+
+
   }
 }

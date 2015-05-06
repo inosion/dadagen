@@ -48,8 +48,8 @@ class ScalaCSVAPITest extends FlatSpec with Matchers {
       .withLineSeparator("\n")
     ;
     val writer = mapper.writer(csvSchema)
-    print(writer.writeValueAsString(Array(arrayData._1.toArray))  )
-    print(writer.writeValueAsString(Array(arrayData._2.map(_.toArray).toArray))  )
+    print(writer.writeValueAsString(Array(arrayData._1.toArray.head))  )
+    print(writer.writeValueAsString(Array(arrayData._2.map(_.toArray).toArray.head))  )
 
     // println(writer.writeValueAsString(arrayData._1))
     //println(writer.writeValueAsString(arrayData._2.toArray) )

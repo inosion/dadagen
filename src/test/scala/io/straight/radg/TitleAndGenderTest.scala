@@ -17,7 +17,6 @@ class TitleAndGenderTest extends FlatSpec with Matchers {
 
     val result = ramondom.generate()
     for (row <- result._2) {
-      println(row)
       List("M","F") should contain (row(1))
       row(1) match {
         case "F" => femaleTitles should contain(row(0))

@@ -16,10 +16,14 @@ class NamesGeneratorTest extends FlatSpec with Matchers {
     ))
 
     val result = ramondom.generate()
+
+    // tuple _1 is the column names, _2 is data
+    result._2.length should be (9000)
+
     for (row <- result._2) {
-      println(row)
       regexp.findFirstIn(row(0)).isDefined should be (true)
     }
+
   }
 }
 

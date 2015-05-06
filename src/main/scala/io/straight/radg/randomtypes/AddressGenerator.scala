@@ -4,7 +4,9 @@ import com.mifmif.common.regex.Generex
 import io.straight.radg.{ListConfigSupport, ListManager, RandomUtil, Context}
 import ListManager.getRandomValue
 
-
+/*
+ * Enums for Driving what Style we want
+ */
 sealed abstract class AddressStyle
 case object FullAddress extends AddressStyle
 case object StreetAndNumber extends AddressStyle

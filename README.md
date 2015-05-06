@@ -1,4 +1,10 @@
-# What
+# Genrandator
+![alt tag](https://raw.github.com/inosion/genrandator/master/assets/genrandator-logo.jpg)
+## What ? 
+
+A Random Data Generator, with examples and templates to use in a variety of scenarios.
+
+## History
 
 This is the second iteration of a random data library that I have written.
 The first, somewhat "pushed and left" version is http://random-data-generator.googlecode.com/
@@ -36,4 +42,4 @@ Populate an Object from Class, returning an Seq of objects which you can later d
 
 # More to Come
 
-It is VERY Alpha at the moment but more is coming.
+Ia is VERY Alpha at the moment but more is coming.
