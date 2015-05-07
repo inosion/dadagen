@@ -37,7 +37,18 @@ object Dependencies {
     val version = "2.4.0"
     val dfcsv = "com.fasterxml.jackson.dataformat" % "jackson-dataformat-csv" % version
   }
-  val gatling = "io.gatling.highcharts" % "gatling-charts-highcharts" % "2.1.5"
+
+  /*
+   * Testing and Test helpful Libs
+   */
+  object gatling {
+    val version = "2.1.5"
+    val testFramework = "io.gatling"            % "gatling-test-framework" % version
+    val highcharts    = "io.gatling.highcharts" % "gatling-charts-highcharts" % version
+  }
+
+
+  val akka = "com.typesafe.akka" %% "akka-actor" % "2.3.9"
 
   val scalastm = "org.scala-stm" %% "scala-stm" % "0.7"
 

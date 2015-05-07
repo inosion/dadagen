@@ -1,42 +1,38 @@
 package org.inosion.dadagen.api
 
-import org.inosion.dadagen.{RandomObjectGenerator, SeqOfSeqOfStringsGenerator}
+import org.inosion.dadagen.{ListOfStringsGenerator, MapOfStringsGenerator}
 import org.inosion.dadagen.randomtypes._
 
 /**
  * @author rbuckland
  */
-package object scala {
+package object scaladsl {
 
-  /**
-   * Object Generator
-   *
-   * @param number
-   * @param manifest
-   * @tparam T
-   * @return
-   */
-//  def randomGenerate[T](number:Int)(implicit manifest: Manifest[T]) =  {
-//    val generators: Seq[DataGenerator[_]] = ObjectGeneratorBuilder.from(manifest)
-//    RandomObjectGenerator(number,generators).generate()
-//  }
+  def dadagen = new DadagenWrapper()
 
-  /**
-   * CSV Style Data Generator
-   * @param listGenerator
-   * @return
-   */
-  def randomGenerate(listGenerator:SeqOfSeqOfStringsGenerator) = listGenerator.generateAll(1)
+  class DadagenWrapper() {
+    // gatling uses maps for its session data, as does JMeter
+    def asMaps (generators:List[DataGenerator[_]]) = MapOfStringsGenerator(generators)
 
-  implicit def intToListOfListOfStringsGenerator(value : Int):RowCountWrappedInt = new RowCountWrappedInt(value)
-
-  def col(generator:DataGenerator[_]):DataGenerator[_] = generator
-
-  class RowCountWrappedInt(int:Int) {
-    def rows(generators:DataGenerator[_]*):SeqOfSeqOfStringsGenerator = SeqOfSeqOfStringsGenerator(generators.toList)
+    // raw CSV data can be made with this one
+    def asLists(generators:List[DataGenerator[_]]) = ListOfStringsGenerator(generators)
   }
 
-  class StringWrapperColName(colName:String) {
+  /*
+   * Used as part of the DSL to denote a field in you "List"
+   * col is more suitable to use when working with CSV Data
+   */
+  def col(generator:DataGenerator[_]):List[DataGenerator[_]] = List(generator)
+  def field(generator:DataGenerator[_]):List[DataGenerator[_]] = List(generator)
+
+  implicit class ChainableDataGenerator(generators:List[DataGenerator[_]]) {
+    def col(generator:DataGenerator[_]):List[DataGenerator[_]] = generators :+ generator
+    def field(generator:DataGenerator[_]):List[DataGenerator[_]] = generators :+ generator
+  }
+
+  // Name type Generators
+  sealed abstract class WrappedGenerator
+  implicit class StringWrapperColName(colName:String) extends WrappedGenerator {
     def name = new NameGenerators(colName)
     def gender = GenderGenerator(colName)
     def rownumber = RowNumberGenerator(colName)
@@ -46,11 +42,7 @@ package object scala {
     def template(templateString:String) = TemplateGenerator(colName,templateString)
   }
 
-  implicit def stringToStringWrappedGenerator(colName:String):StringWrapperColName = new StringWrapperColName(colName)
-
-  // Name type Generators
-  //  def name = new NameGenerators()
-  sealed abstract class WrappedGenerator
+  // sub options when dealing with names
   class NameGenerators(generatorName:String) extends WrappedGenerator {
     def firstname = FirstNameGenerator(generatorName)
     def title = TitleGenerator(generatorName)
@@ -69,18 +61,13 @@ package object scala {
     def country = AddressGenerator(generatorName,CountryOnly)
   }
 
-//  // misc
-//  def gender = GenderGenerator("gender")
-//  def rownumber = RowNumberGenerator("rownumber")
-//  def regexgen(regex:String):DataGenerator[String] = RegexGenerator("regex",regex)
-
   // number type generators
   //
-  class NumberGenerators(generatorName:String) extends WrappedGenerator {
+  implicit class NumberGenerators(generatorName:String) extends WrappedGenerator {
     def between(min:Int) = new NumberMinWrappedInt(generatorName,Left(min))
     def between(min:Double) = new NumberMinWrappedInt(generatorName,Right(min))
   }
-  // implicit def intToMinWrapperInt(min : Int):NumberMinWrappedInt = new NumberMinWrappedInt(min)
+
   class NumberMinWrappedInt(val generatorName:String,min:Either[Int,Double]) {
     def and(max:Int) = {
       min match {

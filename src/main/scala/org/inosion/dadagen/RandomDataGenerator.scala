@@ -16,9 +16,7 @@ abstract class RandomDataGenerator[A] {
   /**
    * Return a list of "nodes" which are depended upon
    */
-  val dependentOn: List[String] = generators.map {
-    _.dependencies
-  }.flatten.distinct
+  val dependentOn: List[String] = generators.map { _.dependencies }.flatten.distinct
 
   private[this] val dependencyNodeList = generators.map(x => SimpleNode(x.name, x.dependencies))
 
@@ -111,5 +109,6 @@ class Context(currentRow:Int) {
   override def toString = dataFieldState.toString()
 
 }
+
 
 

@@ -12,18 +12,18 @@ val csvStringArrayData =
   
     randomGenerate {
       40 rows {
-        col 1 { name firstname }
-        col 2 { name surname }
-        col 3 { name title }
-        col 4 { date dob }
-        col 5 { number between 1000 and 10000 precision 2 }
-        col 6 { number between 0 and 1 precision 6 }
-        col 7 { address street and number }
-        col 8 { address city }
-        col 9 { address postcode uk }
-        col 10 { address county }
-        col 11 { guid }
-        col 12 { regexp /\d\d\d\d\d\d\d/ }
+        col { "colname" name firstname }
+        col { "colname" name surname }
+        col { "colname" name title }
+        col { "colname" date dob }
+        col { "colname" number between 1000 and 10000 precision 2 }
+        col { "colname" number between 0 and 1 precision 6 }
+        col { "colname" address street and number }
+        col { "colname" address city }
+        col { "colname" address postcode uk }
+        col { "colname" address county }
+        col { "colname" guid }
+        col { "colname" regexp /\d\d\d\d\d\d\d/ }
       }
     }
 }

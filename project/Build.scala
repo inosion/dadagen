@@ -1,6 +1,7 @@
 import BaseSettings.Version
 import sbt._
 import sbt.Keys._
+import io.gatling.sbt.GatlingPlugin
 
 object BuildSettings {
 
@@ -44,7 +45,8 @@ object RootBuild extends Build {
   lazy val dadagenRoot = (project in file("."))
     .settings(rootSettings: _*) //.aggregate(dadagenCore)
     .settings(projectSettings: _*)
-    .settings(libraryDependencies ++= 
+    .enablePlugins(GatlingPlugin)
+    .settings(libraryDependencies ++=
         compile(
           generex
     //    commons.beanutils
@@ -57,7 +59,9 @@ object RootBuild extends Build {
            testing.scalatest
           ,testing.scalacheck
           ,testing.scalamock
-          ,gatling // we are using gatling in a test to show how to use our library in gatling
+          ,gatling.testFramework // we are using gatling in a test to show how to use our library in gatling
+          ,gatling.highcharts
+          ,akka // using akka to test feeding an actorSystem with messages
         )
         ++ runtime (
           logging.logback

@@ -10,9 +10,9 @@ import org.inosion.dadagen.randomtypes.{TemplateGenerator, RegexGenerator}
 class GenerationTests extends FlatSpec with Matchers {
   "A String Array Random Generate" should "create the correct number of rows" in {
 
-    val randimio = SeqOfSeqOfStringsGenerator(List(new RegexGenerator("myregexp", "[a-c][0-9]\\d\\d\\w Word")))
+    val randimio = ListOfStringsGenerator(List(new RegexGenerator("myregexp", "[a-c][0-9]\\d\\d\\w Word")))
     val randomData = randimio.generateAll(20)
-    randomData._2.length should be (20)
+    randomData.length should be (20)
 
   }
 
@@ -20,7 +20,7 @@ class GenerationTests extends FlatSpec with Matchers {
 
 class TopoSortTest extends FlatSpec with Matchers {
   "A dependent set " should "be sorted into execution order" in {
-    val ramondom = SeqOfSeqOfStringsGenerator(List(
+    val ramondom = ListOfStringsGenerator(List(
       TemplateGenerator("A","${E} ${B} ${C}"),
       TemplateGenerator("B","${F}"),
       TemplateGenerator("C","${F}"),
@@ -38,7 +38,7 @@ class TopoSortTest extends FlatSpec with Matchers {
 
 class TemplateTest extends FlatSpec with Matchers {
   "A dependent set " should "be sorted into execution order and produce a correct result" in {
-    val ramondom = SeqOfSeqOfStringsGenerator(List(
+    val ramondom = ListOfStringsGenerator(List(
       TemplateGenerator("A","This is A [${E}] [${B}] [${C}]"),
       TemplateGenerator("B","This is B [${F}]"),
       TemplateGenerator("C","This is C [${F}]"),
@@ -62,8 +62,9 @@ class TemplateTest extends FlatSpec with Matchers {
     // check the column names
     sorted(2).name should be ("F")
     sorted(5).name should be ("A")
+
     // building the template from the definition above will produce the below
-    result._2(0)(5) should be ("This is F [DEE_Template]")
-    result._2(0)(0) should be ("This is A [E_TEMPLATE] [This is B [This is F [DEE_Template]]] [This is C [This is F [DEE_Template]]]")
+    result(0)(5) should be ("This is F [DEE_Template]")
+    result(0)(0) should be ("This is A [E_TEMPLATE] [This is B [This is F [DEE_Template]]] [This is C [This is F [DEE_Template]]]")
   }
 }
