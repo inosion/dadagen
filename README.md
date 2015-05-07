@@ -1,5 +1,5 @@
-# Genrandator
-![alt tag](https://raw.github.com/inosion/genrandator/master/assets/genrandator-logo.jpg)
+# DadaGen - Random Data Generator
+![alt tag](https://raw.github.com/inosion/dadagen/master/assets/dadagen-logo.jpg)
 ## What ? 
 
 A Random Data Generator, with examples and templates to use in a variety of scenarios.
@@ -9,7 +9,7 @@ A Random Data Generator, with examples and templates to use in a variety of scen
 This is the second iteration of a random data library that I have written.
 The first, somewhat "pushed and left" version is http://random-data-generator.googlecode.com/
 
-This is a much more feature rich Scala version.
+This is a much more feature rich Scala version. Soon I will have the same features as the old.
 
 # So what can it do ?
 

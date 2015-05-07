@@ -41,8 +41,8 @@ object RootBuild extends Build {
   import Dependencies._
   import BuildSettings._
 
-  lazy val root = (project in file("."))
-    .settings(rootSettings: _*) //.aggregate(genrandatorCore)
+  lazy val dadagenRoot = (project in file("."))
+    .settings(rootSettings: _*) //.aggregate(dadagenCore)
     .settings(projectSettings: _*)
     .settings(libraryDependencies ++= 
         compile(

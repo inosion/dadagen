@@ -19,21 +19,21 @@ object PublishSettings {
         Some("releases"  at nexus + "service/local/staging/deploy/maven2")
     },
     pomExtra := (
-        <url>https://github.com/rbuckland/random-data-generator</url>
+        <url>https://github.com/inosion/dadagen</url>
         <licenses>
           <license>
-            <name>Apache 2.0 (c) straight.io</name>
+            <name>Apache 2.0 (c) Inosion 2015</name>
           </license>
         </licenses>
         <scm>
-          <url>git@github.com:rbuckland/random-data-generator.git</url>
-          <connection>scm:git:git@github.com:rbuckland/random-data-generator.git</connection>
+          <url>git@github.com:inosion/dadagen.git</url>
+          <connection>scm:git:git@github.com:inosion/dadagen.git</connection>
         </scm>
         <developers>
           <developer>
             <id>rbuckland</id>
             <name>Ramon Buckland</name>
-            <url>http://straight.io</url>
+            <url>http://inosion.com</url>
           </developer>
         </developers>),
     credentials ++= (for {

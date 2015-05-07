@@ -18,8 +18,8 @@ object BaseSettings {
   val baseSettings: Seq[Def.Setting[_]] =
     net.virtualvoid.sbt.graph.Plugin.graphSettings ++
       Seq(
-        organizationHomepage := Some(new URL("https://inosion.org/datdom")),
-        organization := "org.inosion.datdom",
+        organizationHomepage := Some(new URL("https://inosion.org/dadagen")),
+        organization := "org.inosion.dadagen",
         scalaVersion := Version.Scala,
         version := Version.ThisVersion,
         scalacOptions in Compile ++= Seq(

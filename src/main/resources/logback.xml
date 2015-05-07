@@ -8,7 +8,7 @@
     </appender>
 
     <appender name="FILE" class="ch.qos.logback.core.FileAppender">
-        <file>datdom.log</file>
+        <file>dadagen.log</file>
         <append>false</append>
         <!-- encoders are assigned the type
              ch.qos.logback.classic.encoder.PatternLayoutEncoder by default -->
