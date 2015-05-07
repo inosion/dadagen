@@ -11,11 +11,11 @@ class NamesGeneratorTest extends FlatSpec with Matchers {
   val regexp = """^(.*)\s+(.*)\s+(.*)$""".r
 
   "Generating a full name" should "match a regular expression" in {
-    val ramondom = SeqOfSeqOfStringsGenerator(9000,List(
+    val ramondom = SeqOfSeqOfStringsGenerator(List(
       FullNameGenerator("full_name")
     ))
 
-    val result = ramondom.generate()
+    val result = ramondom.generateAll(9000)
 
     // tuple _1 is the column names, _2 is data
     result._2.length should be (9000)

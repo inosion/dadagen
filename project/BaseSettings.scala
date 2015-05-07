@@ -9,7 +9,7 @@ object BaseSettings {
 
   object Version {
     val ThisVersion = "2.2.2"
-    val Scala = "2.11.5"
+    val Scala = "2.11.6"
   }
 
   /**
@@ -18,8 +18,8 @@ object BaseSettings {
   val baseSettings: Seq[Def.Setting[_]] =
     net.virtualvoid.sbt.graph.Plugin.graphSettings ++
       Seq(
-        organizationHomepage := Some(new URL("https://rdg.straight.io")),
-        organization := "org.inosion.rdg",
+        organizationHomepage := Some(new URL("https://inosion.org/datdom")),
+        organization := "org.inosion.datdom",
         scalaVersion := Version.Scala,
         version := Version.ThisVersion,
         scalacOptions in Compile ++= Seq(

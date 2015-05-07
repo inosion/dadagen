@@ -10,8 +10,8 @@ import org.inosion.datdom.randomtypes.{TemplateGenerator, RegexGenerator}
 class GenerationTests extends FlatSpec with Matchers {
   "A String Array Random Generate" should "create the correct number of rows" in {
 
-    val randimio = SeqOfSeqOfStringsGenerator(20,List(new RegexGenerator("myregexp", "[a-c][0-9]\\d\\d\\w Word")))
-    val randomData = randimio.generate()
+    val randimio = SeqOfSeqOfStringsGenerator(List(new RegexGenerator("myregexp", "[a-c][0-9]\\d\\d\\w Word")))
+    val randomData = randimio.generateAll(20)
     randomData._2.length should be (20)
 
   }
@@ -20,7 +20,7 @@ class GenerationTests extends FlatSpec with Matchers {
 
 class TopoSortTest extends FlatSpec with Matchers {
   "A dependent set " should "be sorted into execution order" in {
-    val ramondom = SeqOfSeqOfStringsGenerator(10,List(
+    val ramondom = SeqOfSeqOfStringsGenerator(List(
       TemplateGenerator("A","${E} ${B} ${C}"),
       TemplateGenerator("B","${F}"),
       TemplateGenerator("C","${F}"),
@@ -38,7 +38,7 @@ class TopoSortTest extends FlatSpec with Matchers {
 
 class TemplateTest extends FlatSpec with Matchers {
   "A dependent set " should "be sorted into execution order and produce a correct result" in {
-    val ramondom = SeqOfSeqOfStringsGenerator(1,List(
+    val ramondom = SeqOfSeqOfStringsGenerator(List(
       TemplateGenerator("A","This is A [${E}] [${B}] [${C}]"),
       TemplateGenerator("B","This is B [${F}]"),
       TemplateGenerator("C","This is C [${F}]"),
@@ -57,7 +57,7 @@ class TemplateTest extends FlatSpec with Matchers {
 
     val sorted = ramondom.dependencyOrdered
 
-    val result = ramondom.generate()
+    val result = ramondom.generateAll(1)
 
     // check the column names
     sorted(2).name should be ("F")

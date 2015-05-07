@@ -26,14 +26,14 @@ package object scala {
    * @param listGenerator
    * @return
    */
-  def randomGenerate(listGenerator:SeqOfSeqOfStringsGenerator) = listGenerator.generate()
+  def randomGenerate(listGenerator:SeqOfSeqOfStringsGenerator) = listGenerator.generateAll(1)
 
   implicit def intToListOfListOfStringsGenerator(value : Int):RowCountWrappedInt = new RowCountWrappedInt(value)
 
   def col(generator:DataGenerator[_]):DataGenerator[_] = generator
 
   class RowCountWrappedInt(int:Int) {
-    def rows(generators:DataGenerator[_]*):SeqOfSeqOfStringsGenerator = SeqOfSeqOfStringsGenerator(int,generators)
+    def rows(generators:DataGenerator[_]*):SeqOfSeqOfStringsGenerator = SeqOfSeqOfStringsGenerator(generators.toList)
   }
 
   class StringWrapperColName(colName:String) {

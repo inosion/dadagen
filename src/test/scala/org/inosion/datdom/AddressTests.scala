@@ -9,12 +9,12 @@ import org.scalatest.{Matchers, FlatSpec}
 class AddressTests  extends FlatSpec with Matchers {
 
   "generating an address in full" should "look good :-)" in {
-    val ramondom = SeqOfSeqOfStringsGenerator(100,List(
+    val ramondom = SeqOfSeqOfStringsGenerator(List(
       AddressGenerator("fulllineaddress",FullAddress)
     ))
 
 
-    val result = ramondom.generate()
+    val result = ramondom.generateAll(100)
 
     // TODO - write a regexp to show that address style addresses come out.
 

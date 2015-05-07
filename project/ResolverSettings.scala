@@ -15,12 +15,7 @@ object ResolverSettings {
     Resolver.typesafeRepo("releases"),
     Resolver.sonatypeRepo("releases"),
     Resolver.sonatypeRepo("snapshots"),
-    // "Linter" at "http://hairyfotr.github.io/linteRepo/releases",
-    // "krasserm" at "http://dl.bintray.com/krasserm/maven",
-    "spray repo" at "http://repo.spray.io/",
-    "spray nightlies" at "http://nightlies.spray.io",
-    "twitter repo" at "http://maven.twttr.com"                               ,
-    "Journalio Repo" at "http://repo.eligotech.com/nexus/content/repositories/eligosource-releases"
+    "Maven repo mirror UK" at "http://uk.maven.org/maven2"
   )
 
 }

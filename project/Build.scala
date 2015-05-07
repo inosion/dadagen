@@ -41,8 +41,9 @@ object RootBuild extends Build {
   import Dependencies._
   import BuildSettings._
 
-  lazy val root = (project in file(".")).settings(rootSettings: _*) //.aggregate(genrandatorCore)
-
+  lazy val root = (project in file("."))
+    .settings(rootSettings: _*) //.aggregate(genrandatorCore)
+    .settings(projectSettings: _*)
     .settings(libraryDependencies ++= 
         compile(
           generex
@@ -56,6 +57,7 @@ object RootBuild extends Build {
            testing.scalatest
           ,testing.scalacheck
           ,testing.scalamock
+          ,gatling // we are using gatling in a test to show how to use our library in gatling
         )
         ++ runtime (
           logging.logback

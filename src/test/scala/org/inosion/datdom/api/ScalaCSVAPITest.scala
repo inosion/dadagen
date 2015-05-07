@@ -3,6 +3,7 @@ package org.inosion.datdom.api
 import java.io.StringWriter
 
 import com.fasterxml.jackson.core.`type`.TypeReference
+import com.fasterxml.jackson.databind.ObjectWriter
 import com.fasterxml.jackson.dataformat.csv.{CsvSchema, CsvMapper}
 import org.inosion.datdom.api.scala._
 import org.scalatest.{Matchers, FlatSpec}
@@ -41,17 +42,17 @@ class ScalaCSVAPITest extends FlatSpec with Matchers {
     // use jackson dataformat to spit the data out
 
     val mapper = new CsvMapper()
-    val csvSchema = CsvSchema.emptySchema()
+    val csvSchema:CsvSchema = CsvSchema.emptySchema()
       .withoutHeader()
       .withQuoteChar('"')
       .withColumnSeparator(',')
       .withLineSeparator("\n")
     ;
-    val writer = mapper.writer(csvSchema)
-    print(writer.writeValueAsString(Array(arrayData._1.toArray.head))  )
-    print(writer.writeValueAsString(Array(arrayData._2.map(_.toArray).toArray.head))  )
+    val writer:ObjectWriter = mapper.writer(csvSchema)
 
-    // println(writer.writeValueAsString(arrayData._1))
-    //println(writer.writeValueAsString(arrayData._2.toArray) )
+    println(arrayData)
+    // Jackson wants an array
+    print(writer.writeValueAsString(arrayData._1.toArray)  ) // column names
+    print(writer.writeValueAsString(arrayData._2.map(_.toArray).toArray)  ) // first row
   }
 }

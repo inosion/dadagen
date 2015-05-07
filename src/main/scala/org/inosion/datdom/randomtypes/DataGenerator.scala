@@ -9,7 +9,7 @@ trait DataGenerator[T] {
 
   def name: String
   def description: String
-  def generate(context:Context,dependantList:Seq[String]):T = {
+  def generate(context:Context,dependantList:List[String]):T = {
     val result = internalGenerate(context)
     if (dependantList.contains(name)) {
       context.dataFieldState.put(name, result)

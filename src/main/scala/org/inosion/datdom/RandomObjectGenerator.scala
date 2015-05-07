@@ -8,10 +8,10 @@ import org.inosion.datdom.randomtypes.DataGenerator
 case class RandomObjectGenerator(
                              rows:Int,
                              // the rowConfig is an ordering
-                             generators:Seq[DataGenerator[_]] = Seq.empty
+                             generators:List[DataGenerator[_]] = List.empty
 
-                             ) extends RandomDataGenerator[Seq[AnyRef]] {
-  override def generate(): Seq[AnyRef] = ???
+                             ) extends RandomDataGenerator[List[AnyRef]] {
+  override def generate(): List[AnyRef] = ???
 }
 
 

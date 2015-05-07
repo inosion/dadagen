@@ -37,6 +37,7 @@ object Dependencies {
     val version = "2.4.0"
     val dfcsv = "com.fasterxml.jackson.dataformat" % "jackson-dataformat-csv" % version
   }
+  val gatling = "io.gatling.highcharts" % "gatling-charts-highcharts" % "2.1.5"
 
   val scalastm = "org.scala-stm" %% "scala-stm" % "0.7"
 
@@ -57,7 +58,7 @@ object Dependencies {
   // Test Dependencies
   //
   object testing {
-    val scalatest       = "org.scalatest"      %% "scalatest"                   % "2.2.1"
+    val scalatest       = "org.scalatest"      %% "scalatest"    % "2.2.2"
     val scalacheck      = "org.scalacheck"     %% "scalacheck"   % "1.12.1"
     val scalamock       = "org.scalamock"      %% "scalamock-scalatest-support" % "3.2"
   }
