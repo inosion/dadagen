@@ -29,6 +29,7 @@ class DoNothingAction(val next: ActorRef) extends Chainable with Failable with D
 
 }
 
+/*
 class ExampleGatlingSimulation extends Simulation {
 
   def doNothing() = new ActionBuilder {
@@ -53,3 +54,4 @@ class ExampleGatlingSimulation extends Simulation {
   setUp(scn.inject(atOnceUsers(10)))
 
 }
+*/

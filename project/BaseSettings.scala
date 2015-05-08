@@ -1,5 +1,6 @@
 import sbt._
 import Keys._
+import bintray.BintrayKeys._
 
 /**
  * Defines settings for the projects:
@@ -8,7 +9,7 @@ import Keys._
 object BaseSettings {
 
   object Version {
-    val ThisVersion = "2.2.2"
+    val ThisVersion = "0.2.6"
     val Scala = "2.11.6"
   }
 
@@ -20,6 +21,7 @@ object BaseSettings {
       Seq(
         organizationHomepage := Some(new URL("https://inosion.org/dadagen")),
         organization := "org.inosion.dadagen",
+        bintrayOrganization := Some("inosion"),
         scalaVersion := Version.Scala,
         version := Version.ThisVersion,
         scalacOptions in Compile ++= Seq(

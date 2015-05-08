@@ -2,6 +2,7 @@ import BaseSettings.Version
 import sbt._
 import sbt.Keys._
 import io.gatling.sbt.GatlingPlugin
+import bintray.BintrayPlugin
 
 object BuildSettings {
 
@@ -42,7 +43,7 @@ object RootBuild extends Build {
   import Dependencies._
   import BuildSettings._
 
-  lazy val dadagenRoot = (project in file("."))
+  lazy val dadagen = (project in file("."))
     .settings(rootSettings: _*) //.aggregate(dadagenCore)
     .settings(projectSettings: _*)
     .enablePlugins(GatlingPlugin)
