@@ -24,31 +24,37 @@ First, import the dadagen Scala DSL.
 import org.inosion.dadagen.api.scaladsl._
 ```
     
-Next, create your dadgen defintion (what types of random data you want).
-
-    val feeder = dadagen asMaps {
-        field { "id".rownumber }.
-        field { "gender".gender }.
-        field { "firstname".name firstname }.
-        field { "surname".name surname }.
-         // Combine all the values together .. order (what it depends on) does not matter
-        field { "message".template("${id} - ${firstname} ${surname} (${gender}) i:${int} ${ref}")}.
-        field { "int".number between 10 and 99876 }.
-        field { "ref".regexgen("[a-f]{6}-[0-9a-f]{8}") }
-    } generate() // call generate to make the Iterator
-
+Next, create your dadagen defintion (what types of random data you want).
+```scala
+val feeder = dadagen asMaps {
+    field { "id".rownumber }.
+    field { "gender".gender }.
+    field { "firstname".name firstname }.
+    field { "surname".name surname }.
+     // Combine all the values together .. order (what it depends on) does not matter
+    field { "message".template("${id} - ${firstname} ${surname} (${gender}) i:${int} ${ref}")}.
+    field { "int".number between 10 and 99876 }.
+    field { "ref".regexgen("[a-f]{6}-[0-9a-f]{8}") }
+} generate() // call generate to make the Iterator
+```
 Then use the Feeder in your script setup.
 
-    val scn = scenario("scenario1").feed(feeder).exec(http(....))
+```scala
+val scn = scenario("scenario1").feed(feeder).exec(http(....))
+```
 
 Each "field" name will be a session attribute that you can use.
 
-     // this would return the "message" which above, is defined as a Template. 
-     session.attributes.get("message")
+```scala
+ // this would return the "message" which above, is defined as a Template. 
+ session.attributes.get("message")
+```
 
 If you need to have a "limited" or restricted set of data, you can use the method generateAll
 
-    dadagen asMaps { ... } generateAll(100)
+```scala
+dadagen asMaps { ... } generateAll(100)
+```
 
 instead to generate 100 Map[String,String] entries.
 
@@ -62,7 +68,9 @@ Stay Tuned, a native "Class" generator is coming where you specify the class and
 Matching each field that it finds to a predefined (convention over configuration) set of named field generators.
 (this design comes from the older project http://random-data-generator.googlecode.com/
     
-    datagen.object(classOf[ClassName]).generate()
+```scala
+datagen.object(classOf[ClassName]).generate()
+```
 
 ## Native Scala Case Class Creation
 
@@ -72,43 +80,45 @@ As above, we will also auto generate Case Classes.
 
 You can create a CSV with the following snippet of code (using Jackson for CSV generation), or your favourite other CSV generator).
 
-    import org.inosion.dadagen.api.scaladsl._
+```scala
+import org.inosion.dadagen.api.scaladsl._
 
-    // note that "col" is the same/synonomous to "field"
-    val generator = dadagen asLists {
-          col { "id".rownumber }.
-          col { "col title".name title }.
-          col { "firstname".name firstname }.
-          col { "surname".name surname }.
-          col { "int".number between 10 and 1001 }.
-          col { "money".number between 1.0 and 10 }.
-          col { "gender". gender }.
-          col { "random-string".regexgen ("""TEsting [0-9] [a-zA-z_';:"\[\]]{5}""")  }.
-          col { "addr_street_line".address street }.
-          col { "addr_suburb" .address suburb }.
-          col { "addr_city".   address city }.
-          col { "addr_district". address district }.
-          col { "addr_postcode". address postcode }.
-          //col { "list". listFrom ("This row is ${firstname} ${id}") },
-          col { "template". template ("This row is ${firstname} ${id}") }
-    }
+// note that "col" is the same/synonomous to "field"
+val generator = dadagen asLists {
+      col { "id".rownumber }.
+      col { "col title".name title }.
+      col { "firstname".name firstname }.
+      col { "surname".name surname }.
+      col { "int".number between 10 and 1001 }.
+      col { "money".number between 1.0 and 10 }.
+      col { "gender". gender }.
+      col { "random-string".regexgen ("""TEsting [0-9] [a-zA-z_';:"\[\]]{5}""")  }.
+      col { "addr_street_line".address street }.
+      col { "addr_suburb" .address suburb }.
+      col { "addr_city".   address city }.
+      col { "addr_district". address district }.
+      col { "addr_postcode". address postcode }.
+      //col { "list". listFrom ("This row is ${firstname} ${id}") },
+      col { "template". template ("This row is ${firstname} ${id}") }
+}
 
-    val header = generator.fieldNames
-    val arrayData = generator.generateAll(5)
+val header = generator.fieldNames
+val arrayData = generator.generateAll(5)
 
-    // Create a new Jackson CSV Mapper
-    val mapper = new CsvMapper()
-    val csvSchema:CsvSchema = CsvSchema.emptySchema()
-      .withoutHeader()
-      .withQuoteChar('"')
-      .withColumnSeparator(',')
-      .withLineSeparator("\n")
-    
-    val writer:ObjectWriter = mapper.writer(csvSchema)
+// Create a new Jackson CSV Mapper
+val mapper = new CsvMapper()
+val csvSchema:CsvSchema = CsvSchema.emptySchema()
+  .withoutHeader()
+  .withQuoteChar('"')
+  .withColumnSeparator(',')
+  .withLineSeparator("\n")
 
-    // Jackson needs an "Array"
-    print(writer.writeValueAsString(header.toArray)  ) // column names - first (Header) row
-    print(writer.writeValueAsString(arrayData.map(_.toArray).toArray)  ) // the data
+val writer:ObjectWriter = mapper.writer(csvSchema)
+
+// Jackson needs an "Array"
+print(writer.writeValueAsString(header.toArray)  ) // column names - first (Header) row
+print(writer.writeValueAsString(arrayData.map(_.toArray).toArray)  ) // the data
+```
 
 # Scala DSL and the Generators
 
@@ -116,20 +126,27 @@ A Small note about the DSL.
 The keyword "col" or "field" is just syntatic sugar to accept a Generator and concatenating them into a list.
 The Generators are the heart of dadagen.
 
-    col { "fieldname" name firstname } 
+```scala
+col { "fieldname" name firstname } 
+```
 
 is equivalent to 
 
-    col { FirstNameGenerator(fieldName) }
+```scala
+col { FirstNameGenerator(fieldName) }
+```
     
 So you can write your own generator and drop it in place
     
-    col { MyCustomGenerator(someFieldName) }
+```scala
+col { MyCustomGenerator(someFieldName) }
+```
 
 Just extend 
 
-    DataGenerator[ T ]
-
+```scala
+DataGenerator[ T ]
+```
 
 # Context / Binding
 
@@ -148,7 +165,7 @@ This is the core idea of dadagen, that we can provide all the data you need.
 Each embedded data type is supported by a simple Case Class Generator. So you can both write your own generator
 and mix and match other ones to your hearts content.
 
-The lists are defined in the dadgen config file (src/main/resources/reference.conf)
+The lists are defined in the dadagen config file (src/main/resources/reference.conf)
 
 The lists can be used arbitrarily, outside of a defined "Configured Generator" and you can even add you own lists by extending the Typesafe Config.
 
