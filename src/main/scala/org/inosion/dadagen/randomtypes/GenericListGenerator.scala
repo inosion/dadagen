@@ -5,9 +5,10 @@ import org.inosion.dadagen._
 /**
  * @author rbuckland
  */
+
 case class GenericListGenerator(name:String,
-                         listName:Option[String],
-                         listData:Option[List[String]]
+                         listName:Option[String] = None,
+                         listData:Option[List[String]] = None
                           ) extends DataGenerator[String] {
 
   // preload the list if they are using one

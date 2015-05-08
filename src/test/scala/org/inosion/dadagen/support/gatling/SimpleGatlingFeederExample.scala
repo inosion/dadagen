@@ -48,7 +48,7 @@ class ExampleGatlingSimulation extends Simulation {
      field { "ref".regexgen("[a-f]{6}-[0-9a-f]{8}") }
   } generate() // call generate to make the Iterator
 
-  val scn = scenario("Actor Gets a Message").feed(FeederWrapper(feeder)).exec(doNothing)
+  val scn = scenario("Actor Gets a Message").feed(feeder).exec(doNothing)
 
   setUp(scn.inject(atOnceUsers(10)))
 
