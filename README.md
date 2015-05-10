@@ -69,7 +69,7 @@ Matching each field that it finds to a predefined (convention over configuration
 (this design comes from the older project http://random-data-generator.googlecode.com/
     
 ```scala
-datagen.object(classOf[ClassName]).generate()
+dadagen.object(classOf[ClassName]).generate()
 ```
 
 ## Native Scala Case Class Creation
