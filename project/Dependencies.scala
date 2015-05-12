@@ -47,6 +47,11 @@ object Dependencies {
     val highcharts    = "io.gatling.highcharts" % "gatling-charts-highcharts" % version
   }
 
+  object jmeter { 
+    val version = "2.13"
+    val core = "org.apache.jmeter" % "ApacheJMeter_core" % version
+  }
+
 
   val akka = "com.typesafe.akka" %% "akka-actor" % "2.3.9"
 

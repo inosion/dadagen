@@ -38,12 +38,12 @@ object BuildSettings {
 /**
  * The SBT Build Object
  */
-object RootBuild extends Build {
+object DadagenBuild extends Build {
 
   import Dependencies._
   import BuildSettings._
 
-  lazy val dadagen = (project in file("."))
+  lazy val dadagenCore = (project in file("dadagen-core"))
     .settings(rootSettings: _*) //.aggregate(dadagenCore)
     .settings(projectSettings: _*)
     .enablePlugins(GatlingPlugin)
@@ -68,5 +68,11 @@ object RootBuild extends Build {
           logging.logback
         )
      )
+
+  lazy val dadagenJmeter = (project in file("dadagen-jmeter"))
+    .dependsOn(dadagenCore)
+    .settings(libraryDependencies ++= provided(jmeter.core))
+
+  lazy val dadagenRoot = (project in file(".")).aggregate(dadagenCore, dadagenJmeter)
 
 }

@@ -25,7 +25,9 @@ import org.inosion.dadagen.api.scaladsl._
 ```
     
 Next, create your dadagen defintion (what types of random data you want).
+You may also want to define the use of the gatling default ThreadLocal Random
 ```scala
+implicit val rand = scala.concurrent.forkjoin.ThreadLocalRandom.current
 val feeder = dadagen asMaps {
     field { "id".rownumber }.
     field { "gender".gender }.

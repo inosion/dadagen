@@ -9,7 +9,7 @@ import bintray.BintrayKeys._
 object BaseSettings {
 
   object Version {
-    val ThisVersion = "0.2.6"
+    val ThisVersion = "0.2.7"
     val Scala = "2.11.6"
   }
 
