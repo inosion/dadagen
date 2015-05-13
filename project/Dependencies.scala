@@ -49,7 +49,11 @@ object Dependencies {
 
   object jmeter { 
     val version = "2.13"
-    val core = "org.apache.jmeter" % "ApacheJMeter_core" % version
+    val core = "org.apache.jmeter" % "ApacheJMeter_core" % version notTransitive()
+    // jmeter has dependencies on the older non org.apache.commons. groupId/ commons-pool2#commons-pool2;2.3
+    // so we will explicitly bring them in
+//    val commonsMath3 = "commons-math3" % "commons-math3" % "3.4.1" from "http://central.maven.org/maven2/org/apache/commons/commons-math3/3.4.1/commons-math3-3.4.1.jar"
+///    val commonsPool2 = "commons-pool2" % "commons-pool2" % "2.3" from "http://central.maven.org/maven2/org/apache/commons/commons-pool2/2.3/commons-pool2-2.3.jar"
   }
 
 

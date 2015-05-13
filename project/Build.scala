@@ -3,6 +3,8 @@ import sbt._
 import sbt.Keys._
 import io.gatling.sbt.GatlingPlugin
 import bintray.BintrayPlugin
+import sbtassembly.AssemblyKeys._
+
 
 object BuildSettings {
 
@@ -18,6 +20,7 @@ object BuildSettings {
       fork in Test := false,
       fork in IntegrationTest := false,
       parallelExecution in Test := false,
+      run in Compile <<= Defaults.runTask(fullClasspath in Compile, mainClass in (Compile, run), runner in (Compile, run)),
       publishLocal := {},
       publish := {},
       //publishArtifact := false,
@@ -44,7 +47,6 @@ object DadagenBuild extends Build {
   import BuildSettings._
 
   lazy val dadagenCore = (project in file("dadagen-core"))
-    .settings(rootSettings: _*) //.aggregate(dadagenCore)
     .settings(projectSettings: _*)
     .enablePlugins(GatlingPlugin)
     .settings(libraryDependencies ++=
@@ -69,10 +71,28 @@ object DadagenBuild extends Build {
         )
      )
 
-  lazy val dadagenJmeter = (project in file("dadagen-jmeter"))
+  lazy val dadagenJmeter = Project( id="dadagen-jmeter", base = file("dadagen-jmeter"))
     .dependsOn(dadagenCore)
-    .settings(libraryDependencies ++= provided(jmeter.core))
+    .settings(projectSettings: _*)
+    // frustrating!!! IntelliJ does not "see" a provided scope dependency, which is what JMeter needs to
+    // be for dadgen plugin.
+    .settings(libraryDependencies ++= compile(jmeter.core))
 
-  lazy val dadagenRoot = (project in file(".")).aggregate(dadagenCore, dadagenJmeter)
+    // really wish there was a cleaner way to do this
+    .settings(assemblyExcludedJars in assembly := {
+        val cp = (fullClasspath in assembly).value
+        cp.filter {
+          _.data.getName match {
+            case x:String if x.contains("ApacheJMeter_core") => true
+            case y:String if y.contains("jackson") => true
+            case _ => false
+          }
+        }
+     })
+
+
+  lazy val dadagenRoot = (project in file("."))
+    .settings(rootSettings: _*)
+    .aggregate(dadagenCore, dadagenJmeter)
 
 }
