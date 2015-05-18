@@ -1,5 +1,6 @@
 package org.inosion.dadagen
 
+
 import org.inosion.dadagen.randomtypes.DataGenerator
 
 /* reducing compiled class sizes in the releases - http://blog.duh.org/2011/11/scala-pitfalls-trait-bloat.html */

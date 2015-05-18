@@ -16,6 +16,7 @@ object ResolverSettings {
     Resolver.typesafeRepo("releases"),
     Resolver.sonatypeRepo("releases"),
     Resolver.sonatypeRepo("snapshots"),
+    "Twitter Maven Repository" at "http://maven.twttr.com/",
     "Maven repo mirror UK" at "http://uk.maven.org/maven2"
   )
 

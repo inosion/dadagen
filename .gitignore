@@ -1,3 +1,4 @@
+*.jmx
 *.tmp
 *.class
 *.log

@@ -1,6 +1,8 @@
 package org.inosion.dadagen
 
 import java.security.SecureRandom
+import scala.collection.JavaConverters._
+
 
 import org.inosion.dadagen.randomtypes.DataGenerator
 
@@ -13,6 +15,9 @@ extends RandomDataGenerator[Iterator[A]] {
   def fgen(ctx:Context):A
 
   def generateAll(rows: Int):List[A] = generate().take(rows).toList
+
+  def generateAllJava(rows: java.lang.Integer) = generateAll(rows).asJava
+
 
   /**
    * All the column names, or if a map the Key Names
@@ -29,6 +34,7 @@ extends RandomDataGenerator[Iterator[A]] {
     }
   }
 
+  def generateJava = generate.asJava
 
 }
 /**
@@ -63,6 +69,4 @@ case class MapOfStringsGenerator(
      generatorsOrder map (g => g.name -> g.generate(ctx, dependentOn).toString) toMap
 
 }
-
-
 

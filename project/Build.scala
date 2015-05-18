@@ -76,7 +76,7 @@ object DadagenBuild extends Build {
     .settings(projectSettings: _*)
     // frustrating!!! IntelliJ does not "see" a provided scope dependency, which is what JMeter needs to
     // be for dadgen plugin.
-    .settings(libraryDependencies ++= compile(jmeter.core))
+    .settings(libraryDependencies ++= compile(jmeter.core, scalalang.compiler))
 
     // really wish there was a cleaner way to do this
     .settings(assemblyExcludedJars in assembly := {
@@ -85,6 +85,8 @@ object DadagenBuild extends Build {
           _.data.getName match {
             case x:String if x.contains("ApacheJMeter_core") => true
             case y:String if y.contains("jackson") => true
+            case y:String if y.contains("jorphan") => true
+            case y:String if y.contains("rsyntaxtextarea") => true
             case _ => false
           }
         }
