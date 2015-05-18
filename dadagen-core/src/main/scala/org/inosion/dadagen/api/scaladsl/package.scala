@@ -40,6 +40,8 @@ package object scaladsl {
     def address = new AddressGenerators(colName)
     def number = new NumberGenerators(colName)
     def template(templateString:String) = TemplateGenerator(colName,templateString)
+    def list(values:List[String]) = GenericListGenerator(name = colName,listData = Some(values))
+    def cfglist(listname:String) = GenericListGenerator(name = colName,listName = Some(listname))
   }
 
   // sub options when dealing with names

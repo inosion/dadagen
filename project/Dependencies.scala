@@ -51,7 +51,7 @@ object Dependencies {
 
     val version = "2.13"
     val core = ("org.apache.jmeter" % "ApacheJMeter_core" % version)
-      // it would be _really_ awesome if I could say - exclude "everyhting" BUT xyz :-)
+      // it would be _really_ awesome if I could say - exclude "everything" BUT xyz :-)
       // or even support regexp in the "org" and/or "artifactId"
       .exclude("avalon-framework","*")
       .exclude("com.thoughtworks.xstream","xstream")

@@ -18,7 +18,7 @@ object PublishSettings {
         <url>https://github.com/inosion/dadagen</url>
         <licenses>
           <license>
-            <name>Apache 2.0 (c) Inosion 2015</name>
+            <name>Apache 2.0 (c) 2015 Inosion</name>
           </license>
         </licenses>
         <scm>

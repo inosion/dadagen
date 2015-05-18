@@ -2,7 +2,7 @@ import BaseSettings.Version
 import sbt._
 import sbt.Keys._
 import io.gatling.sbt.GatlingPlugin
-import bintray.BintrayPlugin
+import bintray.BintrayKeys._
 import sbtassembly.AssemblyKeys._
 
 
@@ -22,6 +22,8 @@ object BuildSettings {
       parallelExecution in Test := false,
       run in Compile <<= Defaults.runTask(fullClasspath in Compile, mainClass in (Compile, run), runner in (Compile, run)),
       publishLocal := {},
+      bintrayOrganization :=  Some("inosion"),
+      bintrayPackage := "org.inosion.dadagen",
       publish := {},
       //publishArtifact := false,
       version in ThisBuild := Version.ThisVersion
@@ -46,13 +48,12 @@ object DadagenBuild extends Build {
   import Dependencies._
   import BuildSettings._
 
-  lazy val dadagenCore = (project in file("dadagen-core"))
+  lazy val dadagenCore = Project( id="dadagen-core", base = file("dadagen-core"))
     .settings(projectSettings: _*)
     .enablePlugins(GatlingPlugin)
     .settings(libraryDependencies ++=
         compile(
           generex
-    //    commons.beanutils
           ,scalacsv
           ,scalastm
           ,logging.slf4j
@@ -78,6 +79,7 @@ object DadagenBuild extends Build {
     // frustrating!!! IntelliJ does not "see" a provided scope dependency, which is what JMeter needs to
     // be for dadgen plugin.
     .settings(libraryDependencies ++= compile(jmeter.core, scalalang.compiler))
+    .settings(addArtifact(Artifact("dadagen-jmeter", "assembly"), sbtassembly.AssemblyKeys.assembly))
 
     // really wish there was a cleaner way to do this
     .settings(assemblyExcludedJars in assembly := {
@@ -85,7 +87,7 @@ object DadagenBuild extends Build {
         cp.filter {
           _.data.getName match {
             case x:String if x.contains("ApacheJMeter_core") => true
-//            case y:String if y.contains("jackson") => true
+            case y:String if y.contains("jackson") => true
             case y:String if y.contains("jorphan") => true
             case y:String if y.contains("rsyntaxtextarea") => true
             case _ => false

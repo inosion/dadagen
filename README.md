@@ -15,6 +15,12 @@ This is a much more feature rich Scala version. Soon I will have the same featur
 
 ## Gatling Feeder Support
 
+### As a dependency
+
+```scala
+"org.inosion.dadagen" %% "dadagen-core" % "0.2.7"
+```
+
 Feeders in Gatling are the method of providing "data" as an iterator, (loading from a CSV for example).
 This of course is very easy for dadagen.
 
@@ -64,7 +70,20 @@ instead to generate 100 Map[String,String] entries.
 
 Dadagen has been embeded into a Simple JMeter Plugin that allows you to generate random data for your test threads.
 
-You can download the JMeter Plugin Jar from bintray - [JMeter Plugin 0.2.7](https://bintray.com/artifact/download/inosion/maven/dadagen-jmeter-assembly-0.2.7.jar)
+You can download the JMeter Plugin Jar from bintray - [JMeter Plugin 0.2.7](https://bintray.com/artifact/download/inosion/maven/org/inosion/dadagen/dadagen-jmeter_2.11/0.2.7/dadagen-jmeter_2.11-0.2.7-assembly.jar)
+You will need to put it into you JMETER_HOME/lib/ext
+
+You will then have a new Config Element called "Dadagen Random Data Generator"
+
+Hopefully the configuration is very self explanatory.
+
+[![JMeter Configuration] (assets/jmeter_dadagen_random_gen_ui.png)]
+
+
+And here is a sample of the resulting "variables"
+[![JMeter Vars] (assets/jmeter_dadagen_random_gen_results.png)]
+
+Enjoy!!
 
 ## Native Scala Class Creation
 
@@ -177,6 +196,33 @@ The current lists defined are
 
 !inc(src/main/resources/reference.conf)
 
+## Generic Data Creation
+
+Perhaps the two most important random configurations are "regular expressions" and "templates".
+
+### Regular Expression
+
+The regular expression is from [Generex] (https://github.com/mifmif/Generex)
+Some simple examples are
+
+```scala
+field { "emailAddress".regexgen """my\.test\.email\.[a-f]{6}\.[0-9]{10}\@foo\.com""" }
+...
+field { "guid_uuid".regexgen "[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89aAbB][a-f0-9]{3}-[a-f0-9]{12}" }
+```
+
+### Templates
+
+Using a template, you can combine "values" together from other fields. It does not matter what order the values are in; so long as you don't make a circlar reference
+then is should all work out ok.
+
+```scala
+field { "firstname".name firstname }.
+field { "surname".name surname }.
+field { "full_name".template "${firstname} ${surname}"}
+```
+
+
 ## Person Data
 
 ### Gender
@@ -197,6 +243,42 @@ listName (a keyed name of the "list" of names to use)
 ## Data Lists
 
 A lot of the Data Generators use a custom "list" of data to provide real test data. For example a list of firstnames is available.
+There are two ways to use a list of values. 
+
+1. Provide a static (fixed list)
+
+```scala
+field { "mycustomlist".list List("blue","green","pink","dust red","black") }
+```
+
+2. Use a file : configure it in a config file, put it on the classpath
+
+This is more advanced (not that it is hard)
+You will need to configure the list in an "application.conf" file in your classpath.
+
+```scala
+dadagen {
+  lists {
+    myorg { 
+      mycustomlist.filename = "classpath:somecustomlist.csv"
+      filesystemlist.filename = "file:../some/../relative/path/someother.csv"
+
+      glass {
+        values = ["Chevron","Beveled","Flat","Float","Ground","Silica fiber","Starfire","Frosted","Rippled"]
+      }
+    }
+  }
+}
+
+... 
+// using the list
+field { "mycustomlist".cfglist "myorg.mycustomlist" }.
+field { "glass".cfglist "myorg.glass" }.
+```
+
+To see more example of pre-configured lists (ones that we have bundled in the Jar), see the Typesafe Config file for Dadagen in [resources.conf](https://github.com/inosion/dadagen/blob/master/dadagen-core/src/main/resources/reference.conf)
+
+If there is a list of "stuff" that you think is really helpful, (like a list of average rain drop sizes :-) ) then create a issue with the list, or a pull request and we'll add it in.
 
 ## Gender
 
