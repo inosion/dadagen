@@ -1,10 +1,10 @@
 package org.inosion.dadagen.lists
 
-import java.io.InputStream
+import java.io.{InputStreamReader, InputStream}
 import java.util.Random
 
-import com.fasterxml.jackson.databind.MappingIterator
-import com.fasterxml.jackson.dataformat.csv.{CsvMapper, CsvParser}
+import com.github.tototoshi.csv._
+
 import org.inosion.dadagen.randomtypes.RandomUtil
 import org.slf4j.LoggerFactory
 
@@ -43,7 +43,7 @@ object ListManager {
    * @param rows
    * @param hasDiscriminator
    */
-  def importData(listName:String,rows:java.util.Iterator[Array[String]], hasDiscriminator:Boolean):Unit = {
+  def importData(listName:String,rows:Stream[List[String]], hasDiscriminator:Boolean):Unit = {
 
     // for the import of data, we will only do this once. By list name
     if (listData.single.containsKey(listName)) {
@@ -61,7 +61,7 @@ object ListManager {
     hasDiscriminator match {
       case true =>
         var indexKey = IndexKey(listName, ",,^^,,") // a nonsense discriminator that won't match
-        for (r:Array[String] <- rows) {
+        for (r:List[String] <- rows) {
           val i = listData(listName).size
           listData.put(listName, listData(listName) :+ r(0))
           if (!indexKey.discriminator.equals(r(1))) {
@@ -70,7 +70,7 @@ object ListManager {
           }
           index.put(indexKey, index(indexKey) :+ i)
         }
-      case false => for( r:Array[String] <- rows) { listData.put(listName, listData(listName) :+ r(0)) }
+      case false => for( r:List[String] <- rows) { listData.put(listName, listData(listName) :+ r(0)) }
     }
     }
   }
@@ -116,19 +116,13 @@ object ListManager {
     }
   }
 
-  private val csvMapper = {
-    val mapper = new CsvMapper()
-    mapper.enable(CsvParser.Feature.WRAP_AS_ARRAY)
-    mapper
-  }
-
   /**
    * Import a File Stream
    *
    * @param listName
-   * @param stream
+   * @param is
    */
-  def importFile(listName:String, stream:InputStream):Unit = {
+  def importFile(listName:String, is:InputStream):Unit = {
 
     if (listData.single.containsKey(listName)) {
       logger.info(s"Not importing [${listName}] as it is already imported")
@@ -137,18 +131,17 @@ object ListManager {
 
     // we could use CSVDictReader .. but I don't care for the column names
     // and this uses slightly less memory (on initial load)
-    val mapper = csvMapper
-    val iter:MappingIterator[Array[String]] = mapper.reader(classOf[Array[String]]).readValues(stream)
+    val reader = CSVReader.open(new InputStreamReader(is))
+    val stream = reader.toStream()
 
-    // first row is always considered the header row.. MUST have column names in
-    // the CSV files people
+    // first row is always considered the header row.. we MUST have column names in the CSV files people
     // look at the first row and see if has more than one column (the header row)
-    val firstRow = iter.next()
+    val firstRow = stream.head
 
     if (firstRow.length > 1) {
-      importData(listName, iter, hasDiscriminator = true)
+      importData(listName, stream, hasDiscriminator = true)
     } else {
-      importData(listName, iter, hasDiscriminator = false)
+      importData(listName, stream, hasDiscriminator = false)
     }
 
   }

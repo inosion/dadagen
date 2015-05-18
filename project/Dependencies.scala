@@ -114,6 +114,8 @@ object Dependencies {
   // for the Groovy API for others
   val groovy = "org.codehaus.groovy" % "groovy-all" % "2.4"
 
+  val scalacsv = "com.github.tototoshi" %% "scala-csv" % "1.2.1"
+
   //
   // Logging
   //

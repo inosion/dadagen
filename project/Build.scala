@@ -53,7 +53,7 @@ object DadagenBuild extends Build {
         compile(
           generex
     //    commons.beanutils
-          ,jackson.dfcsv
+          ,scalacsv
           ,scalastm
           ,logging.slf4j
           ,typesafeconfig
@@ -61,6 +61,7 @@ object DadagenBuild extends Build {
         ++ test (
            testing.scalatest
           ,testing.scalacheck
+          ,jackson.dfcsv
           ,testing.scalamock
           ,gatling.testFramework // we are using gatling in a test to show how to use our library in gatling
           ,gatling.highcharts

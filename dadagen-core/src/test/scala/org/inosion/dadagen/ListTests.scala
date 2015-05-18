@@ -16,7 +16,7 @@ class RandomListTest extends FlatSpec with Matchers {
 
     val values = Array("blue","red","green","orange","purple","black","brown","pink")
 
-    ListManager.importData("colours",values.map{x => Array(x) }.toIterator,false)
+    ListManager.importData("colours",values.map{x => List(x) }.toStream,false)
 
     val aSingleValue = ListManager.getRandomValue("colours",None)
 

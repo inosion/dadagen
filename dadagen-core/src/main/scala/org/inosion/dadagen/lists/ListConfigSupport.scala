@@ -66,7 +66,7 @@ object ListConfigSupport {
         // it was not a Config subtype
         case e: ConfigException.WrongType => {
           ListManager.importData(listKeyName
-            ,keyConfig.getStringList("values").asScala.map{x => Array(x)}.toIterator
+            ,keyConfig.getStringList("values").asScala.map{x => List(x)}.toStream
             ,false)
         }
       }
