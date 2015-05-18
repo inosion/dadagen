@@ -28,7 +28,6 @@
       <hashTree>
         <org.inosion.dadagen.jmeter.DadagenDataSet guiclass="org.inosion.dadagen.jmeter.DadagenDataSetGui" testname="Dadagen Random Data Generator">
           <intProp name="DadagenDataSet.numberOf">10</intProp>
-          <stringProp name="DadagenDataSet.threadSharingScope">Each thread has it&apos;s own data set</stringProp>
           <boolProp name="DadagenDataSet.runContinuous">false</boolProp>
           <boolProp name="DadagenDataSet.stopThread">true</boolProp>
           <stringProp name="DadagenDataSet.variablePrefix">dgen_</stringProp>

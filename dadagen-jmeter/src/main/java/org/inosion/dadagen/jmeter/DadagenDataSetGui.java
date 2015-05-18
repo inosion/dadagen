@@ -84,7 +84,7 @@ public class DadagenDataSetGui extends AbstractConfigGui {
         if (element instanceof DadagenDataSet) {
             DadagenDataSet dadagen = (DadagenDataSet)element;
 
-            threadScopeModelChooser.setSelectedItem(dadagen.getThreadScope());
+            // threadScopeModelChooser.setSelectedItem(dadagen.getThreadScope());
             setSelectedRunContinuous(dadagen.isRunContinuous());
             numberOf.setText(Integer.toString(dadagen.getNumberOfLimit()));
             setStopThread(dadagen.isStopThread());
@@ -134,8 +134,10 @@ public class DadagenDataSetGui extends AbstractConfigGui {
         editConstraints.weightx = 1.0;
         editConstraints.fill = GridBagConstraints.HORIZONTAL;
 
+        /* TODO  - work out JMeters's way of context threadlocal etc
         addToPanel(mainPanel, labelConstraints, 0, 0, new JLabel(" Thread Data Sharing: ", JLabel.RIGHT));
         addToPanel(mainPanel, editConstraints, 1, 0, makethreadScopeModel());
+        */
 
         // this sets up the btnRunContinuous and btnLimited buttons
 
@@ -263,9 +265,11 @@ public class DadagenDataSetGui extends AbstractConfigGui {
         dadagen.setNumberOfLimit(Integer.parseInt(this.numberOf.getText()));
 
         // thread scope
+        /* not using right now
         dadagen.setThreadScope(
                 ((DadagenDataSet.ThreadModel) threadScopeModelChooser.getSelectedItem()).toString()
         );
+        */
 
         dadagen.setRunContinuous(btnRunContinuous.isSelected());
         dadagen.setStopThread(btnThreadStopYes.isSelected());

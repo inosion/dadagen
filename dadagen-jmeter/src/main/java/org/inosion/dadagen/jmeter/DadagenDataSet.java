@@ -7,10 +7,11 @@ import org.apache.jmeter.engine.event.LoopIterationListener;
 import org.apache.jmeter.engine.util.NoConfigMerge;
 import org.apache.jmeter.testbeans.TestBean;
 import org.apache.jmeter.testelement.property.StringProperty;
+import org.apache.jmeter.threads.JMeterContext;
 import org.apache.jmeter.threads.JMeterContextService;
 import org.apache.jmeter.threads.JMeterVariables;
 import org.apache.jorphan.util.JMeterStopThreadException;
-
+import org.apache.jmeter.util.JMeterUtils;
 
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
@@ -32,6 +33,7 @@ public class DadagenDataSet extends ConfigTestElement implements LoopIterationLi
 
     private static final long serialVersionUID = 027L;
 
+    public static final String DADAGEN_ITER_KEY = "Dadagen.iterator";
     public static final String DADAGEN_CONFIG = "DadagenDataSet.configuration"; // $NON-NLS-1$
     public static final String THREAD_SHARING_SCOPE = "DadagenDataSet.threadSharingScope";
     public static final String RUN_CONTINUOUS = "DadagenDataSet.runContinuous"; // $NON-NLS-1$
@@ -39,11 +41,15 @@ public class DadagenDataSet extends ConfigTestElement implements LoopIterationLi
     public static final String STOP_THREAD = "DadagenDataSet.stopThread"; // $NON-NLS-1$
     public static final String VARIABLE_PREFIX = "DadagenDataSet.variablePrefix"; // $NON-NLS-1$
 
+    // used for Local Thread
     private Iterator<Map<String,String>> randomIterator;
     private ScriptEngine engine;
 
+    // not using this at the moment
     public enum ThreadModel {
-        PER_THREAD_SCOPE("Each thread has it's own data set"), ALL_THREADS_SCOPE("Data shared across threads");
+        PER_THREAD_SCOPE("Each thread has it's own data set"),
+        PER_GROUP_SCOPE("Generation shared across a thread group"),
+        ALL_THREADS_SCOPE("Generation shared across all threads");
 
         private final String threadModel;
 
@@ -86,7 +92,10 @@ public class DadagenDataSet extends ConfigTestElement implements LoopIterationLi
 
         // in here is where we will load the dadagen config, interpret it and generate our "stuff"
 
-        JMeterVariables variables= JMeterContextService.getContext().getVariables();
+        // currently not looking at the thread group model
+
+        JMeterContext jmeterContext = JMeterContextService.getContext();
+        JMeterVariables variables = jmeterContext.getVariables();
 
         if (! isRunContinuous()) {
             if (loopIterationEvent.getIteration() > getNumberOfLimit() &&
@@ -108,44 +117,48 @@ public class DadagenDataSet extends ConfigTestElement implements LoopIterationLi
                 }
 
             }
-            variables.put("Dadagen.iteration_id", new Integer(loopIterationEvent.getIteration()).toString());
+            variables.put("Dadagen.iteration_id", Integer.toString(loopIterationEvent.getIteration()));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
-    private Map<String,String> getNextRandomData() throws Exception{
+    private Map<String,String> getNextRandomData() throws Exception {
 
+        if (randomIterator == null) {
+            randomIterator = createRandomIterator();
+        }
+        return randomIterator.next();
+
+    }
+
+
+    @SuppressWarnings("unchecked")
+    private synchronized Iterator<Map<String,String>> createRandomIterator() throws JMeterEngineException {
         if (engine == null) {
             engine = ScalaScriptEngine$.MODULE$.loadEngine();
         }
 
-        if (randomIterator == null) {
+        Iterator<Map<String,String>> randomMapIterator;
 
-            // we expect that the config in the JMeter GUI is a "field { ... } , field { .. } "
-            try {
+        // we expect that the config in the JMeter GUI is a "field { ... } , field { .. } "
+        try {
 
-                scala.collection.immutable.List<DataGenerator<?>> generators =
-                        (scala.collection.immutable.List<DataGenerator<?>>) engine.eval(
-                                // import the scala implicits
-                                "import org.inosion.dadagen.api.scaladsl._\n\n\n" + getDadagenConfig()
-                        );
-                MapOfStringsGenerator dadagen = MapOfStringsGenerator$.MODULE$.apply(generators, new java.security.SecureRandom());
-                randomIterator = dadagen.generateJava();
-            } catch (Exception e) {
-                throw new JMeterEngineException("There was a problem reading the Dadagen Config",e);
-            }
+            scala.collection.immutable.List<DataGenerator<?>> generators =
+                    (scala.collection.immutable.List<DataGenerator<?>>) engine.eval(
+                            // import the scala implicits
+                            "import org.inosion.dadagen.api.scaladsl._\n\n\n" + getDadagenConfig()
+                    );
+            MapOfStringsGenerator dadagen = MapOfStringsGenerator$.MODULE$.apply(generators, new java.security.SecureRandom());
+            randomMapIterator = dadagen.generateJava();
+        } catch (Exception e) {
+            throw new JMeterEngineException("There was a problem reading the Dadagen Config",e);
         }
 
-        return randomIterator.next();
+        return randomMapIterator;
 
-//        HashMap<String,String> x = new HashMap<String,String>();
-//        x.put(NUMBER_OF,getNumberOfLimit() + "");
-//        x.put(THREAD_SHARING_SCOPE, getThreadScope());
-//        x.put(VARIABLE_PREFIX,getVariablePrefix());
-//        x.put(DADAGEN_CONFIG,getDadagenConfig());
-//        return x;
     }
+
 
 
 }

@@ -62,7 +62,9 @@ instead to generate 100 Map[String,String] entries.
 
 ## JMeter Data Provider
 
-Stay Tuned, a JMeter Plugin is coming that will allow you to use the dadagen configuration in place of a CSV Reader.
+Dadagen has been embeded into a Simple JMeter Plugin that allows you to generate random data for your test threads.
+
+You can download the JMeter Plugin Jar from bintray - [JMeter Plugin 0.2.7](https://bintray.com/artifact/download/inosion/maven/dadagen-jmeter-assembly-0.2.7.jar)
 
 ## Native Scala Class Creation
 
