@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jmeterTestPlan version="1.2" properties="2.8" jmeter="2.13 r1665067">
+  <hashTree>
+    <TestPlan guiclass="TestPlanGui" testclass="TestPlan" testname="Test Plan" enabled="true">
+      <stringProp name="TestPlan.comments"></stringProp>
+      <boolProp name="TestPlan.functional_mode">false</boolProp>
+      <boolProp name="TestPlan.serialize_threadgroups">false</boolProp>
+      <elementProp name="TestPlan.user_defined_variables" elementType="Arguments" guiclass="ArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
+        <collectionProp name="Arguments.arguments"/>
+      </elementProp>
+      <stringProp name="TestPlan.user_define_classpath"></stringProp>
+    </TestPlan>
+    <hashTree>
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Thread Group" enabled="true">
+        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller" enabled="true">
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+          <intProp name="LoopController.loops">-1</intProp>
+        </elementProp>
+        <stringProp name="ThreadGroup.num_threads">1</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">1</stringProp>
+        <longProp name="ThreadGroup.start_time">1431967478000</longProp>
+        <longProp name="ThreadGroup.end_time">1431967478000</longProp>
+        <boolProp name="ThreadGroup.scheduler">false</boolProp>
+        <stringProp name="ThreadGroup.duration"></stringProp>
+        <stringProp name="ThreadGroup.delay"></stringProp>
+      </ThreadGroup>
+      <hashTree>
+        <org.inosion.dadagen.jmeter.DadagenDataSet guiclass="org.inosion.dadagen.jmeter.DadagenDataSetGui" testname="Dadagen Random Data Generator">
+          <intProp name="DadagenDataSet.numberOf">10</intProp>
+          <stringProp name="DadagenDataSet.threadSharingScope">Each thread has it&apos;s own data set</stringProp>
+          <boolProp name="DadagenDataSet.runContinuous">false</boolProp>
+          <boolProp name="DadagenDataSet.stopThread">true</boolProp>
+          <stringProp name="DadagenDataSet.variablePrefix">dgen_</stringProp>
+          <stringProp name="DadagenDataSet.configuration">
+          
+          col { &quot;id&quot;.rownumber }.
+          col { &quot;title&quot;.name title }.
+          col { &quot;firstname&quot;.name firstname }.
+          col { &quot;surname&quot;.name surname }.
+          col { &quot;int&quot;.number between 10 and 1001 }.
+          col { &quot;money&quot;.number between 1.0 and 10 }.
+          col { &quot;gender&quot;. gender }.
+          col { &quot;random-string&quot;.regexgen (&quot;&quot;&quot;TEsting [0-9] [a-zA-z_&apos;;:&quot;\[\]]{5}&quot;&quot;&quot;)  }.
+          col { &quot;addr_street_line&quot;.address street }.
+          col { &quot;addr_suburb&quot; .address suburb }.
+          col { &quot;addr_city&quot;.   address city }.
+          col { &quot;addr_district&quot;. address district }.
+          col { &quot;addr_postcode&quot;. address postcode }.
+          //col { &quot;list&quot;. listFrom (&quot;This row is ${firstname} ${id}&quot;) },
+          col { &quot;template&quot;. template (&quot;This row is ${firstname} ${id}&quot;) }
+</stringProp>
+        </org.inosion.dadagen.jmeter.DadagenDataSet>
+        <hashTree/>
+        <DebugSampler guiclass="TestBeanGUI" testclass="DebugSampler" testname="Debug Sampler" enabled="true">
+          <boolProp name="displayJMeterProperties">false</boolProp>
+          <boolProp name="displayJMeterVariables">true</boolProp>
+          <boolProp name="displaySystemProperties">false</boolProp>
+        </DebugSampler>
+        <hashTree/>
+        <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree" enabled="true">
+          <boolProp name="ResultCollector.error_logging">false</boolProp>
+          <objProp>
+            <name>saveConfig</name>
+            <value class="SampleSaveConfiguration">
+              <time>true</time>
+              <latency>true</latency>
+              <timestamp>true</timestamp>
+              <success>true</success>
+              <label>true</label>
+              <code>true</code>
+              <message>true</message>
+              <threadName>true</threadName>
+              <dataType>true</dataType>
+              <encoding>false</encoding>
+              <assertions>true</assertions>
+              <subresults>true</subresults>
+              <responseData>false</responseData>
+              <samplerData>false</samplerData>
+              <xml>false</xml>
+              <fieldNames>false</fieldNames>
+              <responseHeaders>false</responseHeaders>
+              <requestHeaders>false</requestHeaders>
+              <responseDataOnError>false</responseDataOnError>
+              <saveAssertionResultsFailureMessage>false</saveAssertionResultsFailureMessage>
+              <assertionsResultsToSave>0</assertionsResultsToSave>
+              <bytes>true</bytes>
+              <threadCounts>true</threadCounts>
+            </value>
+          </objProp>
+          <stringProp name="filename"></stringProp>
+        </ResultCollector>
+        <hashTree/>
+      </hashTree>
+    </hashTree>
+  </hashTree>
+</jmeterTestPlan>

@@ -84,7 +84,7 @@ object DadagenBuild extends Build {
         cp.filter {
           _.data.getName match {
             case x:String if x.contains("ApacheJMeter_core") => true
-            case y:String if y.contains("jackson") => true
+//            case y:String if y.contains("jackson") => true
             case y:String if y.contains("jorphan") => true
             case y:String if y.contains("rsyntaxtextarea") => true
             case _ => false

@@ -9,16 +9,21 @@ import org.apache.jmeter.testbeans.TestBean;
 import org.apache.jmeter.testelement.property.StringProperty;
 import org.apache.jmeter.threads.JMeterContextService;
 import org.apache.jmeter.threads.JMeterVariables;
+import org.apache.jorphan.util.JMeterStopThreadException;
+
 
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import org.inosion.dadagen.MapOfStringsGenerator;
 import org.inosion.dadagen.MapOfStringsGenerator$;
+import org.inosion.dadagen.api.javaapi.ScalaScriptEngine;
+import org.inosion.dadagen.api.javaapi.ScalaScriptEngine$;
 import org.inosion.dadagen.randomtypes.DataGenerator;
 import scala.collection.immutable.Map;
 
 import java.util.Iterator;
 import scala.tools.nsc.interpreter.*;
+import scala.tools.nsc.Settings;
 
 /**
  * Created by rbuckland on 12/05/2015.
@@ -83,14 +88,27 @@ public class DadagenDataSet extends ConfigTestElement implements LoopIterationLi
 
         JMeterVariables variables= JMeterContextService.getContext().getVariables();
 
+        if (! isRunContinuous()) {
+            if (loopIterationEvent.getIteration() > getNumberOfLimit() &&
+                    isStopThread()) {
+                throw new JMeterStopThreadException("Iteration Limit Reached");
+            }
+        }
+
         try {
             Map<String,String> randData = getNextRandomData();
             scala.collection.Iterator keys = randData.keysIterator();
             while (keys.hasNext()) {
                 String key = (String)keys.next();
-                variables.put(key, randData.apply(key));
+                String prefix = getPropertyAsString(VARIABLE_PREFIX,"");
+                if (prefix.isEmpty()) {
+                    variables.put(key, randData.apply(key));
+                } else {
+                    variables.put(prefix + key, randData.apply(key));
+                }
+
             }
-            variables.put("_dadagen_id", new Integer(loopIterationEvent.getIteration()).toString());
+            variables.put("Dadagen.iteration_id", new Integer(loopIterationEvent.getIteration()).toString());
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -99,16 +117,7 @@ public class DadagenDataSet extends ConfigTestElement implements LoopIterationLi
     private Map<String,String> getNextRandomData() throws Exception{
 
         if (engine == null) {
-            engine = new ScriptEngineManager().getEngineByName("scala");
-            if (engine == null) {
-                throw new JMeterEngineException("Could not instantiate the Scala Script Engine");
-            }
-
-            IMain engineMain = (IMain)engine;
-            // we tell scala to be use this class
-            // this is the equivalent of
-            engineMain.settings().embeddedDefaults(MapOfStringsGenerator.class.getClassLoader());
-
+            engine = ScalaScriptEngine$.MODULE$.loadEngine();
         }
 
         if (randomIterator == null) {
@@ -116,7 +125,11 @@ public class DadagenDataSet extends ConfigTestElement implements LoopIterationLi
             // we expect that the config in the JMeter GUI is a "field { ... } , field { .. } "
             try {
 
-                scala.collection.immutable.List<DataGenerator<?>> generators = (scala.collection.immutable.List<DataGenerator<?>>) engine.eval(getDadagenConfig());
+                scala.collection.immutable.List<DataGenerator<?>> generators =
+                        (scala.collection.immutable.List<DataGenerator<?>>) engine.eval(
+                                // import the scala implicits
+                                "import org.inosion.dadagen.api.scaladsl._\n\n\n" + getDadagenConfig()
+                        );
                 MapOfStringsGenerator dadagen = MapOfStringsGenerator$.MODULE$.apply(generators, new java.security.SecureRandom());
                 randomIterator = dadagen.generateJava();
             } catch (Exception e) {
