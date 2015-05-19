@@ -72,7 +72,7 @@ object ListConfigSupport {
       }
 
     } else {
-      throw new RadgConfigException(s"The key ${keyPrefix + listKeyName + ".values"} was not found in the configuration")
+      throw new DadagenConfigException(s"The key ${keyPrefix + listKeyName + ".values"} was not found in the configuration")
     }
 
   }
@@ -112,4 +112,4 @@ object ListConfigSupport {
 case class ListConfiguration(key:String,listName:String,listType:String)
 
 
-case class RadgConfigException(message:String) extends RuntimeException(message)
+case class DadagenConfigException(message:String) extends RuntimeException(message)

@@ -59,6 +59,7 @@ public class DadagenDataSetGui extends AbstractConfigGui {
         setName("Dadagen Random Data Generator");
         variablePrefix.setText("");
         numberOf.setText(Integer.toString(DadagenDataSet.DEFAULT_NUMBER_OF));
+        dadgenConfigField.setText(DadagenDataSet.DEFAULT_DADAGEN_CONFIG);
         setStopThread(true);
         setSelectedRunContinuous(false);
     }
@@ -260,20 +261,22 @@ public class DadagenDataSetGui extends AbstractConfigGui {
 
         DadagenDataSet dadagen = (DadagenDataSet)te;
 
-        dadagen.setProperty(TestElement.GUI_CLASS,DadagenDataSetGui.class.getCanonicalName());
+        dadagen.setProperty(TestElement.GUI_CLASS, DadagenDataSetGui.class.getCanonicalName());
         dadagen.setName(getName());
-        dadagen.setNumberOfLimit(Integer.parseInt(this.numberOf.getText()));
+        dadagen.setProperty(DadagenDataSet.NUMBER_OF, numberOf.getText());
 
         // thread scope
         /* not using right now
-        dadagen.setThreadScope(
+        dadagen.setProperty(DadagenDataSet.THREAD_SHARING_SCOPE,
                 ((DadagenDataSet.ThreadModel) threadScopeModelChooser.getSelectedItem()).toString()
         );
         */
 
-        dadagen.setRunContinuous(btnRunContinuous.isSelected());
-        dadagen.setStopThread(btnThreadStopYes.isSelected());
-        dadagen.setVariablePrefix(variablePrefix.getText());
+        dadagen.setProperty(DadagenDataSet.RUN_CONTINUOUS,btnRunContinuous.isSelected());
+        dadagen.setProperty(DadagenDataSet.STOP_THREAD, btnThreadStopYes.isSelected());
+        dadagen.setProperty(DadagenDataSet.VARIABLE_PREFIX, variablePrefix.getText());
+
+        // we set the config directly because we don't want JMeter to interpret the value before hand.
         dadagen.setDadagenConfig(dadgenConfigField.getText());
 
     }

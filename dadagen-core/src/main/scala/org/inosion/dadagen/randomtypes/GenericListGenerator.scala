@@ -3,7 +3,7 @@ package org.inosion.dadagen.randomtypes
 import java.util.Random
 
 import org.inosion.dadagen._
-import org.inosion.dadagen.lists.{ListManager, RadgConfigException, ListConfigSupport}
+import org.inosion.dadagen.lists.{ListManager, DadagenConfigException, ListConfigSupport}
 
 /**
  * @author rbuckland
@@ -31,12 +31,12 @@ case class GenericListGenerator(name:String,
 
     if (listData.isDefined) {
       weightings match {
-        case None => RandomUtil.randomFromList(listData.get)
+        case None => return RandomUtil.randomFromList(listData.get)
         case Some(weightings) =>
       }
     }
 
-    throw new RadgConfigException("Must supply a list key.name or list of values")
+    throw new DadagenConfigException("Must supply a list key.name or list of values")
 
   }
 }

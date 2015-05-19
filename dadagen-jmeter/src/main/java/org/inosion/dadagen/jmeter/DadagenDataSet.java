@@ -67,7 +67,18 @@ public class DadagenDataSet extends ConfigTestElement implements LoopIterationLi
     public final static String DEFAULT_THREAD_SCOPE = ThreadModel.ALL_THREADS_SCOPE.threadModel;
     public final static boolean DEFAULT_RUN_CONTINUOUS = false;
     public final static boolean DEFAULT_STOP_THREAD = true;
-    public final static int DEFAULT_NUMBER_OF = 100;
+    public final static int DEFAULT_NUMBER_OF = 10;
+    public final static String DEFAULT_DADAGEN_CONFIG = "\n" +
+            "  field { \"id\".rownumber }.\n" +
+            "  field { \"uuid\".regexgen (\"[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}\") } .\n" +
+            "  field { \"number\".number between 10000 and 90000 }.\n" +
+            "  field { \"r_str\".regexgen (\"[A-Z][a-zA-Z]{4}[0-9]{4}\") }.\n" +
+            "  field { \"gender\".gender }.\n" +
+            "  field { \"firstname\".name firstname }.\n" +
+            "  field { \"surname_data\".name surname }.\n" +
+            "  field { \"surname\".template (\"${surname_data}-${r_str}\") }.\n" +
+            "  field { \"fullname\".template (\"${firstname} ${surname}\") }.\n" +
+            "  field { \"email_address\".template(\"TEST_${firstname}.${surname}@noemail.test\") }\n";
 
     public String getThreadScope() {return getPropertyAsString(THREAD_SHARING_SCOPE, DEFAULT_THREAD_SCOPE); }
     public void setThreadScope(String threadScope) { setProperty(THREAD_SHARING_SCOPE, threadScope); }

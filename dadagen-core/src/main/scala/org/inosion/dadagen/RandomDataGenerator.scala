@@ -17,7 +17,12 @@ abstract class RandomDataGenerator[A] {
   /**
    * Return a list of "nodes" which are depended upon
    */
-  val dependentOn: List[String] = generators.map { _.dependencies }.flatten.distinct
+  val dependentOn: List[String] = {
+    require(generators != null, "A list of Generators is required")
+    generators.map {
+      _.dependencies
+    }.flatten.distinct
+  }
 
   private[this] val dependencyNodeList = generators.map(x => SimpleNode(x.name, x.dependencies))
 
