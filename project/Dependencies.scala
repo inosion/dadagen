@@ -19,6 +19,11 @@ object Dependencies {
     val compiler    = "org.scala-lang"     % "scala-compiler"                 % Version.Scala
   }
 
+  object akka {
+    var version = "2.3.11"
+    val actor = "com.typesafe.akka" %% "akka-actor" % version
+  }
+
   // for inspecting Beans and the like
   object commons { 
     val beanutils  = "commons-beanutils" % "commons-beanutils" % "1.8.3"
@@ -37,6 +42,8 @@ object Dependencies {
     val version = "2.4.0"
     val dfcsv = "com.fasterxml.jackson.dataformat" % "jackson-dataformat-csv" % version
   }
+
+  val scalafx = "org.scalafx" %% "scalafx" % "8.0.40-R8"
 
   /*
    * Testing and Test helpful Libs
@@ -106,15 +113,14 @@ object Dependencies {
     ///    val commonsPool2 = "commons-pool2" % "commons-pool2" % "2.3" from "http://central.maven.org/maven2/org/apache/commons/commons-pool2/2.3/commons-pool2-2.3.jar"
   }
 
-
-  val akka = "com.typesafe.akka" %% "akka-actor" % "2.3.9"
-
   val scalastm = "org.scala-stm" %% "scala-stm" % "0.7"
 
   // for the Groovy API for others
   val groovy = "org.codehaus.groovy" % "groovy-all" % "2.4"
 
   val scalacsv = "com.github.tototoshi" %% "scala-csv" % "1.2.1"
+
+  val rsyntaxtextarea = "com.fifesoft" % "rsyntaxtextarea" % "2.5.6"
 
   //
   // Logging

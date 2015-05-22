@@ -206,7 +206,7 @@ Below is a very full example of type types of data that can be generated.
   // this import allows us to use the Case Class directly.
   //   field { DoubleGenerator("initial_investment",1000,80000,2) }.   
 
-  import org.inosion.dadagen.randomtypes._
+  import org.inosion.dadagen.generators._
 
   field { "id".rownumber }.
   field { "r_uuid".regexgen ("[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}") } .
@@ -324,7 +324,7 @@ You can optionally
 
 ### And More
 
-Running out of time right now to comment them all. So instead, look at org.inosion.dadagen.randomtypes for the current configured ones. 
+Running out of time right now to comment them all. So instead, look at org.inosion.dadagen.generators for the current configured ones. 
 
 # Suggestions?
 

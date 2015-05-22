@@ -2,7 +2,7 @@ package org.inosion.dadagen
 
 import org.inosion.dadagen.lists.ListManager
 import ListManager.IndexKey
-import org.inosion.dadagen.randomtypes.{GenderGenerator, TitleGenerator}
+import org.inosion.dadagen.generators.{GenderGenerator, TitleGenerator}
 import org.scalatest.{Matchers, FlatSpec}
 
 /**

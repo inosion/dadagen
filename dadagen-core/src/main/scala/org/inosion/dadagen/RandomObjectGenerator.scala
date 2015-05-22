@@ -1,6 +1,6 @@
 package org.inosion.dadagen
 
-import org.inosion.dadagen.randomtypes.DataGenerator
+import org.inosion.dadagen.generators.DataGenerator
 
 /**
  * @author rbuckland

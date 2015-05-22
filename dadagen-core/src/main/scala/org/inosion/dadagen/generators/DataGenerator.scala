@@ -1,4 +1,4 @@
-package org.inosion.dadagen.randomtypes
+package org.inosion.dadagen.generators
 
 import org.inosion.dadagen.Context
 

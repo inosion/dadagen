@@ -5,21 +5,17 @@ import org.apache.jmeter.engine.JMeterEngineException;
 import org.apache.jmeter.engine.event.LoopIterationEvent;
 import org.apache.jmeter.engine.event.LoopIterationListener;
 import org.apache.jmeter.engine.util.NoConfigMerge;
-import org.apache.jmeter.testbeans.TestBean;
-import org.apache.jmeter.testelement.property.StringProperty;
 import org.apache.jmeter.threads.JMeterContext;
 import org.apache.jmeter.threads.JMeterContextService;
 import org.apache.jmeter.threads.JMeterVariables;
 import org.apache.jorphan.util.JMeterStopThreadException;
-import org.apache.jmeter.util.JMeterUtils;
 
 import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
+
 import org.inosion.dadagen.MapOfStringsGenerator;
 import org.inosion.dadagen.MapOfStringsGenerator$;
-import org.inosion.dadagen.api.javaapi.ScalaScriptEngine;
-import org.inosion.dadagen.api.javaapi.ScalaScriptEngine$;
-import org.inosion.dadagen.randomtypes.DataGenerator;
+import org.inosion.dadagen.api.ScalaScriptEngine$;
+import org.inosion.dadagen.generators.DataGenerator;
 import scala.collection.immutable.Map;
 
 import java.util.Iterator;

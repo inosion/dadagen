@@ -4,7 +4,7 @@ import java.security.SecureRandom
 import scala.collection.JavaConverters._
 
 
-import org.inosion.dadagen.randomtypes.DataGenerator
+import org.inosion.dadagen.generators.DataGenerator
 
 import java.util.Random
 

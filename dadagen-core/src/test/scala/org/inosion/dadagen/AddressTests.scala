@@ -1,6 +1,6 @@
 package org.inosion.dadagen
 
-import org.inosion.dadagen.randomtypes.{FullAddress, AddressGenerator}
+import org.inosion.dadagen.generators.{FullAddress, AddressGenerator}
 import org.scalatest.{Matchers, FlatSpec}
 
 /**

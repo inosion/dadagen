@@ -1,6 +1,6 @@
 package org.inosion.dadagen
 
-import org.inosion.dadagen.randomtypes.{DependantListGenerator, GenericListGenerator, TemplateGenerator}
+import org.inosion.dadagen.generators.{DependantListGenerator, GenericListGenerator, TemplateGenerator}
 import org.scalatest.{Matchers, FlatSpec}
 
 class DependantListTest extends FlatSpec with Matchers {

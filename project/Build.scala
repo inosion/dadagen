@@ -66,12 +66,30 @@ object DadagenBuild extends Build {
           ,testing.scalamock
           ,gatling.testFramework // we are using gatling in a test to show how to use our library in gatling
           ,gatling.highcharts
-          ,akka // using akka to test feeding an actorSystem with messages
+          ,akka.actor // using akka to test feeding an actorSystem with messages
         )
         ++ runtime (
           logging.logback
         )
      )
+
+
+  /*
+   * This is the ScalaFX File Generator - Just a Standalone GUI to create Lots of Files.
+   */
+  lazy val dadagenUi = Project( id="dadagen-ui", base = file("dadagen-ui"))
+    .dependsOn(dadagenCore)
+    .settings(projectSettings: _*)
+    .settings(libraryDependencies ++= compile(
+        jmeter.core,
+        scalalang.compiler,
+        scalafx,
+        rsyntaxtextarea,
+        jackson.dfcsv,
+        akka.actor
+     ))
+    .settings(addArtifact(Artifact("dadagen-ui", "assembly"), sbtassembly.AssemblyKeys.assembly))
+
 
   lazy val dadagenJmeter = Project( id="dadagen-jmeter", base = file("dadagen-jmeter"))
     .dependsOn(dadagenCore)

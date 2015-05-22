@@ -2,7 +2,7 @@
   package org.inosion.dadagen
 
   import org.scalatest.{Matchers, FlatSpec}
-  import org.inosion.dadagen.randomtypes._
+  import org.inosion.dadagen.generators._
 
 
 class TitleAndGenderTest extends FlatSpec with Matchers {

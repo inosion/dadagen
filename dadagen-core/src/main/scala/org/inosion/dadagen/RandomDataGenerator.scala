@@ -1,7 +1,7 @@
 package org.inosion.dadagen
 
 
-import org.inosion.dadagen.randomtypes.DataGenerator
+import org.inosion.dadagen.generators.DataGenerator
 
 /* reducing compiled class sizes in the releases - http://blog.duh.org/2011/11/scala-pitfalls-trait-bloat.html */
 abstract class AbstractIterator[+A] extends Iterator[A]

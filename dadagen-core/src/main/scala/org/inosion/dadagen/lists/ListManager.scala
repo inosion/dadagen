@@ -5,7 +5,7 @@ import java.util.Random
 
 import com.github.tototoshi.csv._
 
-import org.inosion.dadagen.randomtypes.RandomUtil
+import org.inosion.dadagen.generators.RandomUtil
 import org.slf4j.LoggerFactory
 
 import scala.collection.JavaConversions._

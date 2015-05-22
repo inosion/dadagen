@@ -1,4 +1,4 @@
-package org.inosion.dadagen.randomtypes
+package org.inosion.dadagen.generators
 
 import java.util.Random
 
@@ -31,6 +31,9 @@ object RandomUtil {
    * @return
    */
   def randomIntRange(min:Int,max:Int)(implicit rand:Random) = rand.nextInt(max - min) + 1 + min
+
+
+  def randomLongRange(min:Long,max:Long)(implicit rand:Random) = rand.nextLong() % (max - min) + 1 + min
 
   /**
    * Double generator

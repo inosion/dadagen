@@ -2,7 +2,7 @@ package org.inosion.dadagen
 
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{Matchers, FlatSpec}
-import org.inosion.dadagen.randomtypes.{TemplateGenerator, RegexGenerator}
+import org.inosion.dadagen.generators.{TemplateGenerator, RegexGenerator}
 
 /**
  * @author rbuckland

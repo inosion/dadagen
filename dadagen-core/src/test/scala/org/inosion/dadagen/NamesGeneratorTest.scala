@@ -1,6 +1,6 @@
 package org.inosion.dadagen
 
-import org.inosion.dadagen.randomtypes._
+import org.inosion.dadagen.generators._
 import org.scalatest.{FlatSpec, Matchers}
 
 class NamesGeneratorTest extends FlatSpec with Matchers {

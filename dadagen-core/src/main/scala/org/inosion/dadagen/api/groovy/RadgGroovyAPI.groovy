@@ -1,7 +1,7 @@
 package org.inosion.dadagen.api.groovy
 
 // import org.inosion.rdg.api.RowCountWrappedInt
-import org.inosion.dadagen.randomtypes.DataGenerator
+import org.inosion.dadagen.generators.DataGenerator
 
 ExpandoMetaClass.enableGlobally();
 

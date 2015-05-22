@@ -1,6 +1,6 @@
 package org.inosion.dadagen
 
-import org.inosion.dadagen.randomtypes.{RegexGenerator, GenderGenerator, TitleGenerator}
+import org.inosion.dadagen.generators.{RegexGenerator, GenderGenerator, TitleGenerator}
 import org.scalatest.{Matchers, FlatSpec}
 
 /**

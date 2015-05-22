@@ -1,7 +1,7 @@
 package org.inosion.dadagen.api
 
 import org.inosion.dadagen.{ListOfStringsGenerator, MapOfStringsGenerator}
-import org.inosion.dadagen.randomtypes._
+import org.inosion.dadagen.generators._
 
 /**
  * @author rbuckland
