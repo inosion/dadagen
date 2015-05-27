@@ -20,7 +20,7 @@ object Dependencies {
   }
 
   object akka {
-    var version = "2.3.11"
+    val version = "2.3.11"
     val actor = "com.typesafe.akka" %% "akka-actor" % version
   }
 
