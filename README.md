@@ -2,7 +2,7 @@
 ![Dadagen Logo](https://raw.github.com/inosion/dadagen/master/assets/dadagen-logo.jpg)
 ### What is Dadagen ? 
 
-Dadagen is an embedded Scala / Java Library that has a host of simple declarations for creating renaomd data of your
+Dadagen is an embedded Scala / Java Library that has a host of simple declarations for creating random data of your
 choice. The power lies behind a simple configuration sytax and some helper libraries and plugins for a variety
 of scenarios where random, real data is desired.
 
