@@ -4,7 +4,7 @@ This has been written to support the simple case of just needing a file for some
 
 Download it from Bintray
 
-[Dadagen UI 0.2.9](https://bintray.com/artifact/download/inosion/maven/org/inosion/dadagen/dadagen-ui_2.11/0.2.9/dadagen-ui-0.2.9.jar)
+[Dadagen UI 0.2.9](https://bintray.com/artifact/download/inosion/maven/org/inosion/dadagen/dadagen-ui/dadagen-ui-0.2.9.jar)
 
 
 1. Launch the DadagenUI (the jar is "Double Clickable")

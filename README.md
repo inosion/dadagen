@@ -6,6 +6,19 @@ Dadagen is an embedded Scala / Java Library that has a host of simple declaratio
 choice. The power lies behind a simple configuration sytax and some helper libraries and plugins for a variety
 of scenarios where random, real data is desired.
 
+### Download the GUI and play with it
+
+This is eating our own dog breakfast. Here we have embedded Dadagen into an Desktop (old school) App (ScalaFX)
+
+It helps when building the "random" config. (Check test, test Check), and just to show how awesome it is.
+ 
+It has no bells and whistels. Just a Java GUI App that allows you to create a JSON, CSV (and XML, but it's got some minor issues.. wait for V0.2.10)
+
+Download it now .. 
+
+(Stand Alone Dadagen Java App GUI)[https://bintray.com/artifact/download/inosion/maven/org/inosion/dadagen/dadagen-ui/dadagen-ui-0.2.9.jar]
+
+It will require Java 8.
 
 ### History
 
