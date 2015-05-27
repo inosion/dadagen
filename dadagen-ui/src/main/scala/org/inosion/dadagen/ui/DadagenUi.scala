@@ -269,8 +269,8 @@ object DadagenUi extends JFXApp {
     messages.setText(prefix + timestamp + goodBadPrefx + msg)
   }
 
-  def goodMessage = updateMessage(_,good=true)
-  def badMessage = updateMessage(_,good=false)
+  def goodMessage = updateMessage(_:String,good=true)
+  def badMessage = updateMessage(_:String,good=false)
 
   lazy val generateButton = new Button("Generate Data") {
     onAction = (me: ActionEvent) => {
