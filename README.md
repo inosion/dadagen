@@ -16,7 +16,7 @@ It has no bells and whistels. Just a Java GUI App that allows you to create a JS
 
 Download it now .. 
 
-(Stand Alone Dadagen Java App GUI)[https://bintray.com/artifact/download/inosion/maven/org/inosion/dadagen/dadagen-ui/dadagen-ui-0.2.9.jar]
+[Stand Alone Dadagen Java App GUI - https://bintray.com/... dadagen-ui-0.2.9.jar](https://bintray.com/artifact/download/inosion/maven/org/inosion/dadagen/dadagen-ui/dadagen-ui-0.2.9.jar)
 
 It will require Java 8.
 
