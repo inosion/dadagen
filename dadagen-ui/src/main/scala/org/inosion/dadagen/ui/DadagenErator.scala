@@ -2,18 +2,25 @@ package org.inosion.dadagen.ui
 
 import java.io.{FileOutputStream, File}
 
-import com.fasterxml.jackson.databind.ObjectWriter
-import com.fasterxml.jackson.dataformat.csv.CsvSchema.Builder
+import com.fasterxml.jackson.databind.{ObjectMapper, ObjectWriter}
 import com.fasterxml.jackson.dataformat.csv.{CsvSchema, CsvMapper}
+import com.fasterxml.jackson.dataformat.xml.XmlMapper
+import com.fasterxml.jackson.module.scala.DefaultScalaModule
+import com.fasterxml.jackson.module.scala.experimental.ScalaObjectMapper
 import org.inosion.dadagen.generators.DataGenerator
-import org.inosion.dadagen.{ListOfStringsGenerator, RandomDataGenerator, MapOfStringsGenerator}
+import org.inosion.dadagen.{MapOfStringsGenerator, ListOfStringsGenerator}
 import org.inosion.dadagen.api.ScalaScriptEngine
 import org.slf4j.LoggerFactory
 
-sealed abstract class FileType
-case object XmlFile extends FileType
-case object CSVFile extends FileType
-case object JsonFile extends FileType
+import scala.collection.JavaConversions._
+
+sealed abstract class FileType(val name:String) {
+  override def toString = name
+  val extension = name.toLowerCase
+}
+case object XmlFile extends FileType("XML")
+case object CSVFile extends FileType("CSV")
+case object JsonFile extends FileType("JSON")
 
 
 case class DadagenCompilationException(msg:String,e:Exception) extends RuntimeException(e)
@@ -23,19 +30,22 @@ case class DataWriteException(msg:String,e:Exception) extends RuntimeException(e
 
 object DadagenErator {
 
-  val logger = LoggerFactory.getLogger(DadagenErator.getClass);
+  val logger = LoggerFactory.getLogger(DadagenErator.getClass)
 
   implicit val random = new java.security.SecureRandom
 
-  val engine = ScalaScriptEngine.loadEngine()
+  val engine = ScalaScriptEngine.loadEngine
+  lazy val xmlMapper = new XmlMapper() with ScalaObjectMapper
+  lazy val jsonMapper = new ObjectMapper() with ScalaObjectMapper
+  lazy val csvMapper = new CsvMapper() with ScalaObjectMapper
 
   /*
    * This compiles the generator config
    */
   private def createGenerators(dadagenConfig: String) = try {
       engine.eval(
-        "import org.inosion.dadagen.api.scaladsl._\n\n\n"
-          + dadagenConfig).asInstanceOf[List[DataGenerator[_]]]
+        "import org.inosion.dadagen.api.scaladsl._\n\n" + dadagenConfig
+      ).asInstanceOf[List[DataGenerator[_]]]
     } catch {
       case e: Exception => throw DadagenCompilationException("Compilation Failed", e)
     }
@@ -49,12 +59,17 @@ object DadagenErator {
 
     try {
       val generators = createGenerators(dadagenConfig)
+      val ostream = new FileOutputStream(new File(filename))
 
       filetype match {
-        case XmlFile => writeXmlFile(generators, filename, rows, startMillis)
-        case CSVFile => writeCsvFile(generators, filename, rows, startMillis)
-        case JsonFile => writeJsonFile(generators, filename, rows, startMillis)
+        case XmlFile => writeXmlFile(generators, ostream, rows)
+        case CSVFile => writeCsvFile(generators, ostream, rows)
+        case JsonFile => writeJsonFile(generators, ostream, rows)
       }
+
+      ostream.close()
+
+      Right(s"Wrote $rows sample${if(rows>1)"s"} to: $filename in ${(System.currentTimeMillis - startMillis) / 1000} seconds")
 
     } catch {
       case e:DadagenCompilationException => Left(e)
@@ -63,7 +78,10 @@ object DadagenErator {
     }
   }
 
-  def writeCsvFile(generators: List[DataGenerator[_]], filename: String, rows: Int, startMillis:Long ):Either[Exception,String] = {
+  /*
+   * Write out a CSV File
+   */
+  private def writeCsvFile(generators: List[DataGenerator[_]], ostream: FileOutputStream, rows: Int)= {
 
     def buildCsvSchema: CsvSchema = CsvSchema.emptySchema()
       .withQuoteChar('"')
@@ -71,34 +89,37 @@ object DadagenErator {
       .withLineSeparator("\n")
       .withHeader()
 
-    var ostream: FileOutputStream = null
+    val dadagen = ListOfStringsGenerator(generators)
 
-    try {
+    // set all the columns
+    val csvSchema = dadagen.fieldNames.foldLeft(buildCsvSchema.rebuild)((b,col) => b.addColumn(col)).build()
+    val writer: ObjectWriter = csvMapper.writer(csvSchema)
+    val it = dadagen.generate()
 
-      val dadagen = ListOfStringsGenerator(generators)
-      val mapper = new CsvMapper()
-      val it = dadagen.generate()
-
-      // set all the columns
-      val csvSchema = dadagen.fieldNames.foldLeft(buildCsvSchema.rebuild)((b,col) => b.addColumn(col)).build()
-      val writer: ObjectWriter = mapper.writer(csvSchema)
-
-      ostream = new FileOutputStream(new File(filename))
-      // this closes the stream .. it.take(rows).foreach(x => writer.writeValue(ostream, x.toArray))
-      writer.writeValue(ostream, it.take(rows).map(_.toArray).toArray)
-      Right(s"Wrote out ${rows} samples to the file: ${filename} in ${(System.currentTimeMillis - startMillis) / 1000} seconds")
-
-    } catch {
-      case e:Exception => {
-        Left(DataWriteException("Failed to write the data to file", e))
-      }
-    } finally  {
-      ostream.close()
-    }
+    // this closes the stream .. it.take(rows).foreach(x => writer.writeValue(ostream, x.toArray))
+    writer.writeValue(ostream, it.take(rows).map(_.toArray).toArray)
   }
 
-  def writeXmlFile(generators: List[DataGenerator[_]], filename: String, rows: Int, startMillis:Long ):Either[Error,String] = ???
+  /*
+   * Write out an XML File
+   */
+  private def writeXmlFile(generators: List[DataGenerator[_]], ostream: FileOutputStream, rows: Int) = {
 
-  def writeJsonFile(generators: List[DataGenerator[_]], filename: String, rows: Int, startMillis:Long ):Either[Error,String] = ???
+      xmlMapper.registerModule(DefaultScalaModule)
+      val dadagen = MapOfStringsGenerator(generators)
+      xmlMapper.writeValue(ostream,dadagen.generateAll(rows))
+
+  }
+
+  /*
+   * Write out a JSON file
+   */
+  private def writeJsonFile(generators: List[DataGenerator[_]], ostream: FileOutputStream, rows: Int): Unit = {
+
+    jsonMapper.registerModule(DefaultScalaModule)
+    val dadagen = MapOfStringsGenerator(generators)
+    jsonMapper.writeValue(ostream,dadagen.generateAll(rows))
+
+  }
 
 }

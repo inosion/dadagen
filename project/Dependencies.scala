@@ -39,8 +39,11 @@ object Dependencies {
   // "com.bizo:mighty-csv_2.11:0.2"
 
   object jackson { 
-    val version = "2.4.0"
+    val version = "2.5.2"
     val dfcsv = "com.fasterxml.jackson.dataformat" % "jackson-dataformat-csv" % version
+    val dfxml = "com.fasterxml.jackson.dataformat" % "jackson-dataformat-xml" % version
+    val databind = "com.fasterxml.jackson.core" % "jackson-databind" % version
+    val scala = "com.fasterxml.jackson.module" %% "jackson-module-scala" % version
   }
 
   val scalafx = "org.scalafx" %% "scalafx" % "8.0.40-R8"

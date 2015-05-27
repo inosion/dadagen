@@ -1,0 +1,11 @@
+.messages:disabled{
+    -fx-font-size: 10pt;
+    -fx-text-fill: #000000;
+    -fx-prompt-text-fill: #000000;
+    -fx-opacity: 1.0;
+    -fx-background-color: green;
+}
+
+.messages .scroll-pane:disabled{
+    -fx-opacity: 1.0;
+}

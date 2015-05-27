@@ -9,7 +9,7 @@ import bintray.BintrayKeys._
 object BaseSettings {
 
   object Version {
-    val ThisVersion = "0.2.8"
+    val ThisVersion = "0.2.9"
     val Scala = "2.11.6"
   }
 
@@ -46,8 +46,6 @@ object BaseSettings {
         javacOptions in doc := Seq(),
         javaOptions += "-Xmx2G",
         outputStrategy := Some(StdoutOutput),
-        // for One-JAR
-        exportJars := true,
         fork := true,
         fork in test := true,
         sbtPlugin := false,

@@ -4,6 +4,7 @@ import sbt.Keys._
 import io.gatling.sbt.GatlingPlugin
 import bintray.BintrayKeys._
 import sbtassembly.AssemblyKeys._
+//import com.typesafe.sbt.SbtNativePackager._
 
 
 object BuildSettings {
@@ -51,6 +52,7 @@ object DadagenBuild extends Build {
   lazy val dadagenCore = Project( id="dadagen-core", base = file("dadagen-core"))
     .settings(projectSettings: _*)
     .enablePlugins(GatlingPlugin)
+    .disablePlugins(sbtassembly.AssemblyPlugin)
     .settings(libraryDependencies ++=
         compile(
           generex
@@ -73,49 +75,48 @@ object DadagenBuild extends Build {
         )
      )
 
+  /*
+ * This is the ScalaFX File Generator - Just a Standalone GUI to create Lots of Files.
+ */
+  lazy val dadagenSupport = Project( id="dadagen-support", base = file("dadagen-support"))
+    .dependsOn(dadagenCore)
+    .settings(projectSettings: _*)
+    .disablePlugins(sbtassembly.AssemblyPlugin)
+    .settings(libraryDependencies ++= compile(scalalang.compiler))
 
   /*
    * This is the ScalaFX File Generator - Just a Standalone GUI to create Lots of Files.
    */
   lazy val dadagenUi = Project( id="dadagen-ui", base = file("dadagen-ui"))
-    .dependsOn(dadagenCore)
+    .dependsOn(dadagenCore, dadagenSupport)
     .settings(projectSettings: _*)
+    .settings(mainClass in assembly := Some("org.inosion.dadagen.ui.DadagenUi") )
+    .settings(assemblyJarName in assembly := s"dadagen-ui-${BaseSettings.Version.ThisVersion}.jar")
     .settings(libraryDependencies ++= compile(
-        jmeter.core,
-        scalalang.compiler,
         scalafx,
         rsyntaxtextarea,
         jackson.dfcsv,
+        jackson.dfxml,
+        jackson.databind,
+        jackson.scala,
         akka.actor
-     ))
+      )
+    )
     .settings(addArtifact(Artifact("dadagen-ui", "assembly"), sbtassembly.AssemblyKeys.assembly))
 
-
+  /*
+   * This is the Native JMeter Plugin
+   */
   lazy val dadagenJmeter = Project( id="dadagen-jmeter", base = file("dadagen-jmeter"))
-    .dependsOn(dadagenCore)
+    .dependsOn(dadagenCore, dadagenSupport)
     .settings(projectSettings: _*)
-    // frustrating!!! IntelliJ does not "see" a provided scope dependency, which is what JMeter needs to
-    // be for dadgen plugin.
-    .settings(libraryDependencies ++= compile(jmeter.core, scalalang.compiler))
-    .settings(addArtifact(Artifact("dadagen-jmeter", "assembly"), sbtassembly.AssemblyKeys.assembly))
-
-    // really wish there was a cleaner way to do this
-    .settings(assemblyExcludedJars in assembly := {
-        val cp = (fullClasspath in assembly).value
-        cp.filter {
-          _.data.getName match {
-            case x:String if x.contains("ApacheJMeter_core") => true
-            case y:String if y.contains("jackson") => true
-            case y:String if y.contains("jorphan") => true
-            case y:String if y.contains("rsyntaxtextarea") => true
-            case _ => false
-          }
-        }
-     })
-
+    .settings(libraryDependencies ++= provided(jmeter.core))
+    .settings(assemblyJarName in assembly := s"dadagen-jmeter-plugin-${BaseSettings.Version.ThisVersion}.jar")
+    // this adding artifact is needed for pushing assembly artifacts to bintray
+    //  .settings(addArtifact(Artifact("dadagen-jmeter", "assembly"), sbtassembly.AssemblyKeys.assembly))
 
   lazy val dadagenRoot = (project in file("."))
     .settings(rootSettings: _*)
-    .aggregate(dadagenCore, dadagenJmeter)
+    .aggregate(dadagenCore, dadagenJmeter, dadagenUi)
 
 }
