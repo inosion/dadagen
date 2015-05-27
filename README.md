@@ -12,7 +12,7 @@ This is eating our own dog breakfast. Here we have embedded Dadagen into an Desk
 
 It helps when building the "random" config. (Check test, test Check), and just to show how awesome it is.
  
-It has no bells and whistels. Just a Java GUI App that allows you to create a JSON, CSV (and XML, but it's got some minor issues.. wait for V0.2.10)
+It has no bells and whistles (maybe one or two) but rather is just a Java GUI App that allows you to create a JSON, CSV (and XML, but it's got some minor issues.. wait for V0.2.10)
 
 Download it now .. 
 
