@@ -1,5 +1,5 @@
 ## DadaGen - Random Data Generator
-![alt tag](https://raw.github.com/inosion/dadagen/master/assets/dadagen-logo.jpg)
+![Dadagen Logo](https://raw.github.com/inosion/dadagen/master/assets/dadagen-logo.jpg)
 ### What is Dadagen ? 
 
 Dadagen is an embedded Scala / Java Library that has a host of simple declarations for creating renaomd data of your
@@ -62,13 +62,13 @@ Each row in this CSV will have a value randomly chosen from the "definitions" be
 
 We have support for various test suites and situations
 
-* ![Gatling Feeder Support](docs/Gatling.md)
-* Native JMeter Plugin ![JMeter Plugin](docs/JMeter.md)
-* A Helpful Standalone Java GUI App for making CSVs, XML and JSON files ![Dadagen UI][docs/DadagenUI.md]
-* An example of using it with Silk Performer (Dadagen UI) [docs/SilkPerformer.md]
-* For Testing *anything* with Java (Java API Usage)[docs/JavaUsage.md]
-* For Testing *anything* with Scala (Scala API USage)[docs/ScalaUsage.md]
-* Some examples of Embedding it into your Application for CSV, XML, or JSON generation ![Code Usage][docs/InCode.md]
+* [Gatling Feeder Support](docs/Gatling.md)
+* Native JMeter Plugin [JMeter Plugin](docs/JMeter.md)
+* A Helpful Standalone Java GUI App for making CSVs, XML and JSON files [Dadagen UI](docs/DadagenUI.md)
+* An example of using it with Silk Performer [Dadagen + SilkPerformer](docs/SilkPerformer.md)
+* For Testing *anything* with Java [Java API Usage](docs/JavaUsage.md)
+* For Testing *anything* with Scala [Scala API USage](docs/ScalaUsage.md)
+* Some examples of Embedding it into your Application for CSV, XML, or JSON generation [Code Usage](docs/InCode.md)
 
 ## Native Scala Class Creation
 
