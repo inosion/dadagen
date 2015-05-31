@@ -5,7 +5,9 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import javafx.beans.value
 import javafx.beans.value.ChangeListener
+import javafx.embed.swing.SwingNode
 import javafx.scene.control
+import javax.swing.JScrollPane
 
 import org.fife.ui.rsyntaxtextarea.{SyntaxConstants, RSyntaxTextArea}
 import org.fife.ui.rtextarea.RTextScrollPane
@@ -17,13 +19,13 @@ import scalafx.application.{Platform, JFXApp}
 import scalafx.application.JFXApp.PrimaryStage
 import scalafx.beans.property.ReadOnlyObjectProperty
 import scalafx.beans.value.ObservableValue
-import scalafx.embed.swing.SwingNode
 import scalafx.event.ActionEvent
 import scalafx.geometry.{Pos, Insets}
 import scalafx.scene.Scene
 import scalafx.scene.control._
 import scalafx.scene.layout._
 import scalafx.scene.paint.Color._
+import scalafx.scene.shape.Rectangle
 import scalafx.stage.{Screen, FileChooser}
 import scalafx.Includes._
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -87,21 +89,12 @@ object DadagenUi extends JFXApp {
 
   stage = new PrimaryStage {
     title = "Dadagen"
-    width = DefaultWidth
-    height = DefaultHeight
     scene = new Scene {
       fill = LightGoldrenrodYellow
       content = mainPane
       stylesheets = List( DadagenUi.getClass.getClassLoader.getResource("application.css").toExternalForm )
     }
-    minWidth = DefaultWidth
-    minHeight = DefaultHeight
-    maxWidth = DefaultWidth
-    maxHeight = DefaultHeight
   }
-
-  //stage.height = calcHeight
-  //stage.width = calcWidth
 
   def calcWidth = {
     val bounds = Screen.primary.visualBounds
@@ -113,11 +106,16 @@ object DadagenUi extends JFXApp {
     bounds.height / 2
   }
 
+  def editorTextArea = rsyntaxArea.getContent.asInstanceOf[RTextScrollPane].getTextArea
+
   /*
    * Main panel
    */
   def mainPane = new BorderPane {
     padding = Insets(Padding)
+    left = new Region {
+      minHeight = editorTextArea.getLineCount * editorTextArea.getLineHeight
+    }
     center = rsyntaxArea
     bottom = bottomPane
   }
@@ -132,9 +130,9 @@ object DadagenUi extends JFXApp {
     textArea.setCodeFoldingEnabled(true)
     textArea.setText(SampleConfig)
 
-    new SwingNode {
-      content = new RTextScrollPane(textArea)
-    }
+    val s = new SwingNode()
+    s.setContent(new RTextScrollPane(textArea))
+    s
 
   }
 
@@ -175,7 +173,6 @@ object DadagenUi extends JFXApp {
   // TODO change to TextFlow
   lazy val messages = new TextArea {
     prefRowCount = 5
-    disable = true
     styleClass = "messages" :: Nil
   }
 
@@ -275,7 +272,10 @@ object DadagenUi extends JFXApp {
   lazy val generateButton = new Button("Generate Data") {
     onAction = (me: ActionEvent) => {
       Future {
-        DadagenErator.generateData(numberOf.getText.toInt, selectedType(), fileNameField.getText, rsyntaxArea.content.asInstanceOf[RTextScrollPane].getTextArea.getText)
+        DadagenErator.generateData(numberOf.getText.toInt
+          , selectedType()
+          , fileNameField.getText
+          , rsyntaxArea.getContent().asInstanceOf[RTextScrollPane].getTextArea.getText)
       }.map( result => {
         // regardless of the result.. update the filename if required
         optionallySetNewRandomFileName()

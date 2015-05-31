@@ -46,7 +46,11 @@ object Dependencies {
     val scala = "com.fasterxml.jackson.module" %% "jackson-module-scala" % version
   }
 
-  val scalafx = "org.scalafx" %% "scalafx" % "8.0.40-R8"
+  // needed for indenting the XML output in Dadagen-UI
+  val stax2woodstox = "org.codehaus.woodstox" % "woodstox-core-asl" % "4.4.1"
+
+  // This is the Java 8 Version val scalafx = "org.scalafx" %% "scalafx" % "8.0.40-R8"
+  val scalafx = "org.scalafx" %% "scalafx" % "2.2.76-R11"
 
   /*
    * Testing and Test helpful Libs

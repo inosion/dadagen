@@ -1,0 +1,9 @@
+  stage.scene.height.addListener(new ChangeListener[Number] {
+    override def changed(observable: value.ObservableValue[_ <: Number], oldValue: Number, newValue: Number) = {
+      val remainderHeight = newValue.intValue() - bottomPane.height.value - (Padding * 3)
+      val rSyntaxTextAreaRows = remainderHeight.toInt / editorTextArea.getLineHeight
+      // set the heiight of the editor
+      editorTextArea.setRows(if (rSyntaxTextAreaRows > MinRows) rSyntaxTextAreaRows else MinRows)
+      // set the height or the spacer
+    }
+  })

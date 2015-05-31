@@ -99,8 +99,15 @@ object DadagenBuild extends Build {
         jackson.dfxml,
         jackson.databind,
         jackson.scala,
+        stax2woodstox,
         akka.actor
       )
+    )
+    // for Java 7 only
+    .settings(
+      unmanagedJars in Compile +=
+        Attributed.blank(
+          file(scala.util.Properties.javaHome) / "/lib/jfxrt.jar")
     )
     .settings(addArtifact(Artifact("dadagen-ui", "assembly"), sbtassembly.AssemblyKeys.assembly))
 

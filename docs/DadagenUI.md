@@ -18,9 +18,18 @@ Download it from Bintray
 
 #### Screenshots
 
-Here is a Screenshot.. Lots to just see :-)
+This is a Screenshot of the Dadagen UI.
+
 
 ![Dadagen UI Screenshot] (../assets/Dadagen-UI-ScreenShot_v0.2.9.png)
 
+
+#### Features
+
+* Outputs to CSV, JSON and XML File Formats using Jackson
+* Uses RSyntaxArea Editor with the Scala Language
+* The Configuration in the Editor _is_ Scala. Therefore, with some magic thinking you can enhance your randomness
+* Running with java -jar ... you will be able to alter the classpath, adding in your own generators.
+* On startup, it selects a Random File Name to save as; Each iteration will prepend a incrementing number.
 
 
