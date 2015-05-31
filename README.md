@@ -16,9 +16,9 @@ It has no bells and whistles (maybe one or two) but rather is just a Java GUI Ap
 
 Download it now .. 
 
-[Stand Alone Dadagen Java App GUI - https://bintray.com/... dadagen-ui-0.2.9.jar](https://bintray.com/artifact/download/inosion/maven/org/inosion/dadagen/dadagen-ui/dadagen-ui-0.2.9.jar)
+[Stand Alone Dadagen Java App GUI - https://bintray.com/... dadagen-ui-0.2.9.jar](https://bintray.com/artifact/download/inosion/maven/org/inosion/dadagen/dadagen-ui/0.2.9/dadagen-ui-0.2.9.jar)
 
-It will require Java 8.
+It will require Java 7.
 
 ### History
 
