@@ -18,7 +18,7 @@ Download it now ..
 
 [Stand Alone Dadagen Java App GUI - https://bintray.com/... dadagen-ui-0.2.9.jar](https://bintray.com/artifact/download/inosion/maven/org/inosion/dadagen/dadagen-ui/0.2.9/dadagen-ui-0.2.9.jar)
 
-It will require Java 7.
+It will require Java 8. It is using ScalaFX which relies on JavaFX. The "goodies" of JavaFX came in Java 1.7 (1.7.0_06-b24) but the "editor console" used is RSyntaxArea which is a Swing Component. And the "embedding" of the Swing Component became easier in Java 8. (Stay Tuned .. I will get one working for Java 7)
 
 ### History
 
