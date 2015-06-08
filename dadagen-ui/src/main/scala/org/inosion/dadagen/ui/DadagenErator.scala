@@ -83,12 +83,12 @@ object DadagenErator {
 
       ostream.close()
 
-      Right(s"Wrote $rows sample${if (rows > 1) "s"} to: $filename in ${(System.currentTimeMillis - startMillis) / 1000} seconds")
+      s"Wrote $rows sample${if (rows > 1) "s"} to: $filename in ${(System.currentTimeMillis - startMillis) / 1000} seconds"
 
     } catch {
-      case e: DadagenCompilationException => Left(e)
-      case e: DataWriteException => Left(e)
-      case e: Exception => Left(DadagenGeneralException("An unexpected exception occured", e))
+      case e: DadagenCompilationException => throw e
+      case e: DataWriteException => throw e
+      case e: Exception => throw DadagenGeneralException("An unexpected exception occured", e)
     }
   }
 

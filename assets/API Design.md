@@ -28,8 +28,21 @@ val csvStringArrayData =
   }
 }
 
+//
+// The idea is that Dadagen will autoInxpect your fields, matching a common set of field names
+// with preset data generators (eg: dateOfBirth or dob will be a DateOfBirthGenerator)
+// if some fields (or all) require a specific rule, the you specify by adding a where field list
+// if combining the two parameters (withAutoInspect and where/field) the where field's will override
+// and auto-matched ones
 
-val arrayOfObjects = randomGenerate 40 objects from classOf[MyCaseClass]
+// withAutoInspect will not populate a field that it cannot match, rather erring on the side of caution.
+// The full list of name automatching generators are
+//
+
+val arrayOfObjects = randomGenerate 40 objects from classOf[Person] withAutoInspect where {
+  field { "myStringField" .regexgen "[A-Z0-9]{0}"
+}
+    
   
 
 trait RandomDataGenerator { 

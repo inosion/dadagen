@@ -4,10 +4,8 @@ import java.nio.file.{Paths, Files}
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import javafx.beans.value
-import javafx.beans.value.ChangeListener
 import javafx.embed.swing.SwingNode
 import javafx.scene.control
-import javax.swing.JScrollPane
 
 import org.fife.ui.rsyntaxtextarea.{SyntaxConstants, RSyntaxTextArea}
 import org.fife.ui.rtextarea.RTextScrollPane
@@ -17,8 +15,6 @@ import org.inosion.dadagen.lists.{ListConfigSupport, ListManager}
 import scala.concurrent.Future
 import scalafx.application.{Platform, JFXApp}
 import scalafx.application.JFXApp.PrimaryStage
-import scalafx.beans.property.ReadOnlyObjectProperty
-import scalafx.beans.value.ObservableValue
 import scalafx.event.ActionEvent
 import scalafx.geometry.{Pos, Insets}
 import scalafx.scene.Scene
@@ -271,19 +267,27 @@ object DadagenUi extends JFXApp {
 
   lazy val generateButton = new Button("Generate Data") {
     onAction = (me: ActionEvent) => {
-      Future {
+      val b = me.source.asInstanceOf[javafx.scene.control.Button]
+      val f = Future {
+        b.disable = true
         DadagenErator.generateData(numberOf.getText.toInt
           , selectedType()
           , fileNameField.getText
           , rsyntaxArea.getContent().asInstanceOf[RTextScrollPane].getTextArea.getText)
-      }.map( result => {
-        // regardless of the result.. update the filename if required
-        optionallySetNewRandomFileName()
-        result match {
-          case Left(e) => badMessage(e.getLocalizedMessage)
-          case Right(e) => goodMessage(e)
+      }
+      f onSuccess{ case message => {
+          goodMessage(message)
         }
-      })(fxec)
+      }
+      f onFailure { case error => {
+          badMessage(error.getLocalizedMessage)
+        }
+      }
+      f onComplete { case _ => {
+          optionallySetNewRandomFileName()
+          b.disable = false
+        }
+      }
     }
   }
 
