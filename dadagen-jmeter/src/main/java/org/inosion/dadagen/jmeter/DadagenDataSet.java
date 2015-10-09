@@ -15,12 +15,10 @@ import javax.script.ScriptEngine;
 import org.inosion.dadagen.MapOfStringsGenerator;
 import org.inosion.dadagen.MapOfStringsGenerator$;
 import org.inosion.dadagen.api.ScalaScriptEngine$;
-import org.inosion.dadagen.generators.DataGenerator;
+import org.inosion.dadagen.generators.Generator;
 import scala.collection.immutable.Map;
 
 import java.util.Iterator;
-import scala.tools.nsc.interpreter.*;
-import scala.tools.nsc.Settings;
 
 /**
  * Created by rbuckland on 12/05/2015.
@@ -151,8 +149,8 @@ public class DadagenDataSet extends ConfigTestElement implements LoopIterationLi
         // we expect that the config in the JMeter GUI is a "field { ... } , field { .. } "
         try {
 
-            scala.collection.immutable.List<DataGenerator<?>> generators =
-                    (scala.collection.immutable.List<DataGenerator<?>>) engine.eval(
+            scala.collection.immutable.List<Generator<?>> generators =
+                    (scala.collection.immutable.List<Generator<?>>) engine.eval(
                             // import the scala implicits
                             "import org.inosion.dadagen.api.scaladsl._\n\n\n" + getDadagenConfig()
                     );

@@ -7,7 +7,7 @@ import com.fasterxml.jackson.dataformat.csv.{CsvSchema, CsvMapper}
 import com.fasterxml.jackson.dataformat.xml.{JacksonXmlModule, XmlMapper}
 import com.fasterxml.jackson.module.scala.{DefaultScalaModule}
 import com.fasterxml.jackson.module.scala.experimental.ScalaObjectMapper
-import org.inosion.dadagen.generators.DataGenerator
+import org.inosion.dadagen.generators.TypedDataGenerator$
 import org.inosion.dadagen.{MapOfStringsGenerator, ListOfStringsGenerator}
 import org.inosion.dadagen.api.ScalaScriptEngine
 import org.slf4j.LoggerFactory
@@ -59,7 +59,7 @@ object DadagenErator {
   private def createGenerators(dadagenConfig: String) = try {
     engine.eval(
       "import org.inosion.dadagen.api.scaladsl._\n\n" + dadagenConfig
-    ).asInstanceOf[List[DataGenerator[_]]]
+    ).asInstanceOf[List[TypedDataGenerator[_]]]
   } catch {
     case e: Exception => throw DadagenCompilationException("Compilation Failed", e)
   }
@@ -95,7 +95,7 @@ object DadagenErator {
   /*
    * Write out a CSV File
    */
-  private def writeCsvFile(generators: List[DataGenerator[_]], ostream: FileOutputStream, rows: Int) = {
+  private def writeCsvFile(generators: List[TypedDataGenerator[_]], ostream: FileOutputStream, rows: Int) = {
 
     def buildCsvSchema: CsvSchema = CsvSchema.emptySchema()
       .withQuoteChar('"')
@@ -117,7 +117,7 @@ object DadagenErator {
   /*
    * Write out an XML File
    */
-  private def writeXmlFile(generators: List[DataGenerator[_]], ostream: FileOutputStream, rows: Int) = {
+  private def writeXmlFile(generators: List[TypedDataGenerator[_]], ostream: FileOutputStream, rows: Int) = {
 
     xmlMapper.registerModule(DefaultScalaModule)
     val dadagen = MapOfStringsGenerator(generators)
@@ -129,7 +129,7 @@ object DadagenErator {
   /*
    * Write out a JSON file
    */
-  private def writeJsonFile(generators: List[DataGenerator[_]], ostream: FileOutputStream, rows: Int): Unit = {
+  private def writeJsonFile(generators: List[TypedDataGenerator[_]], ostream: FileOutputStream, rows: Int): Unit = {
 
     jsonMapper.registerModule(DefaultScalaModule)
     val dadagen = MapOfStringsGenerator(generators)

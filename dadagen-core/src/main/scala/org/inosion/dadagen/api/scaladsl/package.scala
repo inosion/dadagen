@@ -12,22 +12,22 @@ package object scaladsl {
 
   class DadagenWrapper() {
     // gatling uses maps for its session data, as does JMeter
-    def asMaps (generators:List[DataGenerator[_]]) = MapOfStringsGenerator(generators)
+    def asMaps (generators:List[Generator[_]]) = MapOfStringsGenerator(generators)
 
     // raw CSV data can be made with this one
-    def asLists(generators:List[DataGenerator[_]]) = ListOfStringsGenerator(generators)
+    def asLists(generators:List[Generator[_]]) = ListOfStringsGenerator(generators)
   }
 
   /*
    * Used as part of the DSL to denote a field in you "List"
    * col is more suitable to use when working with CSV Data
    */
-  def col(generator:DataGenerator[_]):List[DataGenerator[_]] = List(generator)
-  def field(generator:DataGenerator[_]):List[DataGenerator[_]] = List(generator)
+  def col(generator:Generator[_]):List[Generator[_]] = List(generator)
+  def field(generator:Generator[_]):List[Generator[_]] = List(generator)
 
-  implicit class ChainableDataGenerator(generators:List[DataGenerator[_]]) {
-    def col(generator:DataGenerator[_]):List[DataGenerator[_]] = generators :+ generator
-    def field(generator:DataGenerator[_]):List[DataGenerator[_]] = generators :+ generator
+  implicit class ChainableDataGenerator(generators:List[Generator[_]]) {
+    def col(generator:Generator[_]):List[Generator[_]] = generators :+ generator
+    def field(generator:Generator[_]):List[Generator[_]] = generators :+ generator
   }
 
   // Name type Generators
@@ -36,7 +36,7 @@ package object scaladsl {
     def name = new NameGenerators(colName)
     def gender = GenderGenerator(colName)
     def rownumber = RowNumberGenerator(colName)
-    def regexgen(regex:String):DataGenerator[String] = RegexGenerator(colName,regex)
+    def regexgen(regex:String):Generator[String] = RegexGenerator(colName,regex)
     def address = new AddressGenerators(colName)
     def number = new NumberGenerators(colName)
     def template(templateString:String) = TemplateGenerator(colName,templateString)
@@ -56,7 +56,7 @@ package object scaladsl {
   class AddressGenerators(generatorName:String) extends WrappedGenerator {
     def fulladdress = AddressGenerator(generatorName,FullAddress)
     def postcode = AddressGenerator(generatorName,PostCodeOnly)
-    def street = AddressGenerator(generatorName,StreetAndNumber)
+    def street = AddressGenerator(generatorName,StreetWithNumber)
     def suburb = AddressGenerator(generatorName,SuburbOnly)
     def city = AddressGenerator(generatorName,CityOnly)
     def district = AddressGenerator(generatorName,DistrictOnly)

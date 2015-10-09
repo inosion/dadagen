@@ -1,16 +1,17 @@
 package org.inosion.dadagen.generators
 
+import java.util.Random
+
 import org.inosion.dadagen.Context
 
-import java.util.Random
 
 /**
  * @author rbuckland
+ *
  */
-trait DataGenerator[T] {
+trait Generator[T] {
 
   def name: String
-  def description: String
   def generate(context:Context,dependantList:List[String])(implicit rand: Random):T = {
     val result = internalGenerate(context)
     if (dependantList.contains(name)) {
@@ -28,6 +29,6 @@ trait DataGenerator[T] {
 
 }
 
-object DataGenerator {
+object Generator {
   implicit val rand: java.util.Random = org.inosion.dadagen.rand
 }

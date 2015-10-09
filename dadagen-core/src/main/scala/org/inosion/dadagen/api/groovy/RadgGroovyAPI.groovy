@@ -1,7 +1,7 @@
 package org.inosion.dadagen.api.groovy
 
 // import org.inosion.rdg.api.RowCountWrappedInt
-import org.inosion.dadagen.generators.DataGenerator
+import org.inosion.dadagen.generators.Generator
 
 ExpandoMetaClass.enableGlobally();
 
@@ -9,13 +9,13 @@ ExpandoMetaClass.enableGlobally();
 class DataGeneratorHolder {
     public int rows;
 
-    private List<DataGenerator> generators = new ArrayList<DataGenerator>()
+    private List<Generator> generators = new ArrayList<Generator>()
 
     public DataGeneratorHolder(Integer rows) {
         this.rows = rows;
     }
 
-    def DataGeneratorHolder col(DataGenerator generator) {
+    def DataGeneratorHolder col(Generator generator) {
         generators.add(generator)
     }
 }

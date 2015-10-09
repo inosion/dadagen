@@ -4,6 +4,8 @@ import sbt.Keys._
 import io.gatling.sbt.GatlingPlugin
 import bintray.BintrayKeys._
 import sbtassembly.AssemblyKeys._
+import spray.boilerplate._
+
 //import com.typesafe.sbt.SbtNativePackager._
 
 
@@ -51,6 +53,7 @@ object DadagenBuild extends Build {
 
   lazy val dadagenCore = Project( id="dadagen-core", base = file("dadagen-core"))
     .settings(projectSettings: _*)
+    .settings(BoilerplatePlugin.settings: _*)
     .enablePlugins(GatlingPlugin)
     .disablePlugins(sbtassembly.AssemblyPlugin)
     .settings(libraryDependencies ++=

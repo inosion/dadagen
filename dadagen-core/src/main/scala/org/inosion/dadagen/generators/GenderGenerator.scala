@@ -27,13 +27,16 @@ case object Male extends Gender  {
 /**
  * @author rbuckland
  */
-case class GenderGenerator(name:String, style:String = "char")(implicit rand: Random) extends DataGenerator[String] {
-  def description = "Gender: When style is 'char', then single M or F character for Male or Female, or use style:'word'" +
-                    " for 'Male' or 'Female'"
+case class GenderGenerator(name:String, style:String = "char")(implicit rand: Random) extends Generator[String] {
   override def internalGenerate(context: Context)(implicit rand: Random):String =
     style match {
       case "char" => RandomUtil.randomFromList[String](List("M","F"))
       case "word" => RandomUtil.randomFromList[String](List("Male", "Female"))
     }
+
+}
+object GenderGenerator extends Described {
+  val description = "Gender: When style is 'char', then single M or F character for Male or Female, or use style:'word'" +
+    " for 'Male' or 'Female'"
 
 }

@@ -1,27 +1,44 @@
 package org.inosion.dadagen
 
 
-import org.inosion.dadagen.generators.DataGenerator
+import org.inosion.dadagen.generators.Generator
 
 /* reducing compiled class sizes in the releases - http://blog.duh.org/2011/11/scala-pitfalls-trait-bloat.html */
 abstract class AbstractIterator[+A] extends Iterator[A]
 
-abstract class IteratingRandomDataGenerator[B] extends RandomDataGenerator[Iterator[B]]
+abstract class Dadagenerator[A] {
 
-abstract class RandomDataGenerator[A] {
+  def generators: List[Generator[_]]
 
-  def generators: List[DataGenerator[_]]
+  def fgen(ctx:Context):A
 
-  def generate(): A
+  def generateAll(rows: Int):List[A] = generate().take(rows).toList
+
+  def generate(): Iterator[A] = new AbstractIterator[A] {
+
+    private[this] var i = 0
+
+    override def hasNext: Boolean = true
+
+    override def next(): A = {
+      i = i+1
+      val ctx:Context = new Context(i) // holds the values for this row
+      fgen(ctx)
+    }
+
+  }
+
+  /**
+   * All the column names, or if a map the Key Names
+   */
+  val fieldNames = generators.map(_.name)
 
   /**
    * Return a list of "nodes" which are depended upon
    */
   val dependentOn: List[String] = {
     require(generators != null, "A list of Generators is required")
-    generators.map {
-      _.dependencies
-    }.flatten.distinct
+    generators.flatMap { _.dependencies }.distinct
   }
 
   private[this] val dependencyNodeList = generators.map(x => SimpleNode(x.name, x.dependencies))
@@ -35,7 +52,7 @@ abstract class RandomDataGenerator[A] {
    * This is NOT the most efficient way to do this, but for our small runs .. it works ok for now.
    * @return
    */
-  private[dadagen] val dependencyOrdered: List[DataGenerator[_]] = {
+  private[dadagen] val dependencyOrdered: List[Generator[_]] = {
     topoSort(dependencyNodeList).map(s => generators.find( g => g.name.equals(s) ).get)
   }
 
@@ -103,18 +120,7 @@ abstract class RandomDataGenerator[A] {
 }
 
 
-/**
- * Context object used "during execution"
- */
-class Context(currentRow:Int) {
 
-  import scala.collection.mutable.{ HashMap => MHashMap }
-
-  val dataFieldState: MHashMap[String, Any] = MHashMap.empty
-
-  override def toString = dataFieldState.toString()
-
-}
 
 
 

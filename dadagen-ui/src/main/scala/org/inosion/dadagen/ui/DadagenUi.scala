@@ -67,7 +67,7 @@ object DadagenUi extends JFXApp {
       |  field { "fullname".template ("${firstname} ${surname}") }.
       |  field { "dob".regexgen ("19[3-9][0-9]-(1[012]|0[1-9])-(0[0-9]|1[0-9]|2[0-9])") }.
       |  field { "email_address".template("TEST_${firstname}.${surname}@noemail.test") }.
-      |  field { "nino".regexgen("(A|B|C|E|G|H|J|K|L|M|N|O|P|R|S|T|W|X|Y|Z){2}[0-9]{6}A") }.
+      |  field { "nino".regexgen("([AEHKLTYZ][ABEHK-MPR-TW-Y]|[AEHKLTY][Z]|[B][ABEHK-MT]|[C][ABEHKLR]|[G][Y]|[J][A-CEGHJ-NPR-TW-Z]|[M][AWX]|[N][ABEHLMPRSW-Z]|[O][ABEHK-MPRSX]|[P][A-CEGHJ-NPR-TW-Y]|[R][ABEHKMPR-TW-Z]|[S][A-CEGHJ-NPR-TW-Z]|[W][ABEK-MP])[0-9]{6}[A-D ]") }.
       |  field { "street_number".number between 1 and 100 }.
       |  field { "street_name".template ("RS Performance Street" ) }.
       |  field { "town".address city }.

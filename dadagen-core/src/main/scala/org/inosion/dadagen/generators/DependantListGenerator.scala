@@ -1,7 +1,6 @@
 package org.inosion.dadagen.generators
 
 import java.util.Random
-
 import org.inosion.dadagen.Context
 import org.inosion.dadagen.lists.DadagenConfigException
 
@@ -17,11 +16,9 @@ import org.inosion.dadagen.lists.DadagenConfigException
  *     )
  *  )
  */
-case class DependantListGenerator(name:String,keyName:String,dependantList:Map[String,List[String]]) (implicit rand: Random) extends DataGenerator[String] {
+case class DependantListGenerator(name:String,keyName:String,dependantList:Map[String,List[String]]) (implicit rand: Random) extends Generator[String] {
 
   override val dependencies = List(keyName)
-
-  override val description: String = "Select a value of a predefined list, based on a keyName as the map key"
 
   override def internalGenerate(context: Context)(implicit rand: Random): String = {
 
@@ -34,4 +31,9 @@ case class DependantListGenerator(name:String,keyName:String,dependantList:Map[S
     }
 
   }
+}
+
+object DependantListGenerator extends Described {
+  val description: String = "Select a value of a predefined list, based on a keyName as the map key"
+
 }

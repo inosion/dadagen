@@ -1,0 +1,24 @@
+package org.inosion.dadagen.auto
+
+trait ProductBuilderInstances { self: ProductBuilders with StandardBuilders =>
+[#  // Case classes with 1 parameters
+
+  def baseGenerator1[[#P1 :JF#], T <: Product :ClassManifest](construct: ([#P1#]) => T): Dadagenerator[T] = {
+    val Array([#p1#]) = extractFieldNames(classManifest[T])
+    baseBuilder(construct, [#p1#])
+  }
+
+  def baseBuilder[[#P1 :JF#], T <: Product](construct: ([#P1#]) => T, [#fieldName1: String#]): Builder[T] = new Builder[T]{
+    def build(p: T) = {
+
+      val generators = new collection.mutable.ListBuffer[DataGenerator]
+      fields.sizeHint(1 * 2)
+      [#fields ++= productElement##2Field[P1](fieldName1, p, 0)#
+      ]
+      // build dadagenerator here DadaGenerator(generators: _*)
+    }
+  }#
+
+
+]
+}

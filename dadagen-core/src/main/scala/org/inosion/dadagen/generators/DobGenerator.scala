@@ -6,12 +6,11 @@ import java.util.Random
 
 import org.inosion.dadagen.Context
 
+
 /**
  * Create a date of birth. The defaults will be someone less than 100 yo.
  */
-case class DobGenerator(name: String, yearOffset:Int = 100)(implicit rand: Random) extends DataGenerator[Date] {
-
-  override def description = "A Date of Birth Generator. Defaults to 100 years"
+case class DobGenerator(name: String, yearOffset:Int = 100)(implicit rand: Random) extends Generator[Date] {
 
   override def internalGenerate(context: Context)(implicit rand: Random): Date = {
     val currentSeconds = new Date().getTime
@@ -25,4 +24,8 @@ class DobDate(s:Long ) extends Date(s) {
     val df = new SimpleDateFormat("yyyy-mm-dd")
     df.format(this)
   }
+}
+
+object DobGenerator extends Described {
+  override val description = "A Date of Birth Generator. Defaults to 100 years"
 }

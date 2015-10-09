@@ -3,8 +3,8 @@ package org.inosion.dadagen.generators
 import java.util.Random
 
 import com.mifmif.common.regex.Generex
-import org.inosion.dadagen.lists.{ListManager, ListConfigSupport}
 import org.inosion.dadagen.Context
+import org.inosion.dadagen.lists.{ListManager, ListConfigSupport}
 import ListManager.getRandomValue
 
 /*
@@ -12,7 +12,7 @@ import ListManager.getRandomValue
  */
 sealed abstract class AddressStyle
 case object FullAddress extends AddressStyle
-case object StreetAndNumber extends AddressStyle
+case object StreetWithNumber extends AddressStyle
 case object StreetOnly extends AddressStyle
 case object SuburbOnly extends AddressStyle
 case object SuburbCity extends AddressStyle
@@ -31,7 +31,7 @@ case object PostCodeOnly extends AddressStyle
 case class AddressGenerator(name:String,
                                        style:AddressStyle,
                                        countryField:Option[CountryCode] = Some(CountryCodeGBR)
-                                        )(implicit rand: Random) extends DataGenerator[String] {
+                                        )(implicit rand: Random) extends Generator[String] {
 
   val ukPostcodeGen = new Generex("[A-HJ-NP-Z]{2}[1-9][0-9] [0-9][A-HJ-NP-Z]{2}") // not proper but close
 
@@ -51,12 +51,10 @@ case class AddressGenerator(name:String,
   ListConfigSupport.importConfigListData(placesCitiesKey)
   ListConfigSupport.importConfigListData(countryKey)
 
-  override def description: String = "Generate lots of Address Stuff suburb and city and county (state, district) style address'"
-
   override def internalGenerate(context: Context)(implicit rand: Random): String = {
 
     style match {
-      case StreetAndNumber => streetLine
+      case StreetWithNumber => streetLine
       case StreetOnly => streetName
       case SuburbCityDistrict => suburbCityDistrict
       case SuburbOnly => getRandomValue(addressSuburbKey)
@@ -90,4 +88,8 @@ case class AddressGenerator(name:String,
     case _ =>  RandomUtil.randomIntRange(55000,56000).toString
   }
   private def ukPostcode = ukPostcodeGen.random()
+}
+
+object AddressGenerator extends Described {
+  override val description: String = "Generate lots of Address Stuff suburb and city and county (state, district) style address'"
 }
