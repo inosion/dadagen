@@ -1,0 +1,66 @@
+plugins {
+    id 'scala'
+//    id "com.github.maiflai.scalatest" version "0.31"
+}
+
+repositories {
+    mavenCentral() 
+}
+
+tasks.withType(ScalaCompile) {
+    scalaCompileOptions.additionalParameters = ["-feature", "-language:implicitConversions", "-language:postfixOps"]
+}
+
+dependencies { 
+
+  def scalaVersion = '2.13'
+  def scalaVersionSemver = '2.13.5'
+
+  implementation "org.scala-lang:scala-library:$scalaVersionSemver"
+  implementation "org.scala-lang:scala-reflect:$scalaVersionSemver"
+  implementation "org.scala-lang:scala-compiler:$scalaVersionSemver"
+
+  // used to interact with Gatling
+  implementation "com.typesafe.akka:akka-actor_$scalaVersion:2.6.14"
+
+  // use to read class files
+  implementation "commons-beanutils:commons-beanutils:1.9.4"
+
+  // used for the regex data generation
+  implementation "com.github.mifmif:generex:1.0.2"
+  implementation "com.typesafe:config:1.4.1"
+  // object jackson { 
+
+  implementation "org.scala-stm:scala-stm_$scalaVersion:0.11.1"
+
+  // for the Groovy API for others
+  implementation "org.codehaus.groovy:groovy-all:3.0.8"
+  implementation "com.github.tototoshi:scala-csv_$scalaVersion:1.3.8"
+
+  //
+  // Logging
+
+  implementation "ch.qos.logback:logback-classic:1.2.3"
+  implementation "com.typesafe.scala-logging:scala-logging_$scalaVersion:3.9.3"
+
+  //val twitterUtilEval = "com.twitter:util-eval:6.23.0_$scalaVersion"
+
+  //
+  // Test Dependencies
+  //
+  // testImplementation "org.scalatest:scalatest_$scalaVersion:3.2.9"
+  // testImplementation "org.scalacheck:scalacheck_$scalaVersion:1.15.4"
+  // testImplementation "org.scalamock:scalamock_$scalaVersion:5.1.0"
+  testImplementation "junit:junit:4.13.2"
+  testImplementation "org.scalatest:scalatest_$scalaVersion:3.2.9"
+  testImplementation "org.scalatestplus:junit-4-13_$scalaVersion:3.2.2.0"
+  testImplementation "org.scalacheck:scalacheck_$scalaVersion:1.15.4"
+  testImplementation "org.scalamock:scalamock_$scalaVersion:5.1.0"
+  testImplementation 'com.vladsch.flexmark:flexmark-all:0.62.2'
+  /*
+   * Testing and Test helpful Libs
+   */
+  testImplementation "io.gatling:gatling-test-framework:3.6.0"
+  testImplementation "io.gatling.highcharts:gatling-charts-highcharts:3.6.0"
+
+}

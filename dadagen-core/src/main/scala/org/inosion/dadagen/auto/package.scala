@@ -4,6 +4,8 @@ import org.inosion.dadagen.generators._
 
 package object auto {
 
+  implicit val rand: java.util.Random = org.inosion.dadagen.rand
+
   def dadagen[T]:DadagenPrep[T] = ??? // new DadagenPrep[T]()
 
   implicit class DadagenPrep[T](generators:List[Generator[_]]) extends DadagenBuilder[T] {

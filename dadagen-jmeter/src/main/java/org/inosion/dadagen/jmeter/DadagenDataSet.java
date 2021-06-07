@@ -12,8 +12,8 @@ import org.apache.jorphan.util.JMeterStopThreadException;
 
 import javax.script.ScriptEngine;
 
-import org.inosion.dadagen.MapOfStringsGenerator;
-import org.inosion.dadagen.MapOfStringsGenerator$;
+import org.inosion.dadagen.DadagenStringMap;
+import org.inosion.dadagen.DadagenStringMap$;
 import org.inosion.dadagen.api.ScalaScriptEngine$;
 import org.inosion.dadagen.generators.Generator;
 import scala.collection.immutable.Map;
@@ -154,7 +154,7 @@ public class DadagenDataSet extends ConfigTestElement implements LoopIterationLi
                             // import the scala implicits
                             "import org.inosion.dadagen.api.scaladsl._\n\n\n" + getDadagenConfig()
                     );
-            MapOfStringsGenerator dadagen = MapOfStringsGenerator$.MODULE$.apply(generators, new java.security.SecureRandom());
+            DadagenStringMap dadagen = DadagenStringMap$.MODULE$.apply(generators, new java.security.SecureRandom());
             randomMapIterator = dadagen.generateJava();
         } catch (Exception e) {
             throw new JMeterEngineException("There was a problem reading the Dadagen Config",e);

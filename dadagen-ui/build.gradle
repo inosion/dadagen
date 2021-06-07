@@ -1,0 +1,77 @@
+
+plugins {
+    id 'scala' 
+    id 'application'
+    id "com.github.johnrengelman.shadow" version "6.1.0"
+}
+
+
+repositories {
+    mavenCentral() 
+}
+
+application {
+    mainClassName = 'org.inosion.dadagen.ui.DadagenUi' // shadow fatjar generator
+    mainClass     = 'org.inosion.dadagen.ui.DadagenUi' // application
+}
+
+jar {
+    manifest {
+        attributes 'Main-Class': 'org.inosion.dadagen.ui.DadagenUi'
+    }
+    from {
+        configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+}
+
+dependencies {
+
+  def scalaVersion = '2.13'
+  def scalaVersionSemver = "2.13.5"
+
+  implementation project(':dadagen-core')
+
+  implementation "org.scala-lang:scala-library:$scalaVersionSemver"
+  implementation "org.scala-lang:scala-reflect:$scalaVersionSemver"
+  implementation "org.scala-lang:scala-compiler:$scalaVersionSemver"
+
+  implementation "ch.qos.logback:logback-classic:1.2.3"
+  implementation "com.typesafe.scala-logging:scala-logging_$scalaVersion:3.9.3"  
+
+  // needed for indenting the XML output in Dadagen-UI
+  implementation "org.codehaus.woodstox:woodstox-core-asl:4.4.1"
+  // implementation "org.scalafx:scalafx:8.0.40-R8_$scalaVersion"
+  implementation "org.scalafx:scalafx_$scalaVersion:16.0.0-R24"
+  implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-csv:2.12.3"
+  implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.12.3"
+  implementation "com.fasterxml.jackson.core:jackson-databind:2.12.3"
+  implementation "com.fasterxml.jackson.module:jackson-module-scala_$scalaVersion:2.12.3" 
+  implementation "com.fifesoft:rsyntaxtextarea:3.1.2"
+
+  implementation "org.openjfx:javafx-base:16:win"
+  implementation "org.openjfx:javafx-controls:16:win"
+  implementation "org.openjfx:javafx-fxml:16:win"
+  implementation "org.openjfx:javafx-graphics:16:win"
+  implementation "org.openjfx:javafx-media:16:win"
+  implementation "org.openjfx:javafx-swing:16:win"
+  implementation "org.openjfx:javafx-web:16:win"
+
+  implementation "org.openjfx:javafx-base:16:linux"
+  implementation "org.openjfx:javafx-controls:16:linux"
+  implementation "org.openjfx:javafx-fxml:16:linux"
+  implementation "org.openjfx:javafx-graphics:16:linux"
+  implementation "org.openjfx:javafx-media:16:linux"
+  implementation "org.openjfx:javafx-swing:16:linux"
+  implementation "org.openjfx:javafx-web:16:linux"
+
+  implementation "org.openjfx:javafx-base:16:mac"
+  implementation "org.openjfx:javafx-controls:16:mac"
+  implementation "org.openjfx:javafx-fxml:16:mac"
+  implementation "org.openjfx:javafx-graphics:16:mac"
+  implementation "org.openjfx:javafx-media:16:mac"
+  implementation "org.openjfx:javafx-swing:16:mac"
+  implementation "org.openjfx:javafx-web:16:mac"
+
+
+}
+

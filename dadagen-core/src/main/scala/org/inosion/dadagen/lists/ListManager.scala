@@ -8,7 +8,7 @@ import com.github.tototoshi.csv._
 import org.inosion.dadagen.generators.RandomUtil
 import org.slf4j.LoggerFactory
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 import scala.concurrent.stm._
 
 /**
@@ -46,7 +46,7 @@ object ListManager {
   def importData(listName:String,rows:Stream[List[String]], hasDiscriminator:Boolean):Unit = {
 
     // for the import of data, we will only do this once. By list name
-    if (listData.single.containsKey(listName)) {
+    if (listData.single.contains(listName)) {
       // logger.trace(s"Not importing [${listName}]")
       return
     }
@@ -124,15 +124,15 @@ object ListManager {
    */
   def importFile(listName:String, is:InputStream):Unit = {
 
-    if (listData.single.containsKey(listName)) {
+    if (listData.single.contains(listName)) {
       logger.info(s"Not importing [${listName}] as it is already imported")
       return
     }
 
     // we could use CSVDictReader .. but I don't care for the column names
     // and this uses slightly less memory (on initial load)
-    val reader = CSVReader.open(new InputStreamReader(is))
-    val stream = reader.toStream()
+    val reader = com.github.tototoshi.csv.CSVReader.open(new InputStreamReader(is))
+    val stream = reader.toStream
 
     // first row is always considered the header row.. we MUST have column names in the CSV files people
     // look at the first row and see if has more than one column (the header row)

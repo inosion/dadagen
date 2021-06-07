@@ -26,20 +26,20 @@ object Dependencies {
 
   // for inspecting Beans and the like
   object commons { 
-    val beanutils  = "commons-beanutils" % "commons-beanutils" % "1.8.3"
+    val beanutils  = "commons-beanutils" % "commons-beanutils" % "1.9.4"
   }
 
   // for generating regexpression strings
-  val generex = "com.github.mifmif" % "generex" % "0.0.2"
+  val generex = "com.github.mifmif" % "generex" % "1.0.2"
 
   // excellent config support
-  val typesafeconfig = "com.typesafe" % "config" % "1.2.1"
+  val typesafeconfig = "com.typesafe" % "config" % "1.4.1"
 
   // opencsv wrapper
   // "com.bizo:mighty-csv_2.11:0.2"
 
   object jackson { 
-    val version = "2.5.2"
+    val version = "2.12.3"
     val dfcsv = "com.fasterxml.jackson.dataformat" % "jackson-dataformat-csv" % version
     val dfxml = "com.fasterxml.jackson.dataformat" % "jackson-dataformat-xml" % version
     val databind = "com.fasterxml.jackson.core" % "jackson-databind" % version
@@ -50,20 +50,20 @@ object Dependencies {
   val stax2woodstox = "org.codehaus.woodstox" % "woodstox-core-asl" % "4.4.1"
 
   // This is the Java 8 Version val scalafx = "org.scalafx" %% "scalafx" % "8.0.40-R8"
-  val scalafx = "org.scalafx" %% "scalafx" % "2.2.76-R11"
+  val scalafx = "org.scalafx" %% "scalafx" % "16.0.0-R24"
 
   /*
    * Testing and Test helpful Libs
    */
   object gatling {
-    val version = "2.1.5"
+    val version = "3.6.0"
     val testFramework = "io.gatling"            % "gatling-test-framework" % version
     val highcharts    = "io.gatling.highcharts" % "gatling-charts-highcharts" % version
   }
 
   object jmeter {
 
-    val version = "2.13"
+    val version = "5.4.1"
     val core = ("org.apache.jmeter" % "ApacheJMeter_core" % version)
       // it would be _really_ awesome if I could say - exclude "everything" BUT xyz :-)
       // or even support regexp in the "org" and/or "artifactId"
@@ -120,23 +120,23 @@ object Dependencies {
     ///    val commonsPool2 = "commons-pool2" % "commons-pool2" % "2.3" from "http://central.maven.org/maven2/org/apache/commons/commons-pool2/2.3/commons-pool2-2.3.jar"
   }
 
-  val scalastm = "org.scala-stm" %% "scala-stm" % "0.7"
+  val scalastm = "org.scala-stm" %% "scala-stm" % "0.11"
 
   // for the Groovy API for others
-  val groovy = "org.codehaus.groovy" % "groovy-all" % "2.4"
+  val groovy = "org.codehaus.groovy" % "groovy-all" % "3.0"
 
-  val scalacsv = "com.github.tototoshi" %% "scala-csv" % "1.2.1"
+  val scalacsv = "com.github.tototoshi" %% "scala-csv" % "1.3"
 
-  val rsyntaxtextarea = "com.fifesoft" % "rsyntaxtextarea" % "2.5.6"
+  val rsyntaxtextarea = "com.fifesoft" % "rsyntaxtextarea" % "3.1"
 
   //
   // Logging
   //
 
   object logging {
-    val logback        = "ch.qos.logback"      % "logback-classic"               % "1.0.13"
-    val slf4jJcl       = "org.slf4j"           % "jcl-over-slf4j"                % "1.7.6"
-    val slf4j          = "org.slf4j"           % "slf4j-api"                     % "1.7.6"
+    val logback        = "ch.qos.logback"      % "logback-classic"               % "1.2"
+    val slf4jJcl       = "org.slf4j"           % "jcl-over-slf4j"                % "1.7"
+    val slf4j          = "org.slf4j"           % "slf4j-api"                     % "1.7"
   }
 
   //val twitterUtilEval = "com.twitter" %% "util-eval" % "6.23.0"
@@ -145,9 +145,9 @@ object Dependencies {
   // Test Dependencies
   //
   object testing {
-    val scalatest       = "org.scalatest"      %% "scalatest"    % "2.2.2"
-    val scalacheck      = "org.scalacheck"     %% "scalacheck"   % "1.12.1"
-    val scalamock       = "org.scalamock"      %% "scalamock-scalatest-support" % "3.2"
+    val scalatest       = "org.scalatest"      %% "scalatest"    % "3.2"
+    val scalacheck      = "org.scalacheck"     %% "scalacheck"   % "1.15"
+    val scalamock       = "org.scalamock"      %% "scalamock-scalatest-support" % "5.1"
   }
 
 }

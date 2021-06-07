@@ -1,10 +1,44 @@
 ## DadaGen - Random Data Generator
-![Dadagen Logo](https://raw.github.com/inosion/dadagen/master/assets/dadagen-logo.jpg)
+![Dadagen Logo](assets/dadagen-logo.jpg)
 ### What is Dadagen ? 
+
+Dadagen is a test data generation tool.
+It comes packaged as:
+- a desktop application for Windows, Linux and MacOSX
+- an embeddable scala / java library for you scala and java projects.
 
 Dadagen is an embedded Scala / Java Library that has a host of simple declarations for creating random data of your
 choice. The power lies behind a simple configuration sytax and some helper libraries and plugins for a variety
 of scenarios where random, real data is desired.
+
+## Releases
+
+Packaging 
+- https://stackoverflow.com/questions/21721119/creating-runnable-jar-with-gradle
+
+```
+
+    shadow
+    one-jar
+    spring-boot
+    capsule
+
+```
+## Building 
+
+```
+docker run --rm -ti -u gradle \
+   -v ${PWD}:/home/gradle/project \
+   -v ${HOME}/.gradle:/home/gradle/.gradle \
+   -v ${HOME}/.m2/repository:/home/gradle/.m2/repository \
+   -v ${HOME}/.ivy2/cache:/home/gradle/.ivy2/cache \
+   -w /home/gradle/project gradle:6 /bin/bash 
+```
+Then, 
+
+```
+gradle@86f68d415810:~/project$  :dadagen-ui:shadowJar
+```
 
 ### Download the GUI and play with it
 
@@ -278,7 +312,10 @@ Running out of time right now to comment them all. So instead, look at org.inosi
 
 ### Suggestions?
 
-It is VERY Alpha at the moment but more is coming. Drop me a line or raise an issue and I will attend to it.
+Raise an issue 
 
-Regards
-Ramon
+https://docs.gradle.org/current/samples/sample_convention_plugins.html
+
+
+### Future
+Convert to Rust and back haul the interface through WASM - https://github.com/wasmerio/wasmer-java

@@ -10,7 +10,7 @@ object BaseSettings {
 
   object Version {
     val ThisVersion = "0.2.9a"
-    val Scala = "2.11.6"
+    val Scala = "2.13.1"
   }
 
   /**

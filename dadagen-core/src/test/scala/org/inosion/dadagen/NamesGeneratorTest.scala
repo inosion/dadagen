@@ -1,9 +1,13 @@
 package org.inosion.dadagen
 
 import org.inosion.dadagen.generators._
-import org.scalatest.{FlatSpec, Matchers}
+import org.junit.runner.RunWith
+import org.scalatestplus.junit.JUnitRunner
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class NamesGeneratorTest extends FlatSpec with Matchers {
+@RunWith(classOf[JUnitRunner])
+class NamesGeneratorTest extends AnyFlatSpec with Matchers {
 
   val femaleTitles = RadgContext.Settings.getList("dadagen.lists.person.title.values.F")
   val maleTitles = RadgContext.Settings.getList("dadagen.lists.person.title.values.M")
@@ -11,7 +15,8 @@ class NamesGeneratorTest extends FlatSpec with Matchers {
   val regexp = """^(.*)\s+(.*)\s+(.*)$""".r
 
   "Generating a full name" should "match a regular expression" in {
-    val ramondom = ListOfStringsGenerator(List(
+    import org.inosion.dadagen.generators._
+    val ramondom = DadagenStringList(List(
       FullNameGenerator("full_name")
     ))
 

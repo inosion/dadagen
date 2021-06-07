@@ -55,10 +55,10 @@ object RandomUtil {
 
   def randomWeightedIndex[T: Numeric](weights:List[T]): Int = {
     import scala.math.Numeric.Implicits._
-    val sum = weights.sum.toFloat()
+    val sum = weights.sum.toFloat
     val rnd = rand.nextFloat()
     println(s"${sum} ${rnd}")
-    weights.zipWithIndex.find(x => rnd < (x._1.toFloat() / sum)) match {
+    weights.zipWithIndex.find(x => rnd < (x._1.toFloat / sum)) match {
       case None => weights.size-1
       case Some((_,idx)) => idx
     }

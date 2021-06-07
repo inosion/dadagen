@@ -1,14 +1,17 @@
 package org.inosion.dadagen
 
 import org.inosion.dadagen.generators.{DependantListGenerator, GenericListGenerator, TemplateGenerator}
-import org.scalatest.{Matchers, FlatSpec}
-
-class DependantListTest extends FlatSpec with Matchers {
+import org.junit.runner.RunWith
+import org.scalatestplus.junit.JUnitRunner
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
+@RunWith(classOf[JUnitRunner])
+class DependantListTest extends AnyFlatSpec with Matchers {
     "A dependent list " should "select from the correct map" in {
 
       val values = Map ("a123" -> List("x","y","z"),"a556" -> List("ccc","ddd","aaa"),"a445" -> List("11x","22y","33z"))
 
-      val ramondom = MapOfStringsGenerator(List(
+      val ramondom = DadagenStringMap(List(
         GenericListGenerator(name = "foo", listData = Some(List("a123","a445","a556"))),
         DependantListGenerator(name = "foo_size",keyName = "foo", dependantList = values)
       ))

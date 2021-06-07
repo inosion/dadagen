@@ -1,16 +1,22 @@
 
-  package org.inosion.dadagen
+package org.inosion.dadagen
 
-  import org.scalatest.{Matchers, FlatSpec}
-  import org.inosion.dadagen.generators._
+import org.junit.runner.RunWith
+import org.scalatestplus.junit.JUnitRunner
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
+import org.inosion.dadagen.generators._
 
-class TitleAndGenderTest extends FlatSpec with Matchers {
+@RunWith(classOf[JUnitRunner])
+class TitleAndGenderTest extends AnyFlatSpec with Matchers {
 
   val femaleTitles = RadgContext.Settings.getList("dadagen.lists.person.title.values.F")
   val maleTitles = RadgContext.Settings.getList("dadagen.lists.person.title.values.M")
   "Title and Gender bound" should "always match the correct title for gender" in {
-    val ramondom = ListOfStringsGenerator(List(
+
+    import org.inosion.dadagen.generators._
+    val ramondom = DadagenStringList(List(
       TitleGenerator("title",Some("gender")),
       GenderGenerator("gender")
     ))

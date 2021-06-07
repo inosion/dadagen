@@ -1,6 +1,7 @@
 package org.inosion.dadagen
 
 import java.util.Random
+import scala.language.postfixOps
 
 import org.inosion.dadagen.generators.Generator
 

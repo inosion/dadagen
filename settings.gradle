@@ -1,0 +1,6 @@
+
+
+rootProject.name = "dadagen"
+include "dadagen-core"
+include "dadagen-ui"
+// include "dadagen-jmeter"

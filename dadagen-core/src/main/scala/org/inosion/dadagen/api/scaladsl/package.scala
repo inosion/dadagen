@@ -1,6 +1,6 @@
 package org.inosion.dadagen.api
 
-import org.inosion.dadagen.{ListOfStringsGenerator, MapOfStringsGenerator}
+import org.inosion.dadagen.{DadagenStringList, DadagenStringMap}
 import org.inosion.dadagen.generators._
 
 /**
@@ -12,10 +12,10 @@ package object scaladsl {
 
   class DadagenWrapper() {
     // gatling uses maps for its session data, as does JMeter
-    def asMaps (generators:List[Generator[_]]) = MapOfStringsGenerator(generators)
+    def asMaps (generators:List[Generator[_]]) = DadagenStringMap(generators)
 
     // raw CSV data can be made with this one
-    def asLists(generators:List[Generator[_]]) = ListOfStringsGenerator(generators)
+    def asLists(generators:List[Generator[_]]) = DadagenStringList(generators)
   }
 
   /*

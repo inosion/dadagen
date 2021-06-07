@@ -1,10 +1,10 @@
 package org.inosion.dadagen.auto
 
-import org.inosion.dadagen.generators.TypedDataGenerator$
+import org.inosion.dadagen.Dadagenerator
 
 
 object AutoGeneratorMaker {
 
-  def makeGenerators:List[TypedDataGenerator[_]] = ???
+  def makeGenerators:List[Dadagenerator[_]] = ???
 
 }

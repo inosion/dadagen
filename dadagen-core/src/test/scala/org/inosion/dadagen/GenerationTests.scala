@@ -1,16 +1,19 @@
 package org.inosion.dadagen
 
-import org.scalatest.junit.JUnitRunner
-import org.scalatest.{Matchers, FlatSpec}
 import org.inosion.dadagen.generators.{TemplateGenerator, RegexGenerator}
 
 /**
  * @author rbuckland
  */
-class GenerationTests extends FlatSpec with Matchers {
+import org.junit.runner.RunWith
+import org.scalatestplus.junit.JUnitRunner
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
+@RunWith(classOf[JUnitRunner])
+class GenerationTests extends AnyFlatSpec with Matchers {
   "A String Array Random Generate" should "create the correct number of rows" in {
 
-    val randimio = ListOfStringsGenerator(List(new RegexGenerator("myregexp", "[a-c][0-9]\\d\\d\\w Word")))
+    val randimio = DadagenStringList(List(new RegexGenerator("myregexp", "[a-c][0-9]\\d\\d\\w Word")))
     val randomData = randimio.generateAll(20)
     randomData.length should be (20)
 
@@ -18,9 +21,10 @@ class GenerationTests extends FlatSpec with Matchers {
 
 }
 
-class TopoSortTest extends FlatSpec with Matchers {
+@RunWith(classOf[JUnitRunner])
+class TopoSortTest extends AnyFlatSpec with Matchers {
   "A dependent set " should "be sorted into execution order" in {
-    val ramondom = ListOfStringsGenerator(List(
+    val ramondom = DadagenStringList(List(
       TemplateGenerator("A","${E} ${B} ${C}"),
       TemplateGenerator("B","${F}"),
       TemplateGenerator("C","${F}"),
@@ -36,9 +40,10 @@ class TopoSortTest extends FlatSpec with Matchers {
 }
 
 
-class TemplateTest extends FlatSpec with Matchers {
+@RunWith(classOf[JUnitRunner])
+class TemplateTest extends AnyFlatSpec with Matchers {
   "A dependent set " should "be sorted into execution order and produce a correct result" in {
-    val ramondom = ListOfStringsGenerator(List(
+    val ramondom = DadagenStringList(List(
       TemplateGenerator("A","This is A [${E}] [${B}] [${C}]"),
       TemplateGenerator("B","This is B [${F}]"),
       TemplateGenerator("C","This is C [${F}]"),

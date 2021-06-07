@@ -5,13 +5,16 @@ import java.io.StringWriter
 import com.fasterxml.jackson.core.`type`.TypeReference
 import com.fasterxml.jackson.databind.ObjectWriter
 import com.fasterxml.jackson.dataformat.csv.{CsvSchema, CsvMapper}
-import org.scalatest.{Matchers, FlatSpec}
-
+import org.junit.runner.RunWith
+import org.scalatestplus.junit.JUnitRunner
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
 /**
  * @author rbuckland
  */
-class ScalaCSVAPITest extends FlatSpec with Matchers {
+@RunWith(classOf[JUnitRunner])
+class ScalaCSVAPITest extends AnyFlatSpec with Matchers {
 
   "using the scala API" should "create data" in {
 

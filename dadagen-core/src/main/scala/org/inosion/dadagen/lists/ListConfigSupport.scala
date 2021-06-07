@@ -6,7 +6,8 @@ import com.typesafe.config.{ConfigException, ConfigValue}
 import org.inosion.dadagen.RadgContext
 import org.slf4j.LoggerFactory
 
-import scala.collection.JavaConversions._
+// https://stackoverflow.com/questions/8301947/what-is-the-difference-between-javaconverters-and-javaconversions-in-scala
+
 import scala.collection.JavaConverters._
 import scala.collection._
 /**
@@ -34,8 +35,8 @@ object ListConfigSupport {
 
     val keyConfig = RadgContext.config.getConfig(keyPrefix + listKeyName)
 
-    import JavaConversions._
-    logger.trace(keyConfig.entrySet().iterator().mkString(","))
+    import scala.collection.JavaConverters
+    logger.trace(keyConfig.entrySet().asScala.mkString(","))
 
     // we could have three types of entries
     // filename
@@ -57,10 +58,10 @@ object ListConfigSupport {
         val config = keyConfig.getConfig("values")
         // we have multiple discriminators
         for (
-          discrim: java.util.Map.Entry[String, ConfigValue] <- config.entrySet().iterator()
+          discrim: java.util.Map.Entry[String, ConfigValue] <- config.entrySet().iterator().asScala
         ) {
           val list:java.util.List[String] = discrim.getValue.unwrapped().asInstanceOf[java.util.List[String]]
-          ListManager.importDataWithDiscriminator(listKeyName,list.asScala,discrim.getKey)
+          ListManager.importDataWithDiscriminator(listKeyName,list.asScala.toSeq,discrim.getKey)
         }
       } catch {
         // it was not a Config subtype
@@ -95,7 +96,7 @@ object ListConfigSupport {
       def importStreamWithLogging(listKeyName:String, filepath:String, inputStream:InputStream) = {
         // do a check on Listmanager .. it checks also .. but we will here so we get better logging
         //
-        if (! ListManager.listData.single.containsKey(listKeyName)) {
+        if (! ListManager.listData.single.contains(listKeyName)) {
           logger.info(s"Importing $listKeyName from $filepath")
           val now = System.currentTimeMillis()
           ListManager.importFile(listKeyName, inputStream)

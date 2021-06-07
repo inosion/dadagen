@@ -4,15 +4,23 @@ import java.nio.file.{Paths, Files}
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import javafx.beans.value
-import javafx.embed.swing.SwingNode
+// import javafx.embed.swing.SwingNode
 import javafx.scene.control
+
+
+// import scalafx.Includes._
+// import scalafx.application.JFXApp
+// import scalafx.scene.Scene
+// import scalafx.scene.paint.Color._
+// import scalafx.scene.shape.Rectangle
 
 import org.fife.ui.rsyntaxtextarea.{SyntaxConstants, RSyntaxTextArea}
 import org.fife.ui.rtextarea.RTextScrollPane
-import org.inosion.dadagen.api.ScalaScriptEngine
+import org.inosion.dadagen.support.ScalaScriptEngine
 import org.inosion.dadagen.lists.{ListConfigSupport, ListManager}
 
 import scala.concurrent.Future
+import scala.util.{Success, Failure}
 import scalafx.application.{Platform, JFXApp}
 import scalafx.application.JFXApp.PrimaryStage
 import scalafx.event.ActionEvent
@@ -38,8 +46,10 @@ object DadagenUi extends JFXApp {
 
   // load the script engine (bootstrap SecureRandom).. in the background so it's ready
   val f = Future { ScalaScriptEngine.loadEngine.eval("1") }
-  f onSuccess { case engine => goodMessage("Compiler is ready") }
-  f onFailure { case engine => badMessage("Problems were encountered loading the Compiler") }
+  f onComplete { 
+    case Success(engine) => goodMessage("Scala DSL compiler is ready") 
+    case Failure(engine) => badMessage("Problems were encountered loading the Compiler")
+  }
 
   val Padding = 10
   val DefaultWidth = 800
@@ -126,7 +136,7 @@ object DadagenUi extends JFXApp {
     textArea.setCodeFoldingEnabled(true)
     textArea.setText(SampleConfig)
 
-    val s = new SwingNode()
+    val s = new scalafx.embed.swing.SwingNode()
     s.setContent(new RTextScrollPane(textArea))
     s
 
@@ -161,7 +171,7 @@ object DadagenUi extends JFXApp {
     onAction = (e: ActionEvent) => {
       val f = fileChooser.showSaveDialog(stage)
       if (f != null) {
-        fileNameField.setText(f.getAbsolutePath)
+        fileNameField.text = f.getAbsolutePath
       }
     }
   }
@@ -255,35 +265,35 @@ object DadagenUi extends JFXApp {
 
   private val timeFmt = new SimpleDateFormat("dd MMM HH:mm:ss ")
 
-  def updateMessage(msg:String, good:Boolean) = {
-    val prefix = if (messages.getText.length > 0) messages.getText  + "\n" else ""
-    val goodBadPrefx = if (good) "\u26AA " else "\u25B6 "
-    val timestamp = timeFmt.format(Calendar.getInstance().getTime)
-    messages.setText(prefix + timestamp + goodBadPrefx + msg)
+  def updateMessage(msg:String, good:String) = {
+    System.out.println(msg)
+    val prefix       = if ("".equals(messages.text)) "" else messages.text + "\n"
+    val goodBadPrefx = if ("true".equals(good)) "\u26AA " else "\u25B6 "
+    val timestamp    = timeFmt.format(Calendar.getInstance().getTime)
+    messages.text    = prefix + timestamp + goodBadPrefx + msg
   }
 
-  def goodMessage = updateMessage(_:String,good=true)
-  def badMessage = updateMessage(_:String,good=false)
+  // wowo I hate implicits, I can't work out how to turn off a Boolean to scalafx.beans.binding.BooleanBinding implicit
+  // wo weaving arount it my changing my method to string :ROFL: :-(
+  def goodMessage = updateMessage(_:String,good="true")
+  def badMessage = updateMessage(_:String,good="false")
 
   lazy val generateButton = new Button("Generate Data") {
     onAction = (me: ActionEvent) => {
       val b = me.source.asInstanceOf[javafx.scene.control.Button]
       val f = Future {
         b.disable = true
-        DadagenErator.generateData(numberOf.getText.toInt
+        DadageneratorHelper.generateData(numberOf.getText.toInt
           , selectedType()
           , fileNameField.getText
           , rsyntaxArea.getContent().asInstanceOf[RTextScrollPane].getTextArea.getText)
       }
-      f onSuccess{ case message => {
-          goodMessage(message)
-        }
-      }
-      f onFailure { case error => {
+      f onComplete { 
+        case Failure(error) => {
           badMessage(error.getLocalizedMessage)
         }
-      }
-      f onComplete { case _ => {
+        case Success(message) => {
+          goodMessage(message)
           optionallySetNewRandomFileName()
           b.disable = false
         }

@@ -1,12 +1,11 @@
 package org.inosion.dadagen.auto
 
-import org.inosion.dadagen.generators.TypedDataGenerator$
-
+import org.inosion.dadagen.Dadagenerator
 trait BasicFormats {
 
-  implicit object IntDadagenFormat extends DadagenFormat[Int] {
+  implicit object IntDadagenFormat extends BaseGenerator[Int] {
 
-    override def build(obj: Int): IteratingRandomGenerator[Int] = ???
+    override def build(obj: Int): Dadagenerator[Int] = ???
 
   }
 
