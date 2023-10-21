@@ -2,18 +2,18 @@ use rand::Rng;
 use crate::common::{Generator, Context};
 use rand::rngs::ThreadRng;
 
-struct GenderGenerator<'a> {
-    name: &'a str,
-    style: &'a str,
+struct GenderGenerator {
+    name: String,
+    style: String,
 }
 
-impl<'a> Generator<'a, String, ThreadRng> for GenderGenerator<'a> {
-    fn name(&self) -> &'a str {
-        self.name
+impl Generator<String, ThreadRng> for GenderGenerator {
+    fn name(&self) -> String {
+        self.name.to_string()
     }
 
-    fn internal_generate(&self, _context: &Context) -> String {
-        match self.style {
+    fn internal_generate(&self, _context: &Context<String>) -> String {
+        match self.style.as_str() {
             "char" => {
                 if rand::thread_rng().gen_range(0..2) == 0 {
                     "M".to_string()
@@ -41,11 +41,31 @@ impl<'a> Generator<'a, String, ThreadRng> for GenderGenerator<'a> {
     }
 }
 
-impl<'a> GenderGenerator<'a> {
-    fn new(name: &'a str, style: &'a str) -> Self {
+impl GenderGenerator {
+    fn new(name: String, style: String) -> Self {
         Self {
             name,
             style,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_gender_generator() {
+        let dependant_list: &[String] = &Vec::new();
+
+        let generator = GenderGenerator::new("gender".to_string(), "char".to_string());
+        let mut context = Context::new();
+
+        let generated_value = generator.generate(&mut context, dependant_list);
+        assert!(generated_value == "M" || generated_value == "F");
+
+        let generator = GenderGenerator::new("gender".to_string(), "word".to_string());
+        let generated_value = generator.generate(&mut context, dependant_list);
+        assert!(generated_value == "Male" || generated_value == "Female");
     }
 }

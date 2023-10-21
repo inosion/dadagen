@@ -8,12 +8,12 @@ struct IntegerGenerator {
     max: i32,
 }
 
-impl Generator<'_, i32, ThreadRng> for IntegerGenerator {
-    fn name(&self) -> &str {
-        &self.name
+impl Generator<i32, ThreadRng> for IntegerGenerator {
+    fn name(&self) -> String {
+        self.name.clone()
     }
 
-    fn internal_generate(&self, _context: &Context) -> i32 {
+    fn internal_generate(&self, _context: &Context<i32>) -> i32 {
         self.random().gen_range(self.min..=self.max)
     }
 
@@ -42,12 +42,12 @@ struct DoubleGenerator {
     precision: i32,
 }
 
-impl Generator<'_, f64, ThreadRng> for DoubleGenerator {
-    fn name(&self) -> &str {
-        &self.name
+impl Generator<f64, ThreadRng> for DoubleGenerator {
+    fn name(&self) -> String {
+        self.name.clone()
     }
 
-    fn internal_generate(&self, _context: &Context) -> f64 {
+    fn internal_generate(&self, _context: &Context<f64>) -> f64 {
         let value = rand::thread_rng().gen_range(self.min..self.max);
         (value * 10.0_f64.powi(self.precision)).round() / 10.0_f64.powi(self.precision)
     }
@@ -78,12 +78,12 @@ struct LongGenerator {
     max: i64,
 }
 
-impl Generator<'_, i64, ThreadRng> for LongGenerator {
-    fn name(&self) -> &str {
-        &self.name
+impl Generator<i64, ThreadRng> for LongGenerator {
+    fn name(&self) -> String {
+        self.name.clone()
     }
 
-    fn internal_generate(&self, _context: &Context) -> i64 {
+    fn internal_generate(&self, _context: &Context<i64>) -> i64 {
         rand::thread_rng().gen_range(self.min..=self.max)
     }
 
@@ -114,7 +114,7 @@ mod tests {
         let mut context = Context::new();
         let generator = IntegerGenerator::new("number".to_string(),0, 100);
 
-        let dependant_list: &[&str] = &Vec::new();
+        let dependant_list: &[String] = &Vec::new();
 
         let generated_value = generator.generate(&mut context, dependant_list);
 
@@ -126,7 +126,7 @@ mod tests {
         let mut context = Context::new();
         let generator = LongGenerator::new("number".to_string(), 0, 100);
 
-        let dependant_list: &[&str] = &Vec::new();
+        let dependant_list: &[String] = &Vec::new();
 
         let generated_value = generator.generate(&mut context, dependant_list);
 
@@ -138,7 +138,7 @@ mod tests {
         let mut context = Context::new();
         let generator = DoubleGenerator::new("number".to_string(), 0.0, 100.0, 2);
 
-        let dependant_list: &[&str] = &Vec::new();
+        let dependant_list: &[String] = &Vec::new();
 
         let generated_value = generator.generate(&mut context, dependant_list);
 

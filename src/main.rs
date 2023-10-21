@@ -4,18 +4,19 @@ use rand::rngs::ThreadRng;
 mod common;
 mod number_generation;
 mod string_generation;
+mod util;
 
 use common::Generator;
 use common::Context;
 
 struct MyGenerator;
 
-impl Generator<'_, i32, ThreadRng> for MyGenerator {
-    fn name(&self) -> &str {
-        "example"
+impl Generator<i32, ThreadRng> for MyGenerator {
+    fn name(&self) -> String {
+        "example".to_string()
     }
 
-    fn internal_generate(&self, context: &Context) -> i32 {
+    fn internal_generate(&self, _context: &Context<i32>) -> i32 {
         // Implement the generation logic here using the provided random number generator
         self.random().gen_range(0..100)
     }
@@ -35,7 +36,7 @@ fn main() {
     // Example usage
     let generator = MyGenerator;
 
-    let dependant_list: &[&str] = &Vec::new();
+    let dependant_list: &[String] = &Vec::new();
 
     let generated_value = generator.generate(&mut context, dependant_list);
 
