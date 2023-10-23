@@ -1,0 +1,71 @@
+dadagen:
+  lists:
+    address:
+      housename:
+        filename: list_data/housenames.csv
+      street.name:
+        filename: list_data/colours.csv
+      street.suffix:
+        values:
+          - "Road"
+          - "Street"
+          - "Close"
+          - "Drive"
+          - "Way"
+          - "Ave"
+          - "Bend"
+          - "Highway"
+          - "Mews"
+          - "Terrace"
+          - "Walk"
+          - "Parade"
+          - "Lane"
+          - "Gardens"
+    address:
+      suburb:
+        filename: list_data/suburbs.csv
+      district:
+        filename: list_data/districts.csv
+    places:
+      countries:
+        filename: list_data/countries.csv
+      cities:
+        filename: list_data/cities.csv
+    company:
+      name:
+        filename: list_data/rocks-and-minerals.csv
+    person:
+      firstname:
+        filename: list_data/firstnames.csv
+      firstname2000:
+        filename: list_data/firstnames-2000.csv
+      firstname4000:
+        filename: list_data/firstnames-4000.csv
+      surname:
+        filename: list_data/surnames.csv
+      surname2000:
+        filename: list_data/surnames-2000.csv
+      surname4000:
+        filename: list_data/surnames-4000.csv
+      title.values:
+        F:
+          - "Mrs"
+          - "Ms"
+          - "Miss"
+          - "Dr"
+          - "Prof"
+          - "Rev"
+        M:
+          - "Mr"
+          - "Dr"
+          - "Prof"
+          - "Rev"
+    miscellaneous:
+      rocks-minerals:
+        filename: list_data/rocks-and-minerals.csv
+      colours:
+        filename: list_data/colours.csv
+      cities:
+        filename: list_data/cities.csv
+      potato-varieties:
+        filename: list_data/potato-varieties.csv

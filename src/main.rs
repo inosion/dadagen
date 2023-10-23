@@ -12,6 +12,9 @@ use clap::{Parser as ClapParser, Subcommand};
 
 
 mod common;
+mod config;
+mod list_manager;
+mod address_generation;
 mod number_generation;
 mod string_generation;
 mod util;
@@ -82,7 +85,7 @@ fn main() {
         Command::Generate { dadagen_config } => {
             println!("Generating data from config: {:?}", dadagen_config);
             let x = fs::read_to_string(dadagen_config).expect("Something went wrong reading the file");
-            let mut result = DslParser::parse(Rule::dsl, x.as_str()).unwrap();
+            let _result = DslParser::parse(Rule::dsl, x.as_str()).unwrap();
         }
     }
 

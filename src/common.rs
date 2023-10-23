@@ -17,7 +17,7 @@ impl<T> Context<T> {
         self.data_field_state.insert(key, value);
     }
 
-    pub fn get_data_field_state(&self, key: &str) -> Option<&T> {
+    pub fn get_data_field_state(&self, _key: &str) -> Option<&T> {
         // self.data_field_state
         //     .get(key)
         //     .and_then(|value| value.as_ref())
@@ -28,7 +28,7 @@ impl<T> Context<T> {
 /// All items, fields, objects, cells have an associated Generator
 pub trait Generator<T, R: Rng> {
     fn name(&self) -> String;
-    fn generate(&self, context: &mut Context<T>, dependant_list: &[String]) -> T {
+    fn generate(&self, context: &mut Context<T>, _dependant_list: &[String]) -> T {
         let result = self.internal_generate(context);
         // if dependant_list.contains(&self.name()) {
         //     context

@@ -1,5 +1,5 @@
 use rand::{thread_rng, Rng};
-use std::ops::Range;
+
 
 /**
  * Pull a random value from a comma-separated list of strings.
@@ -7,6 +7,7 @@ use std::ops::Range;
  * @param comma_separated_list A comma-separated list of strings.
  * @return A randomly selected string from the list.
  */
+#[allow(dead_code)]
 fn random_from_string_separated_list(comma_separated_list: &str) -> String {
     let list: Vec<&str> = comma_separated_list.split(',').map(|s| s.trim()).collect();
     let index = thread_rng().gen_range(0..list.len());
@@ -19,6 +20,7 @@ fn random_from_string_separated_list(comma_separated_list: &str) -> String {
  * @param upper The upper bound for the random integer.
  * @return A random integer.
  */
+#[allow(dead_code)]
 fn random_int_upto(upper: i32) -> i32 {
     thread_rng().gen_range(1..=upper)
 }
@@ -30,6 +32,8 @@ fn random_int_upto(upper: i32) -> i32 {
  * @param max The maximum value of the range.
  * @return A random integer within the specified range.
  */
+#[allow(dead_code)]
+
 fn random_int_range(min: i32, max: i32) -> i32 {
     thread_rng().gen_range(min..=max)
 }
@@ -41,6 +45,8 @@ fn random_int_range(min: i32, max: i32) -> i32 {
  * @param max The maximum value of the range.
  * @return A random long integer within the specified range.
  */
+#[allow(dead_code)]
+
 fn random_long_range(min: i64, max: i64) -> i64 {
     thread_rng().gen_range(min..=max)
 }
@@ -53,6 +59,8 @@ fn random_long_range(min: i64, max: i64) -> i64 {
  * @param decimal_places The number of decimal places in the result.
  * @return A random double within the specified range.
  */
+#[allow(dead_code)]
+
 fn random_double_range(min: f64, max: f64, decimal_places: u32) -> f64 {
     let random_double: f64 = thread_rng().gen_range(min..max);
     (random_double * 10.0_f64.powi(decimal_places as i32)).round()
@@ -65,6 +73,8 @@ fn random_double_range(min: f64, max: f64, decimal_places: u32) -> f64 {
  * @param alist A list of elements.
  * @return A randomly selected element from the list.
  */
+#[allow(dead_code)]
+
 fn random_from_list<E: Clone>(alist: &[E]) -> E {
     let index = thread_rng().gen_range(0..alist.len());
     alist[index].clone()
@@ -76,6 +86,8 @@ fn random_from_list<E: Clone>(alist: &[E]) -> E {
  * @param weights A list of weights for different options.
  * @return A random index based on the weighted probabilities.
  */
+#[allow(dead_code)]
+
 fn random_weighted_index(weights: &[f32]) -> usize {
     let sum: f32 = weights.iter().sum();
     let rnd: f32 = thread_rng().gen_range(0.0..1.0);
@@ -96,6 +108,8 @@ fn random_weighted_index(weights: &[f32]) -> usize {
  * @param index A list of integers representing positions in the main list.
  * @return A randomly selected element from the list by index.
  */
+#[allow(dead_code)]
+
 fn random_from_list_by_index<E: Clone>(alist: &[E], index: &[usize]) -> E {
     let random_index = thread_rng().gen_range(0..index.len());
     let selected_index = index[random_index];
