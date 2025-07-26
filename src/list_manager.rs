@@ -11,6 +11,7 @@ use std::fs::File;
 use std::hash::Hash;
 use std::io::BufReader;
 use std::io::Read;
+use std::marker::Tuple;
 use std::path::PathBuf;
 use std::sync::RwLock;
 use xdg::BaseDirectories;
@@ -43,11 +44,13 @@ impl ListManager {
             .expect("Failed to acquire read lock for list_data")
     }
 
+    /// list data either has a discriminator or not
+    /// The discriminator is used to group the data into sub-lists
+    /// For example first-names can be discriminated by gender (M,F)
     pub fn import_data_with_discriminator(
         &self,
         list_name: &str,
-        values: Vec<String>,
-        discriminator: String,
+        values: Vec<(String,String)>, // rows of Value + Discriminator
     ) {
         if !self.list_data.write().unwrap().contains_key(list_name) {
             self.list_data
@@ -56,12 +59,13 @@ impl ListManager {
                 .insert(list_name.to_string(), Vec::new());
         }
 
+        // now index the data via the discriminator
         let mut index_key = IndexKey {
             list_name: list_name.to_string(),
             discriminator: discriminator.clone(),
         };
 
-        for (_i, value) in values.iter().enumerate() {
+        for (_i, value) in values.iter().enumerate().filter(|v| &v == &discriminator) {
             let i = self.list_data.read().unwrap().get(list_name).unwrap().len();
             self.list_data
                 .write()
@@ -301,4 +305,66 @@ impl DadagenConfigSupport {
         GLOBAL_LIST_MANAGER.import_data(list_key_name, rows, true);
         Ok(())
     }
+}
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::io::Write;
+    use tempfile::NamedTempFile;
+
+    #[test]
+    fn test_import_file() {
+        let list_manager = ListManager::new();
+        let file_contents = "foo\nbar\nbaz\n";
+        let mut file = NamedTempFile::new().unwrap();
+        write!(file, "{}", file_contents).unwrap();
+        let file_path = file.path().to_str().unwrap();
+
+        GLOBAL_LIST_MANAGER.import_file("test_list", file_path).unwrap();
+
+        let list_data = list_manager.list_data.read().unwrap();
+        assert_eq!(list_data.get("test_list"), Some(&vec!["foo".to_string(), "bar".to_string(), "baz".to_string()]));
+    }
+
+    #[test]
+    fn test_import_data() {
+        let list_manager = ListManager::new();
+
+        GLOBAL_LIST_MANAGER.import_data("test_list", vec![vec!["foo".to_string()], vec!["bar".to_string()], vec!["baz".to_string()]], true);
+
+        let list_data = list_manager.list_data.read().unwrap();
+        assert_eq!(list_data.get("test_list"), Some(&vec!["foo".to_string(), "bar".to_string(), "baz".to_string()]));
+    }
+
+    // #[test]
+    // fn test_get_list() {
+    //     let list_manager = ListManager::new();
+    //     GLOBAL_LIST_MANAGER.import_data("test_list", vec![vec!["foo".to_string()], vec!["bar".to_string()], vec!["baz".to_string()]], true);
+
+    //     let list = GLOBAL_LIST_MANAGER.get_list("test_list").unwrap();
+
+    //     assert_eq!(list, vec!["foo", "bar", "baz"]);
+    // }
+
+    // #[test]
+    // fn test_get_list_index() {
+    //     let list_manager = ListManager::new();
+    //     GLOBAL_LIST_MANAGER.import_data("test_list", vec![vec!["foo".to_string()], vec!["bar".to_string()], vec!["baz".to_string()]], true);
+
+    //     let index = GLOBAL_LIST_MANAGER.get_list_index("test_list", "bar").unwrap();
+
+    //     assert_eq!(index, 1);
+    // }
+
+    // #[test]
+    // fn test_get_list_index_not_found() {
+    //     let list_manager = ListManager::new();
+    //     GLOBAL_LIST_MANAGER.import_data("test_list", vec![vec!["foo".to_string()], vec!["bar".to_string()], vec!["baz".to_string()]], true);
+
+    //     let index = GLOBAL_LIST_MANAGER.get_list_index("test_list", "qux");
+
+    //     assert_eq!(index, None);
+    // }
 }
