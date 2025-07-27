@@ -8,28 +8,6 @@ use std::sync::{Arc, RwLock};
 use std::any::Any;
 use crate::errors::{DadagenError, Result};
 
-/// Trait for type-erased cloneable storage
-pub trait AnyClone: Send + Sync {
-    fn clone_box(&self) -> Box<dyn AnyClone>;
-    fn as_any(&self) -> &dyn Any;
-}
-
-impl<T: Clone + Send + Sync + 'static> AnyClone for T {
-    fn clone_box(&self) -> Box<dyn AnyClone> {
-        Box::new(self.clone())
-    }
-
-    fn as_any(&self) -> &dyn Any {
-        self
-    }
-}
-
-impl Clone for Box<dyn AnyClone> {
-    fn clone(&self) -> Box<dyn AnyClone> {
-        self.clone_box()
-    }
-}
-
 /// Metadata about the generation process
 #[derive(Debug, Clone)]
 pub struct GenerationMetadata {
@@ -51,7 +29,7 @@ impl Default for GenerationMetadata {
 /// Thread-safe context for data generation
 pub struct Context {
     current_iter: Arc<RwLock<u64>>,
-    data_field_state: Arc<RwLock<HashMap<String, Box<dyn AnyClone>>>>,
+    data_field_state: Arc<RwLock<HashMap<String, Arc<dyn Any + Send + Sync>>>>,
     random_seed: Option<u64>,
     generation_metadata: Arc<RwLock<GenerationMetadata>>,
 }
@@ -95,7 +73,7 @@ impl Context {
                 message: "Failed to acquire write lock for field state".to_string() 
             })?;
         
-        state.insert(key, Box::new(value));
+        state.insert(key, Arc::new(value));
         Ok(())
     }
 
@@ -106,13 +84,14 @@ impl Context {
                 message: "Failed to acquire read lock for field state".to_string() 
             })?;
         
-        if let Some(boxed_value) = state.get(key) {
-            if let Some(value) = boxed_value.as_any().downcast_ref::<T>() {
+        if let Some(arc_value) = state.get(key) {
+            // Try to downcast to the requested type
+            if let Some(value) = arc_value.downcast_ref::<T>() {
                 Ok(Some(value.clone()))
             } else {
-                Err(DadagenError::ContextError {
-                    message: format!("Type mismatch for field '{}'", key)
-                })
+                // Return None for type mismatch instead of error
+                // This is more ergonomic for optional field access
+                Ok(None)
             }
         } else {
             Ok(None)
@@ -206,31 +185,52 @@ mod tests {
 
     #[test]
     fn test_field_state_management() {
-        // Test the most basic case first
-        let test_value = "hello".to_string();
-        let boxed: Box<dyn AnyClone> = Box::new(test_value);
+        let context = Context::new();
         
-        // What type is it?
-        println!("Boxed value type: {:?}", boxed.as_any().type_id());
-        println!("String type: {:?}", std::any::TypeId::of::<String>());
+        // Test storing and retrieving a string value
+        let field_name = "test_field";
+        let test_value = "hello world".to_string();
         
-        // Can we downcast?
-        if let Some(s) = boxed.as_any().downcast_ref::<String>() {
-            println!("Successfully downcast to String: '{}'", s);
+        // Store the value
+        context.insert_field_state(field_name.to_string(), test_value.clone()).unwrap();
+        
+        // Retrieve and verify
+        if let Some(retrieved) = context.get_field_state::<String>(field_name).unwrap() {
+            assert_eq!(retrieved, test_value);
         } else {
-            println!("Failed to downcast to String");
-            
-            // Let's see what types it could be
-            println!("Trying &str...");
-            if let Some(s) = boxed.as_any().downcast_ref::<&str>() {
-                println!("It's &str: '{}'", s);
-            } else {
-                println!("Not &str either");
-            }
+            panic!("Failed to retrieve stored string value");
         }
         
-        // Skip the context test for now to focus on the basic issue
-        panic!("Debug test - stopping here");
+        // Test storing and retrieving an integer value
+        let int_field = "int_field";
+        let int_value = 42i64;
+        
+        context.insert_field_state(int_field.to_string(), int_value).unwrap();
+        
+        if let Some(retrieved_int) = context.get_field_state::<i64>(int_field).unwrap() {
+            assert_eq!(retrieved_int, int_value);
+        } else {
+            panic!("Failed to retrieve stored integer value");
+        }
+        
+        // Test that wrong type returns None (graceful type mismatch handling)
+        assert!(context.get_field_state::<f64>(field_name).unwrap().is_none());
+        assert!(context.get_field_state::<String>(int_field).unwrap().is_none());
+        
+        // Test non-existent field
+        assert!(context.get_field_state::<String>("non_existent").unwrap().is_none());
+        
+        // Test storing and retrieving a boolean value
+        let bool_field = "bool_field";
+        let bool_value = true;
+        
+        context.insert_field_state(bool_field.to_string(), bool_value).unwrap();
+        
+        if let Some(retrieved_bool) = context.get_field_state::<bool>(bool_field).unwrap() {
+            assert_eq!(retrieved_bool, bool_value);
+        } else {
+            panic!("Failed to retrieve stored boolean value");
+        }
     }
 
     #[test]

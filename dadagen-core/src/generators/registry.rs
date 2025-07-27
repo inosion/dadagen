@@ -8,7 +8,7 @@ use std::sync::Arc;
 use std::fmt::Debug;
 
 /// Generated value types that can be type-erased
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum GeneratedValue {
     String(String),
     Integer(i64),
@@ -261,6 +261,112 @@ impl GeneratorFactory for IntegerGeneratorFactory {
 
 // ... Add more factories for other generator types as needed ...
 
+/// Float generator factory
+pub struct FloatGeneratorFactory;
+
+impl GeneratorFactory for FloatGeneratorFactory {
+    fn create(&self, _config: &str) -> Result<BoxedGenerator> {
+        let gen = crate::generators::FloatGenerator::new("float".to_string());
+        Ok(Box::new(GeneratorWrapper::new(gen)))
+    }
+    fn metadata(&self) -> GeneratorMetadata {
+        GeneratorMetadata {
+            name: "float".to_string(),
+            generator_type: "FloatGenerator".to_string(),
+            dependencies: vec![],
+        }
+    }
+}
+
+/// Boolean generator factory  
+pub struct BooleanGeneratorFactory;
+
+impl GeneratorFactory for BooleanGeneratorFactory {
+    fn create(&self, _config: &str) -> Result<BoxedGenerator> {
+        // Create a simple boolean generator using IntegerGenerator with range 0-1
+        let gen = crate::generators::IntegerGenerator::new("boolean".to_string())
+            .with_range(0, 1);
+        Ok(Box::new(GeneratorWrapper::new(gen)))
+    }
+    fn metadata(&self) -> GeneratorMetadata {
+        GeneratorMetadata {
+            name: "boolean".to_string(),
+            generator_type: "BooleanGenerator".to_string(),
+            dependencies: vec![],
+        }
+    }
+}
+
+/// Template generator factory with configurable templates
+pub struct TemplateGeneratorFactory;
+
+impl GeneratorFactory for TemplateGeneratorFactory {
+    fn create(&self, config: &str) -> Result<BoxedGenerator> {
+        // Parse config to extract template pattern
+        let template = if config.is_empty() {
+            "Generated-{random}".to_string()
+        } else {
+            config.to_string()
+        };
+        
+        let gen = crate::generators::TemplateGenerator::new(
+            "template".to_string(),
+            template,
+        );
+        Ok(Box::new(GeneratorWrapper::new(gen)))
+    }
+    fn metadata(&self) -> GeneratorMetadata {
+        GeneratorMetadata {
+            name: "template".to_string(),
+            generator_type: "TemplateGenerator".to_string(),
+            dependencies: vec!["context".to_string()],
+        }
+    }
+}
+
+/// Registry builder for convenient setup
+pub struct RegistryBuilder {
+    registry: GeneratorRegistry,
+}
+
+impl RegistryBuilder {
+    pub fn new() -> Self {
+        Self {
+            registry: GeneratorRegistry::new(),
+        }
+    }
+    
+    /// Register all standard generator types
+    pub fn with_standard_generators(mut self) -> Self {
+        self.registry.register_factory("string", Arc::new(StringGeneratorFactory));
+        self.registry.register_factory("integer", Arc::new(IntegerGeneratorFactory));
+        self.registry.register_factory("float", Arc::new(FloatGeneratorFactory));
+        self.registry.register_factory("boolean", Arc::new(BooleanGeneratorFactory));
+        self.registry.register_factory("template", Arc::new(TemplateGeneratorFactory));
+        self
+    }
+    
+    /// Register a custom generator factory
+    pub fn with_factory<F>(mut self, name: &str, factory: F) -> Self 
+    where 
+        F: GeneratorFactory + Send + Sync + 'static
+    {
+        self.registry.register_factory(name, Arc::new(factory));
+        self
+    }
+    
+    /// Build the final registry
+    pub fn build(self) -> GeneratorRegistry {
+        self.registry
+    }
+}
+
+impl Default for RegistryBuilder {
+    fn default() -> Self {
+        Self::new().with_standard_generators()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -391,5 +497,107 @@ mod tests {
         for handle in handles {
             assert!(handle.join().unwrap(), "Thread should successfully generate values");
         }
+    }
+
+    #[test]
+    fn test_registry_builder() {
+        let registry = RegistryBuilder::new()
+            .with_standard_generators()
+            .build();
+        
+        let types = registry.list_types();
+        assert!(types.contains(&"string".to_string()));
+        assert!(types.contains(&"integer".to_string()));
+        assert!(types.contains(&"float".to_string()));
+        assert!(types.contains(&"boolean".to_string()));
+        assert!(types.contains(&"template".to_string()));
+        
+        // Test each generator type
+        let context = Context::new();
+        
+        // String generator
+        let string_gen = registry.create_generator("string", "").unwrap();
+        let string_val = string_gen.generate_value(&context).unwrap();
+        assert!(matches!(string_val, GeneratedValue::String(_)));
+        
+        // Integer generator  
+        let int_gen = registry.create_generator("integer", "").unwrap();
+        let int_val = int_gen.generate_value(&context).unwrap();
+        assert!(matches!(int_val, GeneratedValue::Integer(_)));
+        
+        // Float generator
+        let float_gen = registry.create_generator("float", "").unwrap();
+        let float_val = float_gen.generate_value(&context).unwrap();
+        assert!(matches!(float_val, GeneratedValue::Float(_)));
+        
+        // Boolean generator (using integer 0-1)
+        let bool_gen = registry.create_generator("boolean", "").unwrap();
+        let bool_val = bool_gen.generate_value(&context).unwrap();
+        assert!(matches!(bool_val, GeneratedValue::Integer(i) if i == 0 || i == 1));
+        
+        // Template generator
+        let template_gen = registry.create_generator("template", "Hello-{random}").unwrap();
+        let template_val = template_gen.generate_value(&context).unwrap();
+        assert!(matches!(template_val, GeneratedValue::String(_)));
+    }
+
+    #[test]
+    fn test_default_registry_builder() {
+        let registry = RegistryBuilder::default().build();
+        
+        // Should have all standard generators
+        let types = registry.list_types();
+        assert_eq!(types.len(), 5);
+        assert!(types.contains(&"string".to_string()));
+        assert!(types.contains(&"integer".to_string()));
+        assert!(types.contains(&"float".to_string()));
+        assert!(types.contains(&"boolean".to_string()));
+        assert!(types.contains(&"template".to_string()));
+    }
+
+    #[test]
+    fn test_template_generator_with_config() {
+        let registry = RegistryBuilder::default().build();
+        let context = Context::new();
+        
+        // Test default template
+        let default_gen = registry.create_generator("template", "").unwrap();
+        let default_val = default_gen.generate_value(&context).unwrap();
+        if let GeneratedValue::String(s) = default_val {
+            assert!(s.starts_with("Generated-"));
+        } else {
+            panic!("Expected string value from template generator");
+        }
+        
+        // Test custom template
+        let custom_gen = registry.create_generator("template", "User-{id}-Profile").unwrap();
+        let custom_val = custom_gen.generate_value(&context).unwrap();
+        if let GeneratedValue::String(s) = custom_val {
+            assert!(s.contains("User-") && s.contains("-Profile"));
+        } else {
+            panic!("Expected string value from template generator");
+        }
+    }
+
+    #[test]
+    fn test_generator_dependencies() {
+        let registry = RegistryBuilder::default().build();
+        
+        // Template generator with field dependencies should have dependencies
+        let template_gen = registry.create_generator("template", "Hello {{user_name}}, your ID is {{user_id}}").unwrap();
+        let deps = template_gen.dependencies();
+        assert!(!deps.is_empty());
+        assert!(deps.contains(&"user_name".to_string()));
+        assert!(deps.contains(&"user_id".to_string()));
+        
+        // String generator should have no dependencies
+        let string_gen = registry.create_generator("string", "").unwrap();
+        let deps = string_gen.dependencies();
+        assert!(deps.is_empty());
+        
+        // Template generator without field references should have no dependencies
+        let simple_template_gen = registry.create_generator("template", "Simple static text").unwrap();
+        let deps = simple_template_gen.dependencies();
+        assert!(deps.is_empty());
     }
 }
