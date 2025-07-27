@@ -1,0 +1,21 @@
+[package]
+name = "dadagen-core"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow = { workspace = true }
+csv = { workspace = true }
+lazy_static = { workspace = true }
+pest = { workspace = true }
+pest_derive = { workspace = true }
+petgraph = { workspace = true }
+rand = { workspace = true }
+regex = { workspace = true }
+serde = { workspace = true }
+serde_yaml = { workspace = true }
+tempfile = { workspace = true }
+xdg = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+serde_json = { workspace = true }

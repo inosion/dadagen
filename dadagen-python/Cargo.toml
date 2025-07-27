@@ -1,0 +1,15 @@
+[package]
+name = "dadagen-python"
+version = "0.1.0"
+edition = "2021"
+description = "Python bindings for dadagen"
+
+[lib]
+name = "dadagen_python"
+crate-type = ["cdylib"]
+
+[dependencies]
+dadagen-core = { path = "../dadagen-core" }
+pyo3 = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }

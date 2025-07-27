@@ -1,0 +1,16 @@
+[package]
+name = "dadagen-web"
+version = "0.1.0"
+edition = "2021"
+description = "WASM web application for dadagen"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+dadagen-core = { path = "../dadagen-core" }
+wasm-bindgen = { workspace = true }
+web-sys = { workspace = true }
+js-sys = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }

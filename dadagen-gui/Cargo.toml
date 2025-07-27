@@ -1,0 +1,11 @@
+[package]
+name = "dadagen-gui"
+version = "0.1.0"
+edition = "2021"
+description = "Cross-platform GUI application for dadagen"
+
+[dependencies]
+dadagen-core = { path = "../dadagen-core" }
+tauri = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }

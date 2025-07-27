@@ -1,0 +1,109 @@
+//! Definition of the DSL grammar for parsing.
+
+// Define the start rule
+dsl = { field_expr+ ~ END }
+
+field = _{ "field" }
+// Define a field
+field_expr = { WSNL* ~ field ~ WSNL+ ~ "{" ~ WSNL* ~ field_name_expr ~ WSNL+ ~ generator ~ WSNL* ~ "}" ~ WSNL* }
+
+// Define a field name
+field_name_expr = _{ quote_string ~ field_name ~ quote_string }
+
+quote_string = _{ "\"" }
+
+// Define a generator
+base_generator = _{
+    double_number_generator
+  | number_generator
+  | gender_generator
+  | name_generator
+  | address_generator
+  | counter_generator
+  | regexgen_generator
+}
+
+generator = _{ base_generator | template_generator }
+
+/* * Number Generator int */
+number_generator_label = { "number" }
+number_generator       = { number_generator_label ~ WSNL+ ~ number_range* }
+number_range           = { between ~ WSNL ~ number ~ WSNL ~ and ~ WSNL ~ number }
+
+/* * Number Generators - float (double) */
+double_number_generator    =  { number_generator_label ~ WSNL+ ~ (double_number_range | double_number_range_first | double_number_range_second) }
+double_number_range        = _{ between ~ WSNL ~ double_number ~ WSNL ~ and ~ WSNL ~ double_number }
+double_number_range_first  =  { between ~ WSNL ~ double_number ~ WSNL ~ and ~ WSNL ~ number }
+double_number_range_second =  { between ~ WSNL ~ number ~ WSNL ~ and ~ WSNL ~ double_number }
+
+/* gender (male, female) */
+gender_generator_label = { "gender" }
+gender_generator       = { gender_generator_label }
+
+/* gender (male, female) */
+counter_label     = { "iteration" | "rownumber" | "counter" | "count" }
+counter_generator = { counter_label }
+
+/* given name, surname */
+name_generator_label = { "name" }
+given_name_label     = { "givenname" }
+surname_label        = { "surname" }
+name_generator       = { name_generator_label ~ WSNL+ ~ (given_name_label | surname_label) }
+
+/* address */
+address_generator_label = { "address" }
+citytown_label          = { "citytown" | "city" | "town" }
+suburb_label            = { "suburb" }
+street_label            = { "street" }
+property_label          = { "property" }
+postzipcode_label       = { "postzipcode" }
+statecounty_label       = { "statecounty" }
+country_label           = { "country" }
+address_generator       = { address_generator_label ~ WSNL+ ~ (citytown_label | suburb_label | street_label | property_label | postzipcode_label | statecounty_label | country_label) }
+
+/* Template genrator */
+template_label              = { "template" }
+generator_template_variable = { "gen:" ~ base_generator }
+template_variable           = { "${" ~ (generator_template_variable | field_name) ~ "}" }
+template_generator          = { template_label ~ WSNL+ ~ quote_string ~ WSNL* ~ (template_variable | template_non_var_characters | WS)* ~ WSNL* ~ quote_string }
+template_non_var_characters = { ASCII_ALPHA | ASCII_DIGIT | ASCII_CHARS }
+
+/* regex-gen */
+regexgen_label                   = { "regexgen" }
+regexgen_generator               = { regexgen_label ~ WSNL+ ~ quote_string ~ WSNL* ~ (regexgen_multiselect_expr | regexgen_range_expr | regexgen_non_expr_characters | WS)* ~ WSNL* ~ quote_string }
+regexgen_range_expr              = { ("[" ~ (regexgen_alpha_range | regexgen_digit_range)+ ~ "]" ~ regexgen_multiplier*) }
+regexgen_multiselect_expr        = { ("(" ~ regexgen_multiselect_choice_expr ~ ("|" ~ regexgen_multiselect_choice_expr)* ~ ")" ~ regexgen_multiplier*) }
+regexgen_multiselect_choice_expr = { (regexgen_range_expr | ASCII_ALPHA+ | ASCII_DIGIT+) }
+regexgen_alpha_range             = { ASCII_ALPHA ~ "-" ~ ASCII_ALPHA }
+regexgen_digit_range             = { ASCII_DIGIT ~ "-" ~ ASCII_DIGIT }
+regexgen_multiplier              = { "{" ~ ASCII_DIGIT+ ~ "}" }
+
+regexgen_non_expr_characters = { ASCII_ALPHA | ASCII_DIGIT | ASCII_CHARS }
+
+// Define a number
+number        = { "-"? ~ ASCII_DIGIT+ }
+double_number = { "-"? ~ ASCII_DIGIT+ ~ "." ~ ASCII_DIGIT+ }
+
+// Define a field_name
+field_name       = @{ ASCII_ALPHA ~ field_characters* }
+field_characters =  { ASCII_ALPHA | ASCII_DIGIT | FIELD_NAME_CHARACTERS }
+
+// Define whitespace
+WS = _{ " " | "\t" }
+// Define the newline character
+NL = _{ "\n" | "\r" | "\r\n" }
+
+WSNL = _{ WS | NL }
+
+// Define the end of input
+END = { !ANY }
+
+// ASCII character rules
+ASCII_ALPHA           =  { 'a'..'z' | 'A'..'Z' }
+ASCII_DIGIT           =  { '0'..'9' | "." }
+ASCII_CHARS           =  { ":" | "." | "-" | "_" | "(" | ")" | "+" | "/" | "<" | "=" | ">" | "@" | "[" | "]" | "^" | "|" | "~" }
+FIELD_NAME_CHARACTERS =  { "." | "-" | "_" | "(" | ")" | "+" | "/" | "<" | "=" | ">" | "@" | "[" | "]" | "^" | "|" | "~" }
+between               = _{ "between" }
+and                   = _{ "and" }
+
+// regex = { "regexgen" ~ whitespace ~ ("(" ~ string ~ ")") }
