@@ -1,0 +1,165 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+env:
+  RUST_BACKTRACE: 1
+  CARGO_TERM_COLOR: always
+
+jobs:
+  create-release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+      version: ${{ steps.get_version.outputs.version }}
+    steps:
+      - name: Get version from tag
+        id: get_version
+        run: echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+      
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: false
+          prerelease: false
+
+  build-release:
+    name: Build Release
+    needs: create-release
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        build:
+          - linux-x86_64
+          - macos-x86_64
+          - macos-aarch64
+          - windows-x86_64
+        include:
+          - build: linux-x86_64
+            os: ubuntu-latest
+            rust: stable
+            target: x86_64-unknown-linux-gnu
+            cross: false
+          
+          - build: macos-x86_64
+            os: macos-latest
+            rust: stable
+            target: x86_64-apple-darwin
+            cross: false
+          
+          - build: macos-aarch64
+            os: macos-latest
+            rust: stable
+            target: aarch64-apple-darwin
+            cross: false
+          
+          - build: windows-x86_64
+            os: windows-latest
+            rust: stable
+            target: x86_64-pc-windows-msvc
+            cross: false
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ matrix.rust }}
+          targets: ${{ matrix.target }}
+      
+      - name: Install cross
+        if: matrix.cross
+        run: cargo install cross --locked
+      
+      - name: Build CLI
+        run: |
+          if [ "${{ matrix.cross }}" == "true" ]; then
+            cross build --package dadagen-cli --release --target ${{ matrix.target }}
+          else
+            cargo build --package dadagen-cli --release --target ${{ matrix.target }}
+          fi
+        shell: bash
+      
+      - name: Strip binary (Linux and macOS)
+        if: matrix.os != 'windows-latest'
+        run: strip target/${{ matrix.target }}/release/dadagen
+      
+      - name: Package binary (Linux and macOS)
+        if: matrix.os != 'windows-latest'
+        run: |
+          cd target/${{ matrix.target }}/release
+          tar czf dadagen-${{ needs.create-release.outputs.version }}-${{ matrix.build }}.tar.gz dadagen
+          mv dadagen-${{ needs.create-release.outputs.version }}-${{ matrix.build }}.tar.gz $GITHUB_WORKSPACE/
+        shell: bash
+      
+      - name: Package binary (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          cd target/${{ matrix.target }}/release
+          7z a dadagen-${{ needs.create-release.outputs.version }}-${{ matrix.build }}.zip dadagen.exe
+          mv dadagen-${{ needs.create-release.outputs.version }}-${{ matrix.build }}.zip $env:GITHUB_WORKSPACE/
+        shell: pwsh
+      
+      - name: Upload Release Asset (Linux and macOS)
+        if: matrix.os != 'windows-latest'
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.create-release.outputs.upload_url }}
+          asset_path: ./dadagen-${{ needs.create-release.outputs.version }}-${{ matrix.build }}.tar.gz
+          asset_name: dadagen-${{ needs.create-release.outputs.version }}-${{ matrix.build }}.tar.gz
+          asset_content_type: application/gzip
+      
+      - name: Upload Release Asset (Windows)
+        if: matrix.os == 'windows-latest'
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.create-release.outputs.upload_url }}
+          asset_path: ./dadagen-${{ needs.create-release.outputs.version }}-${{ matrix.build }}.zip
+          asset_name: dadagen-${{ needs.create-release.outputs.version }}-${{ matrix.build }}.zip
+          asset_content_type: application/zip
+
+  publish-crates:
+    name: Publish to crates.io
+    needs: build-release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: dtolnay/rust-toolchain@stable
+      
+      - name: Publish dadagen-core
+        run: |
+          cd dadagen-core
+          cargo publish --token ${{ secrets.CARGO_TOKEN }} || true
+        continue-on-error: true
+      
+      - name: Wait for crates.io
+        run: sleep 30
+      
+      - name: Publish dadagen-macros
+        run: |
+          cd dadagen-macros
+          cargo publish --token ${{ secrets.CARGO_TOKEN }} || true
+        continue-on-error: true
+      
+      - name: Wait for crates.io
+        run: sleep 30
+      
+      - name: Publish dadagen-cli
+        run: |
+          cd dadagen-cli
+          cargo publish --token ${{ secrets.CARGO_TOKEN }} || true
+        continue-on-error: true

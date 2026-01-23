@@ -1,0 +1,85 @@
+# Cargo deny configuration for security and license checking
+# https://github.com/EmbarkStudios/cargo-deny
+
+[advisories]
+# Database configuration
+db-path = "~/.cargo/advisory-db"
+db-urls = ["https://github.com/rustsec/advisory-db"]
+
+# Severity level of security advisories
+vulnerability = "deny"
+unmaintained = "warn"
+yanked = "warn"
+notice = "warn"
+
+# Ignore specific advisories (use with caution)
+ignore = [
+    # Example: "RUSTSEC-2023-0001",
+]
+
+[licenses]
+# License policy
+unlicensed = "deny"
+allow-osi-fsf-free = "both"
+copyleft = "warn"
+
+# Allowed licenses
+allow = [
+    "MIT",
+    "Apache-2.0",
+    "Apache-2.0 WITH LLVM-exception",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "ISC",
+    "Unicode-DFS-2016",
+    "Zlib",
+    "MPL-2.0",
+]
+
+# Denied licenses
+deny = [
+    "GPL-2.0",
+    "GPL-3.0",
+    "AGPL-1.0",
+    "AGPL-3.0",
+]
+
+# License clarity configuration
+confidence-threshold = 0.8
+
+[licenses.private]
+# Allow private crates to have any license
+ignore = true
+registries = []
+
+[bans]
+# Multiple versions of the same crate
+multiple-versions = "warn"
+wildcards = "allow"
+highlight = "all"
+
+# Skip specific crates that commonly have multiple versions
+[[bans.skip]]
+name = "windows-sys"
+[[bans.skip]]
+name = "windows_x86_64_msvc"
+[[bans.skip]]
+name = "windows_aarch64_msvc"
+[[bans.skip]]
+name = "syn"
+
+# Deny specific crates
+deny = [
+    # Example: { name = "openssl", wrappers = [] },
+]
+
+[sources]
+# Source registry configuration
+unknown-registry = "warn"
+unknown-git = "warn"
+
+# Allowed Git sources (use with caution in production)
+allow-git = []
+
+# Allowed registries
+allow-registry = ["https://github.com/rust-lang/crates.io-index"]

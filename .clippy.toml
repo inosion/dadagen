@@ -1,0 +1,36 @@
+# Clippy configuration for dadagen project
+# This file configures the clippy lints that should be checked
+
+# Deny common mistakes and anti-patterns
+deny = [
+    "clippy::all",
+    "clippy::correctness",
+    "clippy::suspicious",
+    "clippy::style",
+    "clippy::complexity",
+    "clippy::perf",
+]
+
+# Warn on pedantic lints (stricter checks)
+warn = [
+    "clippy::pedantic",
+    "clippy::nursery",
+]
+
+# Allow specific lints that may be too strict
+allow = [
+    # Allow module name repetition (common in Rust)
+    "clippy::module_name_repetitions",
+    
+    # Allow similar names (sometimes necessary)
+    "clippy::similar_names",
+    
+    # Allow missing errors doc (we'll add them gradually)
+    "clippy::missing_errors_doc",
+    
+    # Allow missing panics doc (we'll add them gradually)
+    "clippy::missing_panics_doc",
+    
+    # Allow inline format args (preference)
+    "clippy::uninlined_format_args",
+]

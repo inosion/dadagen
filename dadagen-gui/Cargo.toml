@@ -4,8 +4,18 @@ version = "0.1.0"
 edition = "2021"
 description = "Cross-platform GUI application for dadagen"
 
+[[bin]]
+name = "dadagen-gui"
+path = "src/main.rs"
+
 [dependencies]
 dadagen-core = { path = "../dadagen-core" }
-tauri = { workspace = true }
+eframe = { workspace = true }
+egui = { workspace = true }
+egui_extras = { workspace = true }
+rfd = { workspace = true }  # Native file dialogs
 serde = { workspace = true }
 serde_json = { workspace = true }
+anyhow = { workspace = true }
+tracing = { workspace = true }
+chrono = "0.4"

@@ -7,6 +7,7 @@ use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 use std::any::Any;
 use crate::errors::{DadagenError, Result};
+use tracing::{debug, trace, instrument};
 
 /// Metadata about the generation process
 #[derive(Debug, Clone)]

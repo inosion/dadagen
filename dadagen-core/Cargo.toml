@@ -19,3 +19,4 @@ xdg = { workspace = true }
 thiserror = { workspace = true }
 tracing = { workspace = true }
 serde_json = { workspace = true }
+tracing-subscriber = { workspace = true, features = ["env-filter", "fmt"] }
