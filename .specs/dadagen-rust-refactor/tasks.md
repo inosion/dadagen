@@ -196,33 +196,18 @@ This document provides a detailed breakdown of implementation tasks for the dada
 
 ### 6. GUI Application Development
 
-- [x] **6.1 egui Application Setup** ✅ 2026-01-25
-  - Initialize egui project with eframe for window management
-  - Configure build pipeline for multiple platforms (Windows, macOS, Linux)
-  - Set up egui app structure with panels and basic layout
-  - Implement window management and application state
-  - Add egui_extras for tables and additional widgets
+- [ ] **6.1 Tauri Application Setup**
+  - Initialize Tauri project with React/TypeScript frontend
+  - Configure build pipeline for multiple platforms
+  - Set up communication between frontend and Rust backend
+  - Implement basic window management and application structure
   - _Requirements: 2.6_
   - _Estimated effort: M_
   - _Dependencies: 1.1, 4.3_
-  - _Framework: egui (pure Rust, immediate mode UI)_
-  - _Completed: 2026-01-25_
-  - **Implementation Summary:**
-    - ✅ Three-panel tabbed interface (File Input, DSL Editor, Data Preview)
-    - ✅ Native file dialogs with rfd (CSV, JSON, Excel support)
-    - ✅ Drag-and-drop file handling
-    - ✅ Menu system with Settings and About dialogs
-    - ✅ Dark/Light theme support
-    - ✅ File preview with syntax highlighting support ready
-    - ✅ DSL editor with copy/save functionality
-    - ✅ Clean immediate-mode UI with egui's built-in widgets
-    - ✅ Compiles successfully on all platforms
 
 - [ ] **6.2 File Processing and Analysis**
-  - Implement file dialog integration using rfd (native file dialogs)
-  - Add drag-and-drop support via egui-dnd or native integration
+  - Implement file upload handling with drag-and-drop support
   - Create parsers for Excel, JSON, and CSV file formats
-  - Implement data preview table using egui_extras::TableBuilder
   - Add data type inference and pattern recognition
   - Implement large file handling with streaming processing
   - _Requirements: 2.1, 2.2_
@@ -231,20 +216,16 @@ This document provides a detailed breakdown of implementation tasks for the dada
 
 - [ ] **6.3 DSL Generation Engine**
   - Create automatic DSL generation from analyzed data
-  - Implement text editor widget for DSL editing (using egui::TextEdit)
-  - Add basic syntax highlighting using custom styling or syntect integration
-  - Implement real-time preview of generated data in table view
+  - Implement real-time preview of generated configurations
   - Add manual editing capabilities for generated DSL
   - Create export functionality for DSL and generated data
   - _Requirements: 2.2, 2.4, 2.5_
   - _Estimated effort: L_
   - _Dependencies: 6.2, 3.3_
-clean immediate-mode UI with egui's built-in styling
+
+- [ ] **6.4 User Interface and Experience**
+  - Design responsive UI following platform guidelines
   - Implement intuitive workflow for data analysis and generation
-  - Add progress indicators using egui::ProgressBar for long-running operations
-  - Create help panel with documentation and examples
-  - Implement keyboard shortcuts and menu system
-  - Add dark/light theme support using egui's built-in themingration
   - Add progress indicators for long-running operations
   - Create comprehensive help and documentation integration
   - _Requirements: 2.3, 2.6, Usability Requirements_
