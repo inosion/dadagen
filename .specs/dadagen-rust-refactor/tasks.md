@@ -112,14 +112,17 @@ This document provides a detailed breakdown of implementation tasks for the dada
   - _Dependencies: 2.1_
   - _Completed: 2026-01-24_
 
-- [ ] **4.2 Specialized Generator Implementations**
+- [x] **4.2 Specialized Generator Implementations** ✅ 2026-01-24
   - Implement TemplateGenerator with variable substitution
   - Create ListGenerator with discriminator support
   - Add RegexGenerator for pattern-based string generation
   - Implement AddressGenerator with geographic data
+  - Added NameGenerator for given names, surnames, and full names
+  - Added GenderGenerator for gender values
   - _Requirements: 5.2_
   - _Estimated effort: L_
   - _Dependencies: 4.1_
+  - _Completed: 2026-01-24_
 
 - [ ] **4.3 Generator Registry and Factory**
   - Create dynamic generator registration system
