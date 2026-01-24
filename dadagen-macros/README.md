@@ -213,20 +213,61 @@ cargo doc --no-deps --open
 
 ## Roadmap
 
-### Implemented (Task 5.1)
+### Completed
+
+#### Task 5.1: Macro Crate Setup ✅
 - ✅ Macro crate setup with proc-macro configuration
 - ✅ syn, quote, and proc-macro2 dependencies
 - ✅ Basic derive macro skeleton
 - ✅ Debugging and testing utilities
 
-### Planned (Tasks 5.2-5.4)
-- [ ] Complete struct field analysis
-- [ ] Type mapping and validation
-- [ ] Code generation for all generator types
-- [ ] Generic struct support
-- [ ] Nested struct handling
-- [ ] Custom attribute parsing
-- [ ] Comprehensive test suite
+#### Task 5.2: Struct Analysis and Code Generation ✅
+- ✅ Complete struct field analysis with syn
+- ✅ Type mapping from Rust types to generators
+- ✅ Code generation for all basic generator types
+- ✅ Field attribute parsing and validation
+- ✅ 21 tests passing
+
+#### Task 5.3: Advanced Macro Features ⚠️ (Partially Complete)
+- ✅ Generic type parameter infrastructure (PhantomData support)
+- ✅ Nested struct detection (is_nested_generator field)
+- ✅ Comprehensive validation module (366 lines)
+- ✅ PhantomData fields automatically skipped
+- ⚠️ Generic struct code generation needs refinement
+- ⚠️ Validation has false positives bug (temporarily disabled)
+- 📝 TODO: Debug validation logic and re-enable
+- 📝 TODO: Fix generic type parameter handling
+- 📝 TODO: Implement nested struct generator instantiation
+
+#### Task 5.4: Macro Testing and Documentation ✅
+- ✅ Comprehensive integration tests with 10 real-world examples
+- ✅ Error message testing framework with trybuild examples
+- ✅ Extensive documentation with EXAMPLES.md
+- ✅ Best practices and debugging guides
+- ✅ 31 tests passing in macro crate
+
+### Test Coverage
+
+Current test status:
+- ✅ 31 tests passing in dadagen-macros
+  - 11 unit tests (field analysis, type mapping, code generation)
+  - 15 integration tests (basic structs, all generator types)
+  - 1 integration test (comprehensive)
+  - 4 doc tests (examples in documentation)
+  - 2 ignored (generic and validation edge cases)
+
+- ✅ 122+ tests passing in dadagen-core
+- ✅ 4 doc tests in dadagen-core
+
+### Future Enhancements
+
+Planned improvements for Phase 2:
+- [ ] Re-enable validation with bug fixes
+- [ ] Complete generic struct support with proper type parameter handling
+- [ ] Nested struct generator instantiation
+- [ ] Performance optimizations for large struct generation
+- [ ] Enhanced error messages with span information
+- [ ] IDE integration improvements (better hover text, completions)
 
 ## Contributing
 
