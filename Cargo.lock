@@ -1116,6 +1116,7 @@ dependencies = [
 name = "dadagen-macros"
 version = "0.1.0"
 dependencies = [
+ "dadagen-core",
  "proc-macro2",
  "quote",
  "syn 2.0.104",

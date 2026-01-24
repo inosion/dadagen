@@ -3,12 +3,17 @@ name = "dadagen-macros"
 version = "0.1.0"
 edition = "2021"
 description = "Procedural macros for the dadagen data generation framework"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/inosion/dadagen"
 
 [lib]
 proc-macro = true
 
 [dependencies]
-syn = { workspace = true }
+syn = { workspace = true, features = ["extra-traits"] }
 quote = { workspace = true }
 proc-macro2 = { workspace = true }
 thiserror = { workspace = true }
+
+[dev-dependencies]
+dadagen-core = { path = "../dadagen-core" }
