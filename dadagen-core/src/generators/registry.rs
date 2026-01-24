@@ -584,7 +584,7 @@ mod tests {
         let registry = RegistryBuilder::default().build();
         
         // Template generator with field dependencies should have dependencies
-        let template_gen = registry.create_generator("template", "Hello {{user_name}}, your ID is {{user_id}}").unwrap();
+        let template_gen = registry.create_generator("template", "Hello ${user_name}, your ID is ${user_id}").unwrap();
         let deps = template_gen.dependencies();
         assert!(!deps.is_empty());
         assert!(deps.contains(&"user_name".to_string()));

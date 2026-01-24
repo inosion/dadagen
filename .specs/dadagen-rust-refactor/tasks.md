@@ -70,7 +70,7 @@ This document provides a detailed breakdown of implementation tasks for the dada
 
 ### 3. Enhanced DSL Parser Implementation
 
-- [ ] **3.1 Pest Grammar Definition**
+- [x] **3.1 Pest Grammar Definition** ✅
   - Extend existing Pest grammar for full DSL support
   - Add support for complex field definitions and constraints
   - Implement template parsing with variable substitution
@@ -78,8 +78,9 @@ This document provides a detailed breakdown of implementation tasks for the dada
   - _Requirements: 5.1, 5.3_
   - _Estimated effort: M_
   - _Dependencies: 1.2_
+  - _Completed: 2026-01-24_
 
-- [ ] **3.2 AST and Parse Tree Processing**
+- [x] **3.2 AST and Parse Tree Processing** ✅
   - Design comprehensive AST structures for DSL representation
   - Implement parser that converts Pest parse tree to AST
   - Add semantic validation and type checking
@@ -87,8 +88,9 @@ This document provides a detailed breakdown of implementation tasks for the dada
   - _Requirements: 5.1, 5.3_
   - _Estimated effort: L_
   - _Dependencies: 3.1_
+  - _Completed: 2026-01-24_
 
-- [ ] **3.3 Dependency Resolution Engine**
+- [x] **3.3 Dependency Resolution Engine** ✅
   - Implement dependency graph construction from field definitions
   - Add circular dependency detection and reporting
   - Create topological sorting for generation order
@@ -96,6 +98,7 @@ This document provides a detailed breakdown of implementation tasks for the dada
   - _Requirements: 5.6_
   - _Estimated effort: L_
   - _Dependencies: 3.2_
+  - _Completed: 2026-01-24_
 
 ### 4. Generator Trait System Refactoring
 

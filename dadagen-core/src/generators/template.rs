@@ -80,11 +80,11 @@ impl TemplateGenerator {
     
     /// Process template with context
     /// Template syntax:
-    /// - {{field_name}} - Direct field reference
-    /// - {{random(1, 100)}} - Random number between 1 and 100
-    /// - {{choose("a", "b", "c")}} - Choose from list
-    /// - {{format("{}", field_name)}} - Format field value
-    /// - {{if(condition, "true_val", "false_val")}} - Conditional
+    /// - ${field_name} - Direct field reference
+    /// - ${random(1, 100)} - Random number between 1 and 100
+    /// - ${choose("a", "b", "c")} - Choose from list
+    /// - ${format("{}", field_name)} - Format field value
+    /// - ${if(condition, "true_val", "false_val")} - Conditional
     fn process_template(&self, template: &str, context: &Context) -> Result<String> {
         let mut result = template.to_string();
         

@@ -50,6 +50,7 @@ pub mod context_pool;
 pub mod config;
 pub mod ast;
 pub mod parser;
+pub mod dependency;
 
 // Generator modules
 pub mod generators;

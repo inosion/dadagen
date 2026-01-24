@@ -421,11 +421,22 @@ fn parse_list_generator(pair: Pair<Rule>) -> AstResult<ListGenerator> {
 fn parse_template_generator(pair: Pair<Rule>) -> AstResult<TemplateGenerator> {
     let span = create_span(&pair);
     let mut template = String::new();
-    let variables = Vec::new(); // TODO: Parse template variables
+    let mut variables = Vec::new();
 
     for inner_pair in pair.into_inner() {
         match inner_pair.as_rule() {
-            Rule::template_variable | Rule::template_non_var_characters => {
+            Rule::template_variable => {
+                template.push_str(inner_pair.as_str());
+                // Extract the variable name from ${variable_name}
+                let var_content = inner_pair.as_str();
+                if let Some(var_name) = var_content.strip_prefix("${").and_then(|s| s.strip_suffix("}")) {
+                    variables.push(TemplateVariable {
+                        name: var_name.to_string(),
+                        generator: None,
+                    });
+                }
+            }
+            Rule::template_non_var_characters => {
                 template.push_str(inner_pair.as_str());
             }
             _ => {}
