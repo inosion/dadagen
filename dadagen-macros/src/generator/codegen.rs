@@ -12,8 +12,12 @@ use proc_macro2::TokenStream;
 pub fn generate_generator_struct(
     struct_name: &Ident,
     field_configs: &[FieldConfig],
+    generics: &syn::Generics,
 ) -> syn::Result<TokenStream> {
     let generator_name = format_ident!("{}Generator", struct_name);
+    
+    // Add phantom data for generics if needed
+    let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
     
     // Generate field declarations for generator struct
     let generator_fields: Vec<TokenStream> = field_configs
@@ -27,6 +31,15 @@ pub fn generate_generator_struct(
         })
         .collect();
     
+    // Add PhantomData for generic parameters if present
+    let phantom_field = if !generics.params.is_empty() {
+        quote! {
+            _phantom: std::marker::PhantomData<(#ty_generics)>,
+        }
+    } else {
+        quote! {}
+    };
+    
     Ok(quote! {
         /// Auto-generated data generator for #struct_name
         ///
@@ -34,8 +47,9 @@ pub fn generate_generator_struct(
         /// It contains individual generators for each field and implements the
         /// DataGenerator trait to produce #struct_name instances.
         #[allow(dead_code)]
-        pub struct #generator_name {
+        pub struct #generator_name #impl_generics #where_clause {
             #(#generator_fields,)*
+            #phantom_field
         }
     })
 }
@@ -44,11 +58,15 @@ pub fn generate_generator_struct(
 pub fn generate_generator_impl(
     struct_name: &Ident,
     field_configs: &[FieldConfig],
-    _impl_generics: &syn::ImplGenerics,
-    _ty_generics: &syn::TypeGenerics,
-    _where_clause: Option<&syn::WhereClause>,
+    impl_generics: &syn::ImplGenerics,
+    ty_generics: &syn::TypeGenerics,
+    where_clause: Option<&syn::WhereClause>,
+    generics: &syn::Generics,
 ) -> syn::Result<TokenStream> {
     let generator_name = format_ident!("{}Generator", struct_name);
+    
+    // Check if we have generics (to add PhantomData)
+    let has_generics = !generics.params.is_empty();
     
     // Generate field initializations
     let field_inits: Vec<TokenStream> = field_configs
@@ -61,6 +79,13 @@ pub fn generate_generator_impl(
             })
         })
         .collect::<syn::Result<Vec<_>>>()?;
+    
+    // Add PhantomData initialization if generics present
+    let phantom_init = if has_generics {
+        quote! { _phantom: std::marker::PhantomData, }
+    } else {
+        quote! {}
+    };
     
     // Generate field generation code
     let field_generations: Vec<TokenStream> = field_configs
@@ -91,17 +116,18 @@ pub fn generate_generator_impl(
     };
     
     Ok(quote! {
-        impl #generator_name {
+        impl #impl_generics #generator_name #ty_generics #where_clause {
             /// Create a new generator for #struct_name
             pub fn new() -> Self {
                 Self {
                     #(#field_inits,)*
+                    #phantom_init
                 }
             }
             
             /// Generate a new instance of #struct_name
             pub fn generate(&self, context: &dadagen_core::context::Context) 
-                -> dadagen_core::errors::Result<#struct_name> 
+                -> dadagen_core::errors::Result<#struct_name #ty_generics> 
             {
                 Ok(#struct_name {
                     #(#field_generations,)*
@@ -114,7 +140,7 @@ pub fn generate_generator_impl(
             }
         }
         
-        impl Default for #generator_name {
+        impl #impl_generics Default for #generator_name #ty_generics #where_clause {
             fn default() -> Self {
                 Self::new()
             }

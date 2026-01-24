@@ -673,40 +673,21 @@ impl DataGenerator for RegexDataGenerator {
     fn generate(&self, _context: &Context) -> Result<String> {
         use rand::{Rng, SeedableRng};
         use rand::rngs::StdRng;
+        use rand_regex::Regex;
         
-        // Simplified regex generation - full implementation would use rand_regex crate
-        // For now, handle basic patterns
         let pattern = &self.config.pattern;
         let mut rng = StdRng::from_entropy();
         
-        // Handle simple character classes
-        if pattern.starts_with('[') && pattern.ends_with(']') {
-            let chars: Vec<char> = pattern[1..pattern.len()-1].chars().collect();
-            if !chars.is_empty() {
-                let selected = chars[rng.gen_range(0..chars.len())];
-                return Ok(selected.to_string());
+        // Use rand_regex crate for full regex support
+        // Set max_repeat to 100 to limit potentially infinite patterns
+        let generator = Regex::compile(pattern, 100).map_err(|e| {
+            DadagenError::GenerationError {
+                message: format!("Invalid regex pattern '{}': {}", pattern, e),
             }
-        }
+        })?;
         
-        // Handle ranges like [0-9], [a-z], [A-Z]
-        if pattern.contains('-') && pattern.starts_with('[') && pattern.ends_with(']') {
-            let inner = &pattern[1..pattern.len()-1];
-            if let Some((start, end)) = inner.split_once('-') {
-                if let (Some(start_char), Some(end_char)) = (start.chars().next(), end.chars().next()) {
-                    let start_code = start_char as u32;
-                    let end_code = end_char as u32;
-                    if start_code <= end_code {
-                        let code = rng.gen_range(start_code..=end_code);
-                        if let Some(ch) = char::from_u32(code) {
-                            return Ok(ch.to_string());
-                        }
-                    }
-                }
-            }
-        }
-        
-        // Fallback: return pattern as-is (would need full regex engine)
-        Ok(pattern.clone())
+        // Sample a random string matching the pattern
+        Ok(rng.sample(&generator))
     }
     
     fn generator_type(&self) -> GeneratorType {
@@ -719,7 +700,15 @@ impl DataGenerator for RegexDataGenerator {
                 message: "Regex pattern cannot be empty".to_string(),
             });
         }
-        // Would validate regex syntax here
+        
+        // Validate regex syntax by attempting to compile
+        use rand_regex::Regex;
+        Regex::compile(&self.config.pattern, 100).map_err(|e| {
+            DadagenError::ValidationError {
+                message: format!("Invalid regex pattern '{}': {}", self.config.pattern, e),
+            }
+        })?;
+        
         Ok(())
     }
     

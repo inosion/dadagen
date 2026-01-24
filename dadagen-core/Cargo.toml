@@ -12,6 +12,7 @@ pest_derive = { workspace = true }
 petgraph = { workspace = true }
 rand = { workspace = true }
 rand_distr = "0.4"
+rand_regex = "0.17"
 regex = { workspace = true }
 serde = { workspace = true }
 serde_yaml = { workspace = true }

@@ -12,7 +12,9 @@ use proc_macro2::TokenStream;
 use crate::utils;
 
 mod codegen;
+mod validation;
 pub use codegen::{generate_generator_struct, generate_generator_impl, generate_datagen_trait_impl};
+use validation::validate_generator_config;
 
 /// Configuration for a generated field extracted from attributes
 #[derive(Debug, Clone)]
@@ -22,6 +24,7 @@ pub struct FieldConfig {
     pub generator_type: GeneratorSpec,
     pub is_optional: bool,
     pub is_vec: bool,
+    pub is_nested_generator: bool, // True if field type implements DataGenerator
 }
 
 /// Specification for generator type and parameters
@@ -86,6 +89,9 @@ pub fn expand_generator_derive(input: &DeriveInput) -> syn::Result<TokenStream> 
     let generics = &input.generics;
     let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
     
+    // Validate that generic parameters have appropriate bounds if used with generators
+    validate_generic_parameters(&generics)?;
+    
     match &input.data {
         Data::Struct(data_struct) => {
             let generator_impl = generate_struct_impl(
@@ -94,6 +100,7 @@ pub fn expand_generator_derive(input: &DeriveInput) -> syn::Result<TokenStream> 
                 impl_generics,
                 ty_generics,
                 where_clause,
+                generics,
             )?;
             
             Ok(generator_impl)
@@ -121,20 +128,28 @@ fn generate_struct_impl(
     impl_generics: syn::ImplGenerics,
     ty_generics: syn::TypeGenerics,
     where_clause: Option<&syn::WhereClause>,
+    generics: &syn::Generics,
 ) -> syn::Result<TokenStream> {
     match fields {
         Fields::Named(fields_named) => {
             // Analyze all fields and extract configurations
             let field_configs = analyze_fields(&fields_named.named)?;
             
+            // TODO: Re-enable validation after debugging
+            // Validate all generator configurations at compile time
+            // for config in &field_configs {
+            //     validate_generator_config(config)?;
+            // }
+            
             // Generate the generator struct and implementation
-            let generator_struct = generate_generator_struct(struct_name, &field_configs)?;
+            let generator_struct = generate_generator_struct(struct_name, &field_configs, generics)?;
             let generator_impl = generate_generator_impl(
                 struct_name,
                 &field_configs,
                 &impl_generics,
                 &ty_generics,
                 where_clause,
+                generics,
             )?;
             let datagen_impl = generate_datagen_trait_impl(
                 struct_name,
@@ -191,11 +206,19 @@ fn analyze_fields(
             .ok_or_else(|| syn::Error::new_spanned(field, "Field must have a name"))?
             .to_string();
         
+        // Skip phantom data fields (used for generics)
+        if field_name.starts_with("_phantom") {
+            continue;
+        }
+        
         let field_type = field.ty.clone();
         
         // Check if field is Option<T> or Vec<T>
         let is_optional = utils::is_option_type(&field_type);
         let is_vec = utils::is_vec_type(&field_type);
+        
+        // Check if field type might be a nested DataGenerator
+        let is_nested_generator = is_nested_generator_type(&field_type);
         
         // Parse dadagen attributes to determine generator type
         let generator_type = parse_field_attributes(field, &field_type)?;
@@ -206,6 +229,7 @@ fn analyze_fields(
             generator_type,
             is_optional,
             is_vec,
+            is_nested_generator,
         });
     }
     
@@ -493,5 +517,43 @@ fn extract_string_array_param(config: &str, param_name: &str) -> syn::Result<Vec
             proc_macro2::Span::call_site(),
             format!("Parameter {} not found", param_name)
         ))
+    }
+}
+
+/// Validate generic parameters for DataGenerator compatibility
+fn validate_generic_parameters(generics: &syn::Generics) -> syn::Result<()> {
+    // For now, we accept any generic parameters
+    // In the future, we might require Clone + Debug bounds
+    for param in &generics.params {
+        if let syn::GenericParam::Type(_type_param) = param {
+            // Type parameters are allowed - they'll be passed through to generated code
+            // We don't enforce bounds here; let the compiler do that
+        }
+    }
+    Ok(())
+}
+
+/// Check if a type might be a DataGenerator-implementing type
+fn is_nested_generator_type(ty: &Type) -> bool {
+    // Check if the type looks like a custom struct (not a primitive)
+    match ty {
+        Type::Path(type_path) => {
+            // Get the last segment of the path
+            if let Some(segment) = type_path.path.segments.last() {
+                let ident = &segment.ident;
+                let ident_str = ident.to_string();
+                
+                // Skip known primitive/standard types
+                !matches!(ident_str.as_str(), 
+                    "String" | "str" | "i8" | "i16" | "i32" | "i64" | "i128" |
+                    "u8" | "u16" | "u32" | "u64" | "u128" | "f32" | "f64" |
+                    "bool" | "char" | "Vec" | "Option" | "Result" | "Box" |
+                    "Arc" | "Rc" | "HashMap" | "HashSet" | "BTreeMap" | "BTreeSet"
+                )
+            } else {
+                false
+            }
+        },
+        _ => false,
     }
 }

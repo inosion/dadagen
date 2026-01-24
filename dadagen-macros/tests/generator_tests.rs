@@ -305,3 +305,7 @@ fn test_all_inferred_types() {
     let _result = generator.generate(&context);
     assert!(true);
 }
+
+// TODO: Add tests for generic structs when generic code generation is fixed
+// See Task 5.3 - Advanced Macro Features for implementation status
+
