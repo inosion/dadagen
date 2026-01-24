@@ -26,6 +26,13 @@ pub enum DadagenError {
         message: String,
     },
 
+    /// Validation error for generator configuration
+    #[error("Validation error: {message}")]
+    ValidationError {
+        /// Description of the validation error
+        message: String,
+    },
+
     /// File operation error
     #[error("File operation error: {0}")]
     FileError(#[from] std::io::Error),
