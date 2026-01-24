@@ -161,7 +161,7 @@ mod tests {
     fn test_random_weighted_index_general() {
         let weights = vec![0.1, 0.2, 0.3, 0.4];
         let result = random_weighted_index(&weights);
-        assert!(result >= 0 && result <= 3);
+        assert!(result <= 3);
     }
 
     #[test]

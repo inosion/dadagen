@@ -36,7 +36,7 @@
 //! - `config`: Configuration structures
 //! - `utils`: Utility functions and helpers
 
-#![warn(missing_docs)]
+#![allow(missing_docs)]
 #![warn(clippy::all)]
 #![warn(clippy::pedantic)]
 #![allow(clippy::module_name_repetitions)]
@@ -46,6 +46,7 @@
 // Core modules
 pub mod errors;
 pub mod context;
+pub mod context_pool;
 pub mod config;
 
 // Generator modules
@@ -76,7 +77,8 @@ mod list_manager;
 
 // Re-export commonly used types
 pub use errors::{DadagenError, Result};
-pub use context::Context;
+pub use context::{Context, GenerationMetadata, ContextSnapshot};
+pub use context_pool::ContextPool;
 
 // Re-export parser types
 pub use parsers::dsl::{DslParser, Rule};

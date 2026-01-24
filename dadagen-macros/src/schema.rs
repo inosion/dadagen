@@ -22,7 +22,7 @@ impl Parse for SchemaDefinition {
         let name: Ident = input.parse()?;
         let content;
         syn::braced!(content in input);
-        let fields = content.parse_terminated(SchemaField::parse)?;
+        let fields = content.parse_terminated(SchemaField::parse, Token![,])?;
         
         Ok(SchemaDefinition { name, fields })
     }
@@ -181,7 +181,7 @@ fn expand_generator_config(config: &TokenStream, field_name: &str) -> syn::Resul
         }
         
         if let Some(charset) = params.get("charset") {
-            let charset_enum = match charset.as_str() {
+            let charset_enum = match charset.base10_digits() {
                 "alpha" => quote! { dadagen_core::generators::CharacterSet::Alpha },
                 "numeric" => quote! { dadagen_core::generators::CharacterSet::Numeric },
                 "alphanumeric" => quote! { dadagen_core::generators::CharacterSet::AlphaNumeric },

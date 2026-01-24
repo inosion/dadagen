@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use rand::Rng;
 use regex::Regex;
 use crate::common::{Generator, Context};

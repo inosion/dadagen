@@ -3,11 +3,9 @@
 use crate::context::Context;
 use crate::errors::{Result, DadagenError};
 use crate::generators::core::Generator;
-use crate::generators::string::{StringGenerator, PatternGenerator, StringConfig, CharacterSet};
-use crate::generators::number::{IntegerGenerator, FloatGenerator};
+use crate::generators::number::IntegerGenerator;
 use std::collections::HashMap;
 use regex::Regex;
-use serde_json::Value;
 
 /// Template engine for complex string generation
 #[derive(Debug, Clone)]
@@ -15,6 +13,7 @@ pub struct TemplateGenerator {
     name: String,
     template: String,
     dependencies: Vec<String>,
+    #[allow(dead_code)]
     functions: HashMap<String, TemplateFunction>,
 }
 

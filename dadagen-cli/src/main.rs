@@ -1,7 +1,6 @@
 use std::fs;
 use std::path::PathBuf;
 use clap::{Parser as ClapParser, Subcommand};
-use dadagen_core::*;
 
 #[derive(Debug, ClapParser)]
 #[command(name = "dadagen")]
@@ -24,7 +23,9 @@ enum Command {
 }
 
 fn main() -> anyhow::Result<()> {
-    tracing_subscriber::init();
+    tracing_subscriber::fmt()
+        .with_env_filter(tracing_subscriber::EnvFilter::from_default_env())
+        .init();
     
     let args = Cli::parse();
 

@@ -1,15 +1,14 @@
 //! Generator derive macro implementation
 
-use syn::{DeriveInput, Data, Fields, Field, Attribute, Meta, MetaList, NestedMeta, Lit, Type, Ident};
+use syn::{DeriveInput, Data, Fields, Field, Meta, Lit, Type, Ident, Expr, ExprLit};
 use quote::{quote, format_ident};
 use proc_macro2::TokenStream;
-use std::collections::HashMap;
 
 /// Expand the Generator derive macro
 pub fn expand_generator_derive(input: &DeriveInput) -> syn::Result<TokenStream> {
     let name = &input.ident;
     let generics = &input.generics;
-    let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
+    let (_impl_generics, _ty_generics, _where_clause) = generics.split_for_impl();
     
     match &input.data {
         Data::Struct(data_struct) => {
@@ -131,7 +130,7 @@ fn generate_field_assignments(fields: &syn::punctuated::Punctuated<Field, syn::T
     for field in fields {
         let field_name = field.ident.as_ref().unwrap();
         let generator_name = format_ident!("{}_generator", field_name);
-        let generator_init = parse_field_generator_init(field)?;
+        let _generator_init = parse_field_generator_init(field)?;
         
         assignments.push(quote! {
             #field_name: self.#generator_name.generate(context)?
@@ -150,7 +149,7 @@ fn extract_dependencies(fields: &syn::punctuated::Punctuated<Field, syn::Token![
         all_deps.extend(deps);
     }
     
-    Ok(all_deps.into_iter().map(|s| quote! { #s.to_string() }).collect())
+    Ok(all_deps)
 }
 
 /// Parse field generator type from attributes
@@ -241,19 +240,15 @@ fn parse_field_dependencies(field: &Field) -> syn::Result<Vec<String>> {
 /// Parse the dadagen attribute from a field
 fn parse_dadagen_attribute(field: &Field) -> syn::Result<Option<String>> {
     for attr in &field.attrs {
-        if attr.path.is_ident("dadagen") {
-            match attr.parse_meta()? {
-                Meta::List(meta_list) => {
-                    // Extract the configuration string
-                    let config = format!("{:?}", meta_list.nested);
-                    return Ok(Some(config));
-                },
-                Meta::NameValue(meta_name_value) => {
-                    if let Lit::Str(lit_str) = &meta_name_value.lit {
-                        return Ok(Some(lit_str.value()));
-                    }
-                },
-                _ => {}
+        if attr.path().is_ident("dadagen") {
+            if let Meta::List(meta_list) = &attr.meta {
+                // Extract generator configuration from attributes
+                let config = format!("{:?}", meta_list.tokens);
+                return Ok(Some(config));
+            } else if let Meta::NameValue(meta_name_value) = &attr.meta {
+                if let Expr::Lit(ExprLit { lit: Lit::Str(lit_str), .. }) = &meta_name_value.value {
+                    return Ok(Some(lit_str.value()));
+                }
             }
         }
     }

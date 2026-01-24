@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 
 use rand::Rng;
 use std::collections::HashMap;

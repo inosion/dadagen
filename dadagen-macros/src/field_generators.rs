@@ -1,6 +1,6 @@
 //! Field generator macro implementations
 
-use syn::{parse::Parse, Token, Ident, Expr, LitStr};
+use syn::{parse::Parse, Token, Ident, Expr};
 use quote::quote;
 use proc_macro2::TokenStream;
 
@@ -298,7 +298,7 @@ fn expand_list_generator(call: &GeneratorCall) -> syn::Result<TokenStream> {
 }
 
 /// Find parameter value by name
-fn find_param_value(call: &GeneratorCall, name: &str) -> Option<&Expr> {
+fn find_param_value<'a>(call: &'a GeneratorCall, name: &str) -> Option<&'a Expr> {
     call.params.iter()
         .find(|p| p.name.to_string() == name)
         .map(|p| &p.value)
@@ -349,7 +349,7 @@ fn expand_case_value(expr: &Expr) -> syn::Result<TokenStream> {
 }
 
 /// Expand field attribute macro
-pub fn expand_field_attribute(args: TokenStream, input: TokenStream) -> syn::Result<TokenStream> {
+pub fn expand_field_attribute(_args: TokenStream, input: TokenStream) -> syn::Result<TokenStream> {
     // For now, just return the input unchanged
     // This could be extended to add metadata or modify the field
     Ok(input)
