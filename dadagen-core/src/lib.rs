@@ -48,6 +48,8 @@ pub mod errors;
 pub mod context;
 pub mod context_pool;
 pub mod config;
+pub mod ast;
+pub mod parser;
 
 // Generator modules
 pub mod generators;
