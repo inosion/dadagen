@@ -52,6 +52,7 @@ pub mod ast;
 pub mod parser;
 pub mod dependency;
 pub mod generator_trait;
+pub mod generator_registry;
 
 // Generator modules
 pub mod generators;
