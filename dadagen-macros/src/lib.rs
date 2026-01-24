@@ -11,7 +11,7 @@
 //!
 //! ## Usage Example
 //!
-//! ```rust,ignore
+//! ```rust
 //! use dadagen_macros::DataGenerator;
 //! 
 //! #[derive(DataGenerator, Debug)]
@@ -22,7 +22,7 @@
 //!     #[dadagen(number(min = 18, max = 99))]
 //!     age: u32,
 //!     
-//!     #[dadagen(template = "${username}@example.com")]
+//!     #[dadagen(template(pattern = "${username}@example.com"))]
 //!     email: String,
 //! }
 //! ```
@@ -77,10 +77,10 @@ mod utils;
 ///
 /// # Basic Usage
 ///
-/// ```rust,ignore
+/// ```rust
 /// use dadagen_macros::DataGenerator;
 ///
-/// #[derive(DataGenerator)]
+/// #[derive(DataGenerator, Debug)]
 /// struct Person {
 ///     name: String,
 ///     age: u32,
@@ -89,8 +89,10 @@ mod utils;
 ///
 /// # With Attributes
 ///
-/// ```rust,ignore
-/// #[derive(DataGenerator)]
+/// ```rust
+/// use dadagen_macros::DataGenerator;
+/// 
+/// #[derive(DataGenerator, Debug)]
 /// struct Person {
 ///     #[dadagen(string(min_length = 2, max_length = 50))]
 ///     name: String,
@@ -98,7 +100,7 @@ mod utils;
 ///     #[dadagen(number(min = 0, max = 120))]
 ///     age: u32,
 ///     
-///     #[dadagen(template = "${name}@example.com")]
+///     #[dadagen(template(pattern = "${name}@example.com"))]
 ///     email: String,
 /// }
 /// ```
@@ -107,12 +109,14 @@ mod utils;
 ///
 /// Fields can reference other fields in templates:
 ///
-/// ```rust,ignore
-/// #[derive(DataGenerator)]
+/// ```rust
+/// use dadagen_macros::DataGenerator;
+/// 
+/// #[derive(DataGenerator, Debug)]
 /// struct User {
 ///     user_id: u64,
 ///     
-///     #[dadagen(template = "user_${user_id}")]
+///     #[dadagen(template(pattern = "user_${user_id}"))]
 ///     username: String,
 /// }
 /// ```
