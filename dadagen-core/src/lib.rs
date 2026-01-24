@@ -67,6 +67,9 @@ pub mod utils {
 // Internal DSL module (re-exported through parsers)
 mod dsl;
 
+#[cfg(test)]
+mod dsl_new_syntax_tests;
+
 // Legacy modules (to be refactored)
 mod address_generation;
 mod number_generation;

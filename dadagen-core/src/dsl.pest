@@ -12,9 +12,16 @@ field_name_expr = _{ quote_string ~ field_name ~ quote_string }
 
 quote_string = _{ "\"" }
 
-// Define a generator
+// Define all generator types (prioritized by specificity)
 base_generator = _{
-    double_number_generator
+    string_generator
+  | boolean_generator
+  | datetime_generator
+  | date_generator
+  | time_generator
+  | choice_generator
+  | list_generator
+  | double_number_generator
   | number_generator
   | gender_generator
   | name_generator
@@ -25,13 +32,130 @@ base_generator = _{
 
 generator = _{ base_generator | template_generator }
 
+/* String Generator with constraints */
+string_label = { "string" }
+string_generator = { 
+    string_label ~ WSNL* ~ ("(" ~ WSNL* ~ string_constraints ~ WSNL* ~ ")")? 
+}
+string_constraints = { string_constraint ~ (WSNL* ~ "," ~ WSNL* ~ string_constraint)* }
+string_constraint = _{
+    string_length_constraint
+  | string_min_length_constraint
+  | string_max_length_constraint
+  | string_charset_constraint
+  | string_case_constraint
+  | string_pattern_constraint
+}
+string_length_constraint = { "length" ~ WSNL* ~ "=" ~ WSNL* ~ number }
+string_min_length_constraint = { "min_length" ~ WSNL* ~ "=" ~ WSNL* ~ number }
+string_max_length_constraint = { "max_length" ~ WSNL* ~ "=" ~ WSNL* ~ number }
+string_charset_constraint = { "charset" ~ WSNL* ~ "=" ~ WSNL* ~ (quote_string ~ charset_type ~ quote_string) }
+string_case_constraint = { "case" ~ WSNL* ~ "=" ~ WSNL* ~ (quote_string ~ case_type ~ quote_string) }
+string_pattern_constraint = { "pattern" ~ WSNL* ~ "=" ~ WSNL* ~ quote_string ~ pattern_string ~ quote_string }
+charset_type = @{ "alphanumeric" | "alpha" | "numeric" | "ascii" | "hex" | "base64" }
+case_type = @{ "lower" | "upper" | "title" | "mixed" }
+charset_value = { quote_string ~ charset_type ~ quote_string }
+case_value = { quote_string ~ case_type ~ quote_string }
+pattern_string = { (ASCII_ALPHA | ASCII_DIGIT | ASCII_CHARS | WS)* }
+
+/* Boolean Generator */
+boolean_label = { "boolean" | "bool" }
+boolean_generator = { 
+    boolean_label ~ WSNL* ~ ("(" ~ WSNL* ~ boolean_constraints ~ WSNL* ~ ")")? 
+}
+boolean_constraints = { boolean_constraint ~ (WSNL* ~ "," ~ WSNL* ~ boolean_constraint)* }
+boolean_constraint = _{ boolean_true_probability }
+boolean_true_probability = { "true_probability" ~ WSNL* ~ "=" ~ WSNL* ~ (double_number | number) }
+
+/* Date/Time Generators */
+datetime_label = { "datetime" }
+date_label = { "date" }
+time_label = { "time" }
+datetime_generator = { 
+    datetime_label ~ WSNL* ~ ("(" ~ WSNL* ~ datetime_constraints ~ WSNL* ~ ")")? 
+}
+date_generator = { 
+    date_label ~ WSNL* ~ ("(" ~ WSNL* ~ datetime_constraints ~ WSNL* ~ ")")? 
+}
+time_generator = { 
+    time_label ~ WSNL* ~ ("(" ~ WSNL* ~ datetime_constraints ~ WSNL* ~ ")")? 
+}
+datetime_constraints = { datetime_constraint ~ (WSNL* ~ "," ~ WSNL* ~ datetime_constraint)* }
+datetime_constraint = _{
+    datetime_start_constraint
+  | datetime_end_constraint
+  | datetime_format_constraint
+}
+datetime_start_constraint = { ("start" | "min") ~ WSNL* ~ "=" ~ WSNL* ~ quote_string ~ datetime_value ~ quote_string }
+datetime_end_constraint = { ("end" | "max") ~ WSNL* ~ "=" ~ WSNL* ~ quote_string ~ datetime_value ~ quote_string }
+datetime_format_constraint = { "format" ~ WSNL* ~ "=" ~ WSNL* ~ quote_string ~ format_string ~ quote_string }
+datetime_value = { (ASCII_ALPHA | ASCII_DIGIT | ":" | "-" | "/" | " " | "T" | "Z")+ }
+format_string = { (ASCII_ALPHA | ASCII_DIGIT | "%" | ":" | "-" | "/" | " ")+ }
+
+/* Choice/Enum Generator */
+choice_label = { "choice" | "enum" | "oneof" }
+choice_generator = { 
+    choice_label ~ WSNL* ~ "(" ~ WSNL* ~ choice_options ~ WSNL* ~ ")" 
+}
+choice_options = { choice_option ~ (WSNL* ~ "," ~ WSNL* ~ choice_option)* }
+choice_option = { quote_string ~ choice_value ~ quote_string }
+choice_value = { (ASCII_ALPHA | ASCII_DIGIT | ASCII_CHARS | WS)* }
+
+/* List Generator with discriminator support */
+list_label = { "list" }
+list_generator = { 
+    list_label ~ WSNL* ~ "(" ~ WSNL* ~ list_constraints ~ WSNL* ~ ")" 
+}
+list_constraints = { list_constraint ~ (WSNL* ~ "," ~ WSNL* ~ list_constraint)* }
+list_constraint = _{
+    list_name_constraint
+  | list_discriminator_constraint
+  | list_weighted_constraint
+}
+list_name_constraint = { "name" ~ WSNL* ~ "=" ~ WSNL* ~ quote_string ~ list_name_value ~ quote_string }
+list_discriminator_constraint = { "discriminator" ~ WSNL* ~ "=" ~ WSNL* ~ quote_string ~ field_name ~ quote_string }
+list_weighted_constraint = { "weighted" ~ WSNL* ~ "=" ~ WSNL* ~ ("true" | "false") }
+list_name_value = { (ASCII_ALPHA | ASCII_DIGIT | "_" | "-")+ }
+
 /* * Number Generator int */
-number_generator_label = { "number" }
-number_generator       = { number_generator_label ~ WSNL+ ~ number_range* }
+number_generator_label = { "number" | "integer" | "int" }
+number_generator       = { 
+    number_generator_label ~ WSNL* ~ "(" ~ WSNL* ~ number_constraints ~ WSNL* ~ ")"
+  | number_generator_label ~ WSNL+ ~ number_range
+  | number_generator_label
+}
+number_constraints = { number_constraint ~ (WSNL* ~ "," ~ WSNL* ~ number_constraint)* }
+number_constraint = _{
+    number_min_constraint
+  | number_max_constraint
+  | number_distribution_constraint
+  | number_seed_constraint
+  | number_decimal_places_constraint
+}
+number_min_constraint = { "min" ~ WSNL* ~ "=" ~ WSNL* ~ (double_number | number) }
+number_max_constraint = { "max" ~ WSNL* ~ "=" ~ WSNL* ~ (double_number | number) }
+number_decimal_places_constraint = { "decimal_places" ~ WSNL* ~ "=" ~ WSNL* ~ number }
+number_distribution_constraint = { "distribution" ~ WSNL* ~ "=" ~ WSNL* ~ quote_string ~ distribution_type ~ quote_string }
+number_seed_constraint = { "seed" ~ WSNL* ~ "=" ~ WSNL* ~ number }
+distribution_type = { "uniform" | "normal" | "exponential" }
 number_range           = { between ~ WSNL ~ number ~ WSNL ~ and ~ WSNL ~ number }
 
 /* * Number Generators - float (double) */
-double_number_generator    =  { number_generator_label ~ WSNL+ ~ (double_number_range | double_number_range_first | double_number_range_second) }
+double_number_generator    =  { 
+    number_generator_label ~ WSNL+ ~ (double_number_range | double_number_range_first | double_number_range_second)
+  | number_generator_label ~ WSNL* ~ "(" ~ WSNL* ~ double_constraints ~ WSNL* ~ ")"
+}
+double_constraints = { double_constraint ~ (WSNL* ~ "," ~ WSNL* ~ double_constraint)* }
+double_constraint = _{
+    double_min_constraint
+  | double_max_constraint
+  | double_decimal_places_constraint
+  | number_distribution_constraint
+  | number_seed_constraint
+}
+double_min_constraint = { "min" ~ WSNL* ~ "=" ~ WSNL* ~ double_number }
+double_max_constraint = { "max" ~ WSNL* ~ "=" ~ WSNL* ~ double_number }
+double_decimal_places_constraint = { "decimal_places" ~ WSNL* ~ "=" ~ WSNL* ~ number }
 double_number_range        = _{ between ~ WSNL ~ double_number ~ WSNL ~ and ~ WSNL ~ double_number }
 double_number_range_first  =  { between ~ WSNL ~ double_number ~ WSNL ~ and ~ WSNL ~ number }
 double_number_range_second =  { between ~ WSNL ~ number ~ WSNL ~ and ~ WSNL ~ double_number }
