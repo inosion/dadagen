@@ -1,11 +1,20 @@
 //! Definition of the DSL grammar for parsing.
 
-// Define the start rule
-dsl = { field_expr+ ~ END }
+// Define the start rule - supports both schema wrapper and bare fields
+comment = _{ "#" ~ (!NL ~ ANY)* ~ NL }
+WSNL_COMMENT = _{ WS | NL | comment }
+dsl = { WSNL_COMMENT* ~ (schema_block | field_list) ~ END }
+
+// Schema block: schema <name> { field... }
+schema_block = { "schema" ~ WSNL_COMMENT+ ~ schema_name ~ WSNL_COMMENT* ~ "{" ~ WSNL_COMMENT* ~ field_expr+ ~ WSNL_COMMENT* ~ "}" ~ WSNL_COMMENT* }
+schema_name = { (ASCII_ALPHANUMERIC | "_" | "-")+ }
+
+// Field list: field... field...
+field_list = { field_expr+ }
 
 field = _{ "field" }
 // Define a field
-field_expr = { WSNL* ~ field ~ WSNL+ ~ "{" ~ WSNL* ~ field_name_expr ~ WSNL+ ~ generator ~ WSNL* ~ "}" ~ WSNL* }
+field_expr = { WSNL_COMMENT* ~ field ~ WSNL_COMMENT+ ~ "{" ~ WSNL_COMMENT* ~ field_name_expr ~ WSNL_COMMENT+ ~ generator ~ WSNL_COMMENT* ~ "}" ~ WSNL_COMMENT* }
 
 // Define a field name
 field_name_expr = _{ quote_string ~ field_name ~ quote_string }

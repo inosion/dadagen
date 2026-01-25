@@ -18,12 +18,34 @@ pub fn parse_dsl(input: &str) -> AstResult<DslDocument> {
 
     let mut fields = Vec::new();
     
-    // The dsl rule contains field_expr+ ~ END
-    // So we need to get the first pair which is the dsl match
+    // The dsl rule contains either schema_block or field_list
     if let Some(dsl_pair) = pairs.next() {
         for pair in dsl_pair.into_inner() {
             match pair.as_rule() {
+                Rule::schema_block => {
+                    // Parse schema block: skip schema_name, get field_expr+
+                    for inner_pair in pair.into_inner() {
+                        match inner_pair.as_rule() {
+                            Rule::field_expr => {
+                                fields.push(parse_field(inner_pair)?);
+                            }
+                            Rule::schema_name => {
+                                // Store schema name if needed in future
+                            }
+                            _ => {}
+                        }
+                    }
+                }
+                Rule::field_list => {
+                    // Parse field list: get field_expr+
+                    for inner_pair in pair.into_inner() {
+                        if inner_pair.as_rule() == Rule::field_expr {
+                            fields.push(parse_field(inner_pair)?);
+                        }
+                    }
+                }
                 Rule::field_expr => {
+                    // Direct field (shouldn't happen with current grammar but handle anyway)
                     fields.push(parse_field(pair)?);
                 }
                 Rule::END => break,
