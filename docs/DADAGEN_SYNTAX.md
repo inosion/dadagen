@@ -40,13 +40,7 @@ Syntax:
 
 ```
 "field_name": TypeExpr
-```
-
-Both of these are accepted (parser normalises to the colon form):
-
-```
-"town" address.city
-"town": address.city
+     hidden : TypeExpr
 ```
 
 ## Type expressions
@@ -59,7 +53,7 @@ generator(args)
 generator.subtype(args)
 ```
 
-Common generators and forms:
+## Complete set of Generators
 
 - `"raw string"` - with templates for other fields 
    - "{{field1}}-ABC"
@@ -83,12 +77,13 @@ Common generators and forms:
 
 
 ### Linked Properties
+
 - The following properties are linked (the value of one is dependent upon the value of another). To not use the dependency, supply `no-depends` e.g. 
 - locale based 
   - address.*
   - name.*
   - human.*
-  - conmtat.*
+  - contact.*
 - human.sex
   - name.*
   - human.*
@@ -175,9 +170,7 @@ schema {
 ## Notes for implementers
 
 - Parser should accept both colon and whitespace forms but normalise to colon form in AST/pretty-printing.
-- Support english shorthand (`number between 1 and 40`) as a syntactic sugar that canonicalises to `number(1,40)`.
 - Bounds are inclusive/exclusive as specified above; make that explicit in parser docs and tests.
-- Provide a small linter/pretty-printer to convert legacy `field { "name" <gen> }` forms to the canonical form.
 
 ## Comments
 
@@ -212,9 +205,21 @@ Parser notes:
 
 ## Appendix: quick reference
 
-- Field: `"name": generator`  
-- Subtype: `generator.subtype`  
-- Number (exclusive): `number(a,b)`  
-- Number (inclusive): `number[a,b]`  
-- Enum: `enum("a","b","c")`  
+- Field: `"name": generator`
+- Subtype: `generator.subtype`
+- Integer number (exclusive upper bound): `number(a,b)`
+- Integer number (inclusive bounds): `number[a,b]`
+- Floating number: `float(min,max, precision=N)`
+- Enum (inline static list): `enum("a","b","c")`
+- Named list resource: `list("name")` or `list("path/to/file.txt")` — use in fields as `"field": list("name")`
 - Sequence: `sequence(start=0, end?, step?, loop=true)`
+- Regex generator: `regexgen("<pattern>")`
+- Mix and match quoted string with `{{placeholder}}` interpolation, e.g. `"fullname": "{{firstname}} {{surname}}"`
+- Concatenate expressions with `+` to mix strings and generators: `"prefix-" + name.firstname + "-" + regexgen("[0-9]{4}")`
+- Address / name families: `address.city`, `address.postcode`, `name.firstname`, `name.surname`
+
+Notes:
+- Templates are expressed only via quoted strings containing `{{...}}` placeholders.
+- Placeholder content may be a field name (`{{id}}`) or an embedded generator expression (`{{name.firstname}}`). Embedded generators are evaluated and substituted.
+- Escape `{{` as `\{{` to emit a literal `{{` in output.
+- Use `list("...")` to reference named lists managed by the list resolver; `enum(...)` is for small inline lists defined in-schema.
