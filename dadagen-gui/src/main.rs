@@ -1,12 +1,4 @@
 
-// Tabbed data view selection
-#[derive(Default, Clone, Copy, PartialEq, Eq, Debug)]
-enum TabbedDataView {
-    #[default]
-    Original,
-    Generated,
-}
-
 /// Cross-platform GUI application for dadagen
 /// 
 /// Built with egui for pure Rust native UI across all platforms.
@@ -57,6 +49,13 @@ enum DataViewMode {
     #[default]
     SideBySide,
     Tabbed,
+}
+
+#[derive(Default, Clone, Copy, PartialEq, Eq, Debug)]
+enum TabbedDataView {
+    #[default]
+    Original,
+    Generated,
 }
 
 struct DadagenApp {
@@ -516,6 +515,23 @@ impl DadagenApp {
             .add_filter("Excel Files", &["xlsx", "xls"])
             .add_filter("All Files", &["*"])
             .pick_file()
+        {
+            self.load_file(path);
+        }
+    }
+
+    fn load_file(&mut self, path: PathBuf) {
+        // Determine file type from extension
+        self.file_type = match path.extension().and_then(|e| e.to_str()) {
+            Some("csv") => FileType::Csv,
+            Some("json") => FileType::Json,
+            Some("xlsx") | Some("xls") => FileType::Excel,
+            _ => FileType::Unknown,
+        };
+        
+        // Parse the file based on type
+        let parse_result = match self.file_type {
+            FileType::Csv => self.parse_csv(&path),
             FileType::Json => self.parse_json(&path),
             FileType::Excel => self.parse_excel(&path),
             FileType::Unknown => {
@@ -537,6 +553,7 @@ impl DadagenApp {
         match parse_result {
             Ok(_) => {
                 self.file_path = Some(path);
+                // Infer column types and generate DSL if we have headers
                 self.column_types = self.infer_column_types();
                 // Generate DSL from parsed data
                 self.generate_dsl();
@@ -606,7 +623,7 @@ impl DadagenApp {
                         format!("  field {{ \"{}\" regexgen \"[a-z]{{{{5,10}}}}@[a-z]{{{{3,8}}}}\\\\.com\" }}", field_name)
                     }
                     InferredType::Url => {
-                        format!("  field {{ \"{}\" template(\"https://example.com/${{{{id}}}}\") }}", field_name)
+                        format!("  field {{ \"{}\" template(\"https://example.com/{{{{id}}}}\") }}", field_name)
                     }
                     InferredType::Date => {
                         format!("  field {{ \"{}\" regexgen \"20[0-2][0-9]-[0-1][0-9]-[0-3][0-9]\" }}", field_name)
@@ -1139,20 +1156,14 @@ enum TabbedDataView {
         }
         
         // Return most specific type
-        if all_bools {
-            InferredType::Boolean
-        } else if all_integers {
-            InferredType::Integer
-        } else if all_floats {
-            InferredType::Float
-        } else if all_emails {
-            InferredType::Email
-        } else if all_urls {
-            InferredType::Url
-        } else if all_dates {
-            InferredType::Date
-        } else {
-            InferredType::String
+        match () {
+            _ if all_bools => InferredType::Boolean,
+            _ if all_integers => InferredType::Integer,
+            _ if all_floats => InferredType::Float,
+            _ if all_emails => InferredType::Email,
+            _ if all_urls => InferredType::Url,
+            _ if all_dates => InferredType::Date,
+            _ => InferredType::String,
         }
     }
 }

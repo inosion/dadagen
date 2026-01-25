@@ -21,12 +21,12 @@ class GenerationTests extends FlatSpec with Matchers {
 class TopoSortTest extends FlatSpec with Matchers {
   "A dependent set " should "be sorted into execution order" in {
     val ramondom = ListOfStringsGenerator(List(
-      TemplateGenerator("A","${E} ${B} ${C}"),
-      TemplateGenerator("B","${F}"),
-      TemplateGenerator("C","${F}"),
+      TemplateGenerator("A","{{E}} {{B}} {{C}}"),
+      TemplateGenerator("B","{{F}}"),
+      TemplateGenerator("C","{{F}}"),
       TemplateGenerator("D",""),
       TemplateGenerator("E",""),
-      TemplateGenerator("F","${D}")
+      TemplateGenerator("F","{{D}}")
     ))
 
     val sorted = ramondom.dependencyOrdered
@@ -39,12 +39,12 @@ class TopoSortTest extends FlatSpec with Matchers {
 class TemplateTest extends FlatSpec with Matchers {
   "A dependent set " should "be sorted into execution order and produce a correct result" in {
     val ramondom = ListOfStringsGenerator(List(
-      TemplateGenerator("A","This is A [${E}] [${B}] [${C}]"),
-      TemplateGenerator("B","This is B [${F}]"),
-      TemplateGenerator("C","This is C [${F}]"),
+      TemplateGenerator("A","This is A [{{E}}] [{{B}}] [{{C}}]"),
+      TemplateGenerator("B","This is B [{{F}}]"),
+      TemplateGenerator("C","This is C [{{F}}]"),
       TemplateGenerator("D","DEE_Template"),
       TemplateGenerator("E","E_TEMPLATE"),
-      TemplateGenerator("F","This is F [${D}]")
+      TemplateGenerator("F","This is F [{{D}}]")
     ))
     /* -- above definitions will create this (each line is an element in the List)
       This is A [E_TEMPLATE] [This is B [This is F [DEE_Template]]] [This is C [This is F [DEE_Template]]]

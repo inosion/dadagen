@@ -27,7 +27,7 @@ mod tests {
         let mut result = DslParser::parse(Rule::dsl, input).unwrap();
         assert_eq!(result.next().unwrap().as_span().as_str(), input);
 
-        let input = r#"field { "payload_id" template "PERFT_${id}_${r_uuid}" }"#;
+        let input = r#"field { "payload_id" template "PERFT_{{id}}_{{r_uuid}}" }"#;
         let mut result = DslParser::parse(Rule::dsl, input).unwrap();
         assert_eq!(result.next().unwrap().as_span().as_str(), input);
 
@@ -59,11 +59,11 @@ mod tests {
         let mut result = DslParser::parse(Rule::dsl, input).unwrap();
         assert_eq!(result.next().unwrap().as_span().as_str(), input);
 
-        let input = r#"field { "surname"  template  " ${surname_data}-${r_str}" }"#;
+        let input = r#"field { "surname"  template  " {{surname_data}}-{{r_str}}" }"#;
         let mut result = DslParser::parse(Rule::dsl, input).unwrap();
         assert_eq!(result.next().unwrap().as_span().as_str(), input);
 
-        let input = r#"field { "fullname" template "${firstname} ${surname}" }"#;
+        let input = r#"field { "fullname" template "{{firstname}} {{surname}}" }"#;
         let mut result = DslParser::parse(Rule::dsl, input).unwrap();
         assert_eq!(result.next().unwrap().as_span().as_str(), input);
 
@@ -71,7 +71,7 @@ mod tests {
         let mut result = DslParser::parse(Rule::dsl, input).unwrap();
         assert_eq!(result.next().unwrap().as_span().as_str(), input);
 
-        let input = r#"field { "email_address" template "TEST_${firstname}${surname}@noemail.test"  }"#;
+        let input = r#"field { "email_address" template "TEST_{{firstname}}{{surname}}@noemail.test"  }"#;
         let mut result = DslParser::parse(Rule::dsl, input).unwrap();
         assert_eq!(result.next().unwrap().as_span().as_str(), input);
         
@@ -152,12 +152,12 @@ mod tests {
         let mut result = DslParser::parse(Rule::dsl, input).unwrap();
         assert_eq!(result.next().unwrap().as_span().as_str(), input);
 
-        let input = r#"field { "simple_gen_template" template "${gen:counter}" }"#;
+        let input = r#"field { "simple_gen_template" template "{{gen:counter}}" }"#;
         let mut result = DslParser::parse(Rule::dsl, input).unwrap();
         assert_eq!(result.next().unwrap().as_span().as_str(), input);
 
 
-        let input = r#"field { "complex_template" template "Something : ${gen:counter} ${gen:address town} ${gen:number between 1 and 200}" }"#;
+        let input = r#"field { "complex_template" template "Something : {{gen:counter}} {{gen:address town}} {{gen:number between 1 and 200}}" }"#;
         let mut result = DslParser::parse(Rule::dsl, input).unwrap();
         assert_eq!(result.next().unwrap().as_span().as_str(), input);
 

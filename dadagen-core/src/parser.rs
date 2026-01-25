@@ -449,9 +449,9 @@ fn parse_template_generator(pair: Pair<Rule>) -> AstResult<TemplateGenerator> {
         match inner_pair.as_rule() {
             Rule::template_variable => {
                 template.push_str(inner_pair.as_str());
-                // Extract the variable name from ${variable_name}
+                // Extract the variable name from {{variable_name}}
                 let var_content = inner_pair.as_str();
-                if let Some(var_name) = var_content.strip_prefix("${").and_then(|s| s.strip_suffix("}")) {
+                if let Some(var_name) = var_content.strip_prefix("{{").and_then(|s| s.strip_suffix("}}")) {
                     variables.push(TemplateVariable {
                         name: var_name.to_string(),
                         generator: None,

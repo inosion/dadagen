@@ -31,8 +31,8 @@ class ScalaCSVAPITest extends FlatSpec with Matchers {
           col { "addr_city".   address city }.
           col { "addr_district". address district }.
           col { "addr_postcode". address postcode }.
-          //col { "list". listFrom ("This row is ${firstname} ${id}") },
-          col { "template". template ("This row is ${firstname} ${id}") }
+          //col { "list". listFrom ("This row is {{firstname}} {{id}}") },
+          col { "template". template ("This row is {{firstname}} {{id}}") }
     }
 
     val header = generator.fieldNames

@@ -7,7 +7,7 @@ fn main2() {
     let dsl_input = r#"
         field { "first_name" string }
         field { "last_name" string }
-        field { "email" template "${first_name}.${last_name}@example.com" }
+        field { "email" template "{{first_name}}.{{last_name}}@example.com" }
         field { "country" list(name="countries") }
         field { "city" list(name="cities", discriminator="country") }
     "#;

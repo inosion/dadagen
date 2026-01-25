@@ -46,8 +46,8 @@
           col { &quot;addr_city&quot;.   address city }.
           col { &quot;addr_district&quot;. address district }.
           col { &quot;addr_postcode&quot;. address postcode }.
-          //col { &quot;list&quot;. listFrom (&quot;This row is ${firstname} ${id}&quot;) },
-          col { &quot;template&quot;. template (&quot;This row is ${firstname} ${id}&quot;) }
+          //col { &quot;list&quot;. listFrom (&quot;This row is {{firstname}} {{id}}&quot;) },
+          col { &quot;template&quot;. template (&quot;This row is {{firstname}} {{id}}&quot;) }
 </stringProp>
         </org.inosion.dadagen.jmeter.DadagenDataSet>
         <hashTree/>

@@ -46,8 +46,8 @@ impl TemplateGenerator {
     }
     
     fn extract_dependencies(&mut self) {
-        // Extract field references from template using ${field} syntax
-        let field_regex = Regex::new(r"\$\{(\w+)\}").unwrap();
+        // Extract field references from template using {{field}} syntax
+        let field_regex = Regex::new(r"\{\{(\w+)\}\}").unwrap();
         for cap in field_regex.captures_iter(&self.template) {
             if let Some(field) = cap.get(1) {
                 let field_name = field.as_str().to_string();
@@ -57,8 +57,8 @@ impl TemplateGenerator {
             }
         }
         
-        // Extract function calls that might reference fields using ${func(...)} syntax
-        let func_regex = Regex::new(r"\$\{(\w+)\((.*?)\)\}").unwrap();
+        // Extract function calls that might reference fields using {{func(...)} } syntax
+        let func_regex = Regex::new(r"\{\{(\w+)\((.*?)\)\}\}").unwrap();
         for cap in func_regex.captures_iter(&self.template) {
             if let Some(args) = cap.get(2) {
                 // Parse arguments for field references
@@ -80,16 +80,16 @@ impl TemplateGenerator {
     
     /// Process template with context
     /// Template syntax:
-    /// - ${field_name} - Direct field reference
-    /// - ${random(1, 100)} - Random number between 1 and 100
-    /// - ${choose("a", "b", "c")} - Choose from list
-    /// - ${format("{}", field_name)} - Format field value
-    /// - ${if(condition, "true_val", "false_val")} - Conditional
+    /// - {{field_name}} - Direct field reference
+    /// - {{random(1, 100)}} - Random number between 1 and 100
+    /// - {{choose("a", "b", "c")}} - Choose from list
+    /// - {{format("{}", field_name)}} - Format field value
+    /// - {{if(condition, "true_val", "false_val")}} - Conditional
     fn process_template(&self, template: &str, context: &Context) -> Result<String> {
         let mut result = template.to_string();
         
-        // Process field references first using ${field} syntax
-        let field_regex = Regex::new(r"\$\{(\w+)\}").unwrap();
+        // Process field references first using {{field}} syntax
+        let field_regex = Regex::new(r"\{\{(\w+)\}\}").unwrap();
         result = field_regex.replace_all(&result, |caps: &regex::Captures| {
             let field_name = &caps[1];
             match context.get_field_state::<String>(field_name) {
@@ -99,8 +99,8 @@ impl TemplateGenerator {
             }
         }).to_string();
         
-        // Process function calls using ${func(...)} syntax
-        let func_regex = Regex::new(r"\$\{(\w+)\((.*?)\)\}").unwrap();
+        // Process function calls using {{func(...)} } syntax
+        let func_regex = Regex::new(r"\{\{(\w+)\((.*?)\)\}\}").unwrap();
         result = func_regex.replace_all(&result, |caps: &regex::Captures| {
             let func_name = &caps[1];
             let args = &caps[2];

@@ -177,15 +177,16 @@ fn validate_choice_config(options: &[String]) -> syn::Result<()> {
 
 /// Validate template configuration
 fn validate_template_config(pattern: &str) -> syn::Result<()> {
-    // Check for balanced ${} placeholders
+    // Check for balanced {{}} placeholders
     let mut depth = 0;
     let mut in_placeholder = false;
     
     for (i, c) in pattern.chars().enumerate() {
         match c {
-            '$' if pattern.chars().nth(i + 1) == Some('{') => {
+            '{' if pattern.chars().nth(i + 1) == Some('{') => {
                 in_placeholder = true;
                 depth += 1;
+                // skip next brace in counting loop logic handled by chars iteration
             },
             '}' if in_placeholder => {
                 depth -= 1;
@@ -205,10 +206,10 @@ fn validate_template_config(pattern: &str) -> syn::Result<()> {
     }
     
     // Check for empty placeholders
-    if pattern.contains("${}") {
+    if pattern.contains("{{}}") {
         return Err(syn::Error::new(
             proc_macro2::Span::call_site(),
-            "Template contains empty placeholder '${}'. Field name required.",
+            "Template contains empty placeholder '{{}}'. Field name required.",
         ));
     }
     
@@ -357,10 +358,10 @@ mod tests {
 
     #[test]
     fn test_template_validation_unbalanced() {
-        assert!(validate_template_config("${field").is_err());
+        assert!(validate_template_config("{{field").is_err());
         // Note: "$field}" is technically unbalanced but harder to detect without full parsing
         // assert!(validate_template_config("$field}").is_err());
-        assert!(validate_template_config("${}").is_err());
-        assert!(validate_template_config("${field}").is_ok());
+        assert!(validate_template_config("{{}}").is_err());
+        assert!(validate_template_config("{{field}}").is_ok());
     }
 }

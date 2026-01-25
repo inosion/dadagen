@@ -463,8 +463,8 @@ impl DataGenerator for TemplateDataGenerator {
         
         let mut result = self.config.template.clone();
         
-        // Replace ${field_name} with values from context
-        let field_regex = Regex::new(r"\$\{([^}]+)\}").map_err(|e| DadagenError::GenerationError {
+        // Replace {{field_name}} with values from context
+            let field_regex = Regex::new(r"\{\{([^}]+)\}\}").map_err(|e| DadagenError::GenerationError {
             message: format!("Invalid regex pattern: {}", e),
         })?;
         
@@ -1080,7 +1080,7 @@ mod tests {
     #[test]
     fn test_template_generator_basic() {
         let config = TemplateGenerator {
-            template: "Hello ${name}!".to_string(),
+            template: "Hello {{name}}!".to_string(),
             variables: vec![TemplateVariable {
                 name: "name".to_string(),
                 generator: None,
@@ -1101,7 +1101,7 @@ mod tests {
     #[test]
     fn test_template_generator_missing_field() {
         let config = TemplateGenerator {
-            template: "User: ${username}".to_string(),
+            template: "User: {{username}}".to_string(),
             variables: vec![TemplateVariable {
                 name: "username".to_string(),
                 generator: None,
@@ -1119,7 +1119,7 @@ mod tests {
     #[test]
     fn test_template_generator_multiple_variables() {
         let config = TemplateGenerator {
-            template: "${first} ${last} - ${email}".to_string(),
+            template: "{{first}} {{last}} - {{email}}".to_string(),
             variables: vec![
                 TemplateVariable { name: "first".to_string(), generator: None },
                 TemplateVariable { name: "last".to_string(), generator: None },
@@ -1142,7 +1142,7 @@ mod tests {
     #[test]
     fn test_template_generator_dependencies() {
         let config = TemplateGenerator {
-            template: "${user_id}-${user_name}".to_string(),
+            template: "{{user_id}}-{{user_name}}".to_string(),
             variables: vec![
                 TemplateVariable { name: "user_id".to_string(), generator: None },
                 TemplateVariable { name: "user_name".to_string(), generator: None },
@@ -1161,7 +1161,7 @@ mod tests {
     #[test]
     fn test_template_generator_validation() {
         let config = TemplateGenerator {
-            template: "".to_string(),
+            template: "{{}}".to_string(),
             variables: vec![],
             span: None,
         };
@@ -1362,7 +1362,7 @@ mod tests {
     fn test_factory_with_specialized_generators() {
         // Test template generator factory
         let template_ast = Generator::Template(TemplateGenerator {
-            template: "Test ${field}".to_string(),
+            template: "Test {{field}}".to_string(),
             variables: vec![TemplateVariable {
                 name: "field".to_string(),
                 generator: None,

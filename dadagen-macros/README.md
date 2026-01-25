@@ -50,7 +50,7 @@ struct User {
     #[dadagen(number(min = 18, max = 99))]
     age: u32,
     
-    #[dadagen(template = "${username}@example.com")]
+    #[dadagen(template = "{{username}}@example.com")]
     email: String,
 }
 ```
@@ -64,7 +64,7 @@ dadagen_schema! {
     User {
         id: u64 = counter(start: 1000),
         username: String = string(length: 10),
-        email: String = template("${username}@example.com"),
+        email: String = template("{{username}}@example.com"),
     }
 }
 ```
@@ -98,7 +98,7 @@ field_name: i32
 ### Template Generation
 
 ```rust
-#[dadagen(template = "${field1}-${field2}")]
+#[dadagen(template = "{{field1}}-{{field2}}")] 
 field_name: String
 ```
 

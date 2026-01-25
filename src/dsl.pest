@@ -64,7 +64,7 @@ address_generator       = { address_generator_label ~ WSNL+ ~ (citytown_label | 
 /* Template genrator */
 template_label              = { "template" }
 generator_template_variable = { "gen:" ~ base_generator }
-template_variable           = { "${" ~ (generator_template_variable | field_name) ~ "}" }
+template_variable           = { "{{" ~ (generator_template_variable | field_name) ~ "}}" }
 template_generator          = { template_label ~ WSNL+ ~ quote_string ~ WSNL* ~ (template_variable | template_non_var_characters | WS)* ~ WSNL* ~ quote_string }
 template_non_var_characters = { ASCII_ALPHA | ASCII_DIGIT | ASCII_CHARS }
 

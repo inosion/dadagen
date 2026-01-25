@@ -46,7 +46,7 @@ val dadagenFeeder = dadagen asMaps {
     field { "firstname".name firstname }.
     field { "surname".name surname }.
      // Combine all the values together .. order (what it depends on) does not matter
-    field { "message".template("${id} - ${firstname} ${surname} (${gender}) i:${int} ${ref}")}.
+    field { "message".template("{{id}} - {{firstname}} {{surname}} ({{gender}}) i:{{int}} {{ref}}")}.
     field { "int".number between 10 and 99876 }.
     field { "ref".regexgen("[a-f]{6}-[0-9a-f]{8}") }
 } generate() // call generate to make the Iterator

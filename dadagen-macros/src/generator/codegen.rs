@@ -518,11 +518,12 @@ fn extract_template_dependencies(pattern: &str) -> Vec<String> {
     let mut chars = pattern.chars().peekable();
     
     while let Some(ch) = chars.next() {
-        if ch == '$' && chars.peek() == Some(&'{') {
-            chars.next(); // consume '{'
+        if ch == '{' && chars.peek() == Some(&'{') {
+            chars.next(); // consume second '{'
             let mut field_name = String::new();
             while let Some(ch) = chars.next() {
-                if ch == '}' {
+                if ch == '}' && chars.peek() == Some(&'}') {
+                    chars.next(); // consume trailing '}'
                     break;
                 }
                 field_name.push(ch);

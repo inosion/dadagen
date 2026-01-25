@@ -59,14 +59,14 @@ object DadagenUi extends JFXApp {
       |  field { "r_uuid".regexgen ("[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}") } .
       |  field { "r_rand1".number between 10000 and 90000 }.
       |  field { "r_str".regexgen ("[A-Z][a-zA-Z]{4}[0-9]{4}") }.
-      |  field { "payload_id".template ("PERFT_${id}_${r_uuid}") }.
+      |  field { "payload_id".template ("PERFT_{{id}}_{{r_uuid}}") }.
       |  field { "gender".gender }.
       |  field { "firstname".name firstname }.
       |  field { "surname_data".name surname }.
-      |  field { "surname".template ("${surname_data}-${r_str}") }.
-      |  field { "fullname".template ("${firstname} ${surname}") }.
+      |  field { "surname".template ("{{surname_data}}-{{r_str}}") }.
+      |  field { "fullname".template ("{{firstname}} {{surname}}") }.
       |  field { "dob".regexgen ("19[3-9][0-9]-(1[012]|0[1-9])-(0[0-9]|1[0-9]|2[0-9])") }.
-      |  field { "email_address".template("TEST_${firstname}.${surname}@noemail.test") }.
+      |  field { "email_address".template("TEST_{{firstname}}.{{surname}}@noemail.test") }.
       |  field { "nino".regexgen("([AEHKLTYZ][ABEHK-MPR-TW-Y]|[AEHKLTY][Z]|[B][ABEHK-MT]|[C][ABEHKLR]|[G][Y]|[J][A-CEGHJ-NPR-TW-Z]|[M][AWX]|[N][ABEHLMPRSW-Z]|[O][ABEHK-MPRSX]|[P][A-CEGHJ-NPR-TW-Y]|[R][ABEHKMPR-TW-Z]|[S][A-CEGHJ-NPR-TW-Z]|[W][ABEK-MP])[0-9]{6}[A-D ]") }.
       |  field { "street_number".number between 1 and 100 }.
       |  field { "street_name".template ("RS Performance Street" ) }.

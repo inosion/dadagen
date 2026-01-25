@@ -13,7 +13,7 @@ case class TemplateGenerator( name:String,
                               )(implicit rand: Random) extends Generator[String] {
 
   // our regexp for finding our variables within a template
-  val varRegex = """(\$\{(\w+)\})""".r
+  val varRegex = """(\{\{(\w+)\}\})""".r
 
   override val dependencies = (for { m <- varRegex.findAllMatchIn(template) } yield m.group(2)).toList
 
@@ -23,5 +23,5 @@ case class TemplateGenerator( name:String,
 }
 
 object TemplateGenerator extends Described {
-  val description = "Template Variable. Use ${..} names for other fields to build up a custom value"
+  val description = "Template Variable. Use {{..}} names for other fields to build up a custom value"
 }

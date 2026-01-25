@@ -109,7 +109,7 @@ fn test_template_generator() {
         #[dadagen(string(length = 8))]
         username: String,
         
-        #[dadagen(template(pattern = "${username}@example.com"))]
+        #[dadagen(template(pattern = "{{username}}@example.com"))]
         email: String,
     }
     
@@ -255,7 +255,7 @@ fn test_mixed_generators() {
         #[dadagen(string(length = 10))]
         username: String,
         
-        #[dadagen(template(pattern = "${username}@company.com"))]
+        #[dadagen(template(pattern = "{{username}}@company.com"))]
         email: String,
         
         #[dadagen(boolean(true_probability = 0.8))]

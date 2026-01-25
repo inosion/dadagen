@@ -198,7 +198,7 @@ struct UserProfile {
     #[dadagen(string(min_length = 5, max_length = 15))]
     username: String,
     
-    #[dadagen(template(pattern = "${username}@example.com"))]
+    #[dadagen(template(pattern = "{{username}}@example.com"))]
     email: String,
 }
 ```
@@ -214,13 +214,13 @@ struct Person {
     #[dadagen(string(min_length = 3, max_length = 20))]
     last_name: String,
     
-    #[dadagen(template(pattern = "${first_name}.${last_name}"))]
+    #[dadagen(template(pattern = "{{first_name}}.{{last_name}}"))]
     username: String,
     
-    #[dadagen(template(pattern = "${username}@company.com"))]
+    #[dadagen(template(pattern = "{{username}}@company.com"))]
     email: String,
     
-    #[dadagen(template(pattern = "${first_name} ${last_name}"))]
+    #[dadagen(template(pattern = "{{first_name}} {{last_name}}"))]
     full_name: String,
 }
 ```
@@ -236,7 +236,7 @@ struct Contact {
     #[dadagen(number(min = 1000000, max = 9999999))]
     phone_number: i32,
     
-    #[dadagen(template(pattern = "(${area_code}) ${phone_number}"))]
+    #[dadagen(template(pattern = "({{area_code}}) {{phone_number}}"))]
     formatted_phone: String,
 }
 ```
@@ -285,7 +285,7 @@ struct Order {
     #[dadagen(string(min_length = 5, max_length = 30))]
     customer_name: String,
     
-    #[dadagen(template(pattern = "${customer_name}@example.com"))]
+    #[dadagen(template(pattern = "{{customer_name}}@example.com"))]
     customer_email: String,
     
     #[dadagen(number(min = 1, max = 100))]
@@ -411,7 +411,7 @@ struct Transaction {
     #[dadagen(boolean(true_probability = 0.02))]
     is_flagged: bool,
     
-    #[dadagen(template(pattern = "TXN-${transaction_id}"))]
+    #[dadagen(template(pattern = "TXN-{{transaction_id}}"))]
     reference_number: String,
 }
 ```
@@ -427,7 +427,7 @@ Field names are used in template substitution, so choose names carefully:
 #[derive(DataGenerator)]
 struct User {
     first_name: String,
-    #[dadagen(template(pattern = "${first_name}@example.com"))]
+    #[dadagen(template(pattern = "{{first_name}}@example.com"))]
     email: String,
 }
 
@@ -435,7 +435,7 @@ struct User {
 #[derive(DataGenerator)]
 struct User {
     fn: String,  // Unclear abbreviation
-    #[dadagen(template(pattern = "${fn}@example.com"))]
+    #[dadagen(template(pattern = "{{fn}}@example.com"))]
     e: String,  // Unclear abbreviation
 }
 ```
@@ -472,10 +472,10 @@ struct Employee {
     first_name: String,
     last_name: String,
     
-    #[dadagen(template(pattern = "${first_name}.${last_name}@company.com"))]
+    #[dadagen(template(pattern = "{{first_name}}.{{last_name}}@company.com"))]
     email: String,
     
-    #[dadagen(template(pattern = "EMP-${employee_id}"))]
+    #[dadagen(template(pattern = "EMP-{{employee_id}}"))]
     badge_number: String,
 }
 ```

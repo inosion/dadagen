@@ -245,19 +245,19 @@ impl GeneratorRegistry {
         self.register_metadata(GeneratorTypeMetadata {
             generator_type: GeneratorType::Template,
             display_name: "Template Generator".to_string(),
-            description: "Generates strings by substituting variables in a template using ${field} syntax".to_string(),
+            description: "Generates strings by substituting variables in a template using {{field}} syntax".to_string(),
             parameters: vec![
                 ParameterMetadata {
                     name: "template".to_string(),
                     param_type: "String".to_string(),
                     required: true,
                     default_value: None,
-                    description: "Template string with ${field} placeholders".to_string(),
+                    description: "Template string with {{field}} placeholders".to_string(),
                 },
             ],
             examples: vec![
-                "template { template: \"User-${user_id}-${username}\" }".to_string(),
-                "template { template: \"${first_name} ${last_name}\" }".to_string(),
+                "template { template: \"User-{{user_id}}-{{username}}\" }".to_string(),
+                "template { template: \"{{first_name}} {{last_name}}\" }".to_string(),
             ],
             can_have_dependencies: true,
         });

@@ -1,0 +1,1 @@
+- [ ] I notice the logic for determining field types (inspection) may be duplicated in core and UIU, consolidate 

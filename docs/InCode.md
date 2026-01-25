@@ -19,8 +19,8 @@ val generator = dadagen asLists {
       field { "addr_city".   address city }.
       field { "addr_district". address district }.
       field { "addr_postcode". address postcode }.
-      //field { "list". listFrom ("This row is ${firstname} ${id}") },
-      field { "template". template ("This row is ${firstname} ${id}") }
+      //field { "list". listFrom ("This row is {{firstname}} {{id}}") },
+      field { "template". template ("This row is {{firstname}} {{id}}") }
 }
 
 val header = generator.fieldNames

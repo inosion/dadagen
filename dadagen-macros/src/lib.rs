@@ -22,7 +22,7 @@
 //!     #[dadagen(number(min = 18, max = 99))]
 //!     age: u32,
 //!     
-//!     #[dadagen(template(pattern = "${username}@example.com"))]
+//!     #[dadagen(template(pattern = "{{username}}@example.com"))]
 //!     email: String,
 //! }
 //! ```
@@ -42,7 +42,7 @@
 //!   - `decimal_places: usize` - For floating point precision
 //!
 //! - `#[dadagen(template = "...")]` - Template-based generation
-//!   - Use `${field}` to reference other fields
+//!   - Use `{{field}}` to reference other fields
 //!
 //! - `#[dadagen(list = "...")]` - Select from predefined lists
 //!   - `name: &str` - List name from list manager
@@ -100,7 +100,7 @@ mod utils;
 ///     #[dadagen(number(min = 0, max = 120))]
 ///     age: u32,
 ///     
-///     #[dadagen(template(pattern = "${name}@example.com"))]
+///     #[dadagen(template(pattern = "{{name}}@example.com"))]
 ///     email: String,
 /// }
 /// ```
@@ -116,7 +116,7 @@ mod utils;
 /// struct User {
 ///     user_id: u64,
 ///     
-///     #[dadagen(template(pattern = "user_${user_id}"))]
+///     #[dadagen(template(pattern = "user_{{user_id}}"))]
 ///     username: String,
 /// }
 /// ```
@@ -186,7 +186,7 @@ pub fn derive_data_generator(input: TokenStream) -> TokenStream {
 ///     User {
 ///         id: u64 = counter(start: 1000),
 ///         username: String = string(length: 10, charset: "alphanumeric"),
-///         email: String = template("${username}@example.com"),
+///         email: String = template("{{username}}@example.com"),
 ///         age: u32 = number(min: 18, max: 99),
 ///     }
 /// }

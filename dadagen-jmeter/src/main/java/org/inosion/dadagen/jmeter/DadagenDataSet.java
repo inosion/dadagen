@@ -70,9 +70,9 @@ public class DadagenDataSet extends ConfigTestElement implements LoopIterationLi
             "  field { \"gender\".gender }.\n" +
             "  field { \"firstname\".name firstname }.\n" +
             "  field { \"surname_data\".name surname }.\n" +
-            "  field { \"surname\".template (\"${surname_data}-${r_str}\") }.\n" +
-            "  field { \"fullname\".template (\"${firstname} ${surname}\") }.\n" +
-            "  field { \"email_address\".template(\"TEST_${firstname}.${surname}@noemail.test\") }\n";
+            "  field { \"surname\".template (\"{{surname_data}}-{{r_str}}\") }.\n" +
+            "  field { \"fullname\".template (\"{{firstname}} {{surname}}\") }.\n" +
+            "  field { \"email_address\".template(\"TEST_{{firstname}}.{{surname}}@noemail.test\") }\n";
 
     public String getThreadScope() {return getPropertyAsString(THREAD_SHARING_SCOPE, DEFAULT_THREAD_SCOPE); }
     public void setThreadScope(String threadScope) { setProperty(THREAD_SHARING_SCOPE, threadScope); }

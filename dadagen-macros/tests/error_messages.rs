@@ -96,7 +96,7 @@ use dadagen_macros::DataGenerator;
 #[derive(DataGenerator)]
 struct TemplateMissingField {
     name: String,
-    #[dadagen(template(pattern = "${unknown_field}"))]  // Error: field doesn't exist
+    #[dadagen(template(pattern = "{{unknown_field}}"))]  // Error: field doesn't exist
     email: String,
 }
 
@@ -135,10 +135,10 @@ use dadagen_macros::DataGenerator;
 
 #[derive(DataGenerator)]
 struct CircularDependency {
-    #[dadagen(template(pattern = "${field_b}"))]
+    #[dadagen(template(pattern = "{{field_b}}"))]
     field_a: String,
     
-    #[dadagen(template(pattern = "${field_a}"))]  // Error: circular reference
+    #[dadagen(template(pattern = "{{field_a}}"))]  // Error: circular reference
     field_b: String,
 }
 

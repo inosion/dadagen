@@ -1,8 +1,57 @@
-## DadaGen - Random Data Generator
+# DadaGen - Random Data Generator
 ![Dadagen Logo](https://raw.github.com/inosion/dadagen/master/assets/dadagen-logo.jpg)
-### What is Dadagen ? 
 
-Dadagen is an embedded Scala / Java Library that has a host of simple declarations for creating random data of your
+# What is Dadagen ? 
+
+Dadagen is a structured random data generator for Rust and Python.
+
+```rust
+struct Person { 
+  name: String,
+  age: u8,
+  address: String
+}
+
+// create 100 sample people
+let people: Vec<Person> = dadagen!( Person, { 100 } )
+```
+
+```python
+class Person:
+  name: String
+  age: u8
+  address: String
+
+# create 100 sample People
+people = dadagen( Person, 100 )
+```
+
+## Power in Generation
+
+- The Library has a large set of built in random generation types (names, addresses, etc).
+- It auto chooses the generator to use, based on matching your field names.
+- Customisable generators can be used to override the default set.
+
+```rust
+struct Person { 
+  name: String,
+  age: u8,
+  address: String
+}
+
+// create 100 sample people
+let people: Vec<Person> = dadagen!( Person, 100, schema!( 
+      "age" : number(0,50),
+      "address" : address.city,
+      "name": template("{{name.title}} {{name.lastname}}")
+    )
+)
+```
+
+The Schema is a DSL supporting our custom sytanx
+
+
+
 choice. The power lies behind a simple configuration sytax and some helper libraries and plugins for a variety
 of scenarios where random, real data is desired.
 
@@ -37,38 +86,32 @@ Each row in this CSV will have a value randomly chosen from the "definitions" be
 
 
 ```scala
-
-  // this import allows us to use the Case Class directly.
-  //   field { DoubleGenerator("initial_investment",1000,80000,2) }.   
-
-  import org.inosion.dadagen.generators._
-
-  field { "id".rownumber }.
-  field { "r_uuid".regexgen ("[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}") } .
-  field { "r_rand1".number between 10000 and 90000 }.
-  field { "r_str".regexgen ("[A-Z][a-zA-Z]{4}[0-9]{4}") }.
-  field { "payload_id".template ("PERFT_${id}_${r_uuid}") }.
-  field { "gender".gender }.
-  field { "firstname".name firstname }.
-  field { "surname_data".name surname }.
-  field { "surname".template ("${surname_data}-${r_str}") }.
-  field { "fullname".template ("${firstname} ${surname}") }.
-  field { "dob".regexgen ("19[3-9][0-9]-(1[012]|0[1-9])-(0[0-9]|1[0-9]|2[0-9])") }.
-  field { "email_address".template("TEST_${firstname}.${surname}@noemail.test") }.
-  field { "nino".regexgen("(A|B|C|E|G|H|J|K|L|M|N|O|P|R|S|T|W|X|Y|Z){2}[0-9]{6}A") }.
-  field { "street_number".number between 1 and 100 }.
-  field { "street_name".template ("RS Performance Street" ) }.
-  field { "town".address city }.
-  field { "postcode".regexgen ("[A-Z][A-Z][0-9] [0-9][A-Z][A-Z]") }.
+  "id": rownumber,  
+  "r_uuid": regexgen("[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}")
+  "r_rand1": number between 10000 and 90000,  
+  "r_str": regexgen("[A-Z][a-zA-Z]{4}[0-9]{4}"),  
+  "payload_id": template ("PERFT_{{id}}_{{r_uuid}}"),  
+  "gender": gender,  
+  "firstname": name.firstname,  
+  "surname_data": name.surname,  
+  "surname": template ("{{surname_data}}-{{r_str}}"),  
+  "fullname": template ("{{firstname}} {{surname}}"),  
+  "dob": regexgen("19[3-9][0-9]-(1[012]|0[1-9])-(0[0-9]|1[0-9]|2[0-9])"),  
+  "email_address": template("TEST_{{firstname}}.{{surname}}@noemail.test"),  
+  "nino": regexgen("(A|B|C|E|G|H|J|K|L|M|N|O|P|R|S|T|W|X|Y|Z){2}[0-9]{6}A"),  
+  "street_number": number between 1 and 100,  
+  "street_name": template ("RS Performance Street" ),  
+  "town": address.city,  
+  "postcode": regexgen("[A-Z][A-Z][0-9] [0-9][A-Z][A-Z]"),  
   // Issue #10 - API is not supporting precision right now, but the case class does (the default _is_ 2.. see "upfront_commission") .. but if you want more precision, this is how
-  field { DoubleGenerator("initial_investment",1000,80000,2) }.   
-  field { "regular_investment_amount".regexgen("(50|100|150|200|250|300|350|400|450|500|550|600|650|700|750|800|850|900|950)") }.
-  field { "account_number".number between 8800000 and 8899999 }.
-  field { "sort_code".regexgen("(402205|110124|830608|880011|938424|938343|938130)") }.
-  field { "mobile_phone_number".regexgen ("07777 [0-9]{3} [0-9]{3}") }.
-  field { "retirement_age".number between 65 and 75 }.
-  field { "upfront_commission".number between 100.00 and 150.00 }. // when using floats, the default is precision 2 (that is, this will create eg 110.18 ) 
-  field { "commission_percentage".number between 0.01 and 0.05 }
+  DoubleGenerator(: initial_investment",1000,80000,2) }.  , 
+  "regular_investment_amount": regexgen("(50|100|150|200|250|300|350|400|450|500|550, 600|650|700|750|800|850|900|950)") }.
+  "account_number": number between 8800000 and 8899999,  
+  "sort_code": regexgen("(402205|110124|830608|880011|938424|938343|938130)"),  
+  "mobile_phone_number": regexgen("07777 [0-9]{3} [0-9]{3}"),  
+  "retirement_age": number between 65 and 75,  
+  "upfront_commission": number between 100.00 and 150.00 }. // when using floats, the, default is precision 2 (that is, this will create eg 110.18 ) 
+  "commission_percentage": number between 0.01 and 0.05 , 
 ```
 
 ### Where Can it be Used ?
@@ -164,14 +207,14 @@ Below is a very full example of type types of data that can be generated.
   field { "r_uuid".regexgen ("[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}") } .
   field { "r_rand1".number between 10000 and 90000 }.
   field { "r_str".regexgen ("[A-Z][a-zA-Z]{4}[0-9]{4}") }.
-  field { "payload_id".template ("PERFT_${id}_${r_uuid}") }.
+  field { "payload_id".template ("PERFT_{{id}}_{{r_uuid}}") }.
   field { "gender".gender }.
   field { "firstname".name firstname }.
   field { "surname_data".name surname }.
-  field { "surname".template ("${surname_data}-${r_str}") }.
-  field { "fullname".template ("${firstname} ${surname}") }.
+  field { "surname".template ("{{surname_data}}-{{r_str}}") }.
+  field { "fullname".template ("{{firstname}} {{surname}}") }.
   field { "dob".regexgen ("19[3-9][0-9]-(1[012]|0[1-9])-(0[0-9]|1[0-9]|2[0-9])") }.
-  field { "email_address".template("TEST_${firstname}.${surname}@noemail.test") }.
+  field { "email_address".template("TEST_{{firstname}}.{{surname}}@noemail.test") }.
   field { "nino".regexgen("(A|B|C|E|G|H|J|K|L|M|N|O|P|R|S|T|W|X|Y|Z){2}[0-9]{6}A") }.
   field { "street_number".number between 1 and 100 }.
   field { "street_name".template ("RS Performance Street" ) }.
@@ -207,7 +250,7 @@ then is should all work out ok.
 ```scala
 field { "firstname".name firstname }.
 field { "surname".name surname }.
-field { "full_name".template "${firstname} ${surname}"}
+field { "full_name".template "{{firstname}} {{surname}}"}
 ```
 
 

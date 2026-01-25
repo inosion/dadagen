@@ -64,9 +64,9 @@ pub struct TemplateGenerator {
 
 impl TemplateGenerator {
     pub fn new(name: String, template: String) -> Self {
-        let var_regex = Regex::new(r#"(\$\{(\w+)\})"#).unwrap();
+        let var_regex = Regex::new(r#"(\{\{(\w+)\}\})"#).unwrap();
         let dependencies = var_regex.find_iter(&template)
-            .map(|m| m.as_str().trim_start_matches("${").trim_end_matches("}").to_string())
+            .map(|m| m.as_str().trim_start_matches("{{").trim_end_matches("}}").to_string())
             .collect();
 
         Self {
@@ -84,7 +84,7 @@ impl Generator<String, ThreadRng> for TemplateGenerator {
     }
 
     fn internal_generate(&self, _context: &Context<String>) -> String {
-        let var_regex = Regex::new(r#"(\$\{(\w+)\})"#).unwrap();
+        let var_regex = Regex::new(r#"(\{\{(\w+)\}\})"#).unwrap();
         var_regex.replace_all(&self.template, |caps: &regex::Captures| {
             let field_name = caps.get(2).unwrap().as_str();
             // context.data_field_state(field_name).to_string()
@@ -103,7 +103,7 @@ impl Generator<String, ThreadRng> for TemplateGenerator {
 
 impl Described for TemplateGenerator {
     fn get_description(&self) -> String {
-        "Template Variable. Use ${..} names for other fields to build up a custom value".to_string()
+        "Template Variable. Use {{..}} names for other fields to build up a custom value".to_string()
     }
 }
 

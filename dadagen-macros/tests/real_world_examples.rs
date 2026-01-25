@@ -17,7 +17,7 @@ fn test_ecommerce_user_generator() {
         #[dadagen(string(min_length = 8, max_length = 30))]
         display_name: String,
         
-        #[dadagen(template(pattern = "${username}@example.com"))]
+        #[dadagen(template(pattern = "{{username}}@example.com"))]
         email: String,
         
         #[dadagen(number(min = 18, max = 99))]
@@ -124,13 +124,13 @@ fn test_user_profile_with_templates() {
         #[dadagen(string(min_length = 5, max_length = 20, charset = "alpha"))]
         last_name: String,
         
-        #[dadagen(template(pattern = "${first_name}.${last_name}"))]
+        #[dadagen(template(pattern = "{{first_name}}.{{last_name}}"))]
         username: String,
         
-        #[dadagen(template(pattern = "${username}@company.com"))]
+        #[dadagen(template(pattern = "{{username}}@company.com"))]
         email: String,
         
-        #[dadagen(template(pattern = "+1-555-${phone_suffix}"))]
+        #[dadagen(template(pattern = "+1-555-{{phone_suffix}}"))]
         phone: String,
         
         #[dadagen(number(min = 1000, max = 9999))]
@@ -269,7 +269,7 @@ fn test_nested_struct_generator() {
         #[dadagen(string(min_length = 2, max_length = 30))]
         name: String,
         
-        #[dadagen(template(pattern = "${name}@email.com"))]
+        #[dadagen(template(pattern = "{{name}}@email.com"))]
         email: String,
         
         #[dadagen(number(min = 18, max = 99))]
