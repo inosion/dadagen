@@ -2,16 +2,18 @@
 
 This document specifies the canonical Dadagen schema DSL. It is language-agnostic and designed to be easy to parse, human-readable, and simple to merge/override.
 
-Summary
--------
+## Summary
+
 - Field declarations map a quoted name to a generator expression.
 - Use a colon `:` as the canonical delimiter, whitespace-only form is accepted for convenience.
+- Use the bare word `hidden` for a field you need as a calculator, for dependency but is not mapped to the output
+  - `hidden : locale, ...`
 - Generator families support dot-subtypes: `address.city`, `name.firstname`.
 - Numeric bounds are exclusive by default; use square-brackets for inclusive ranges.
 - `list(...)`, `enum(...)`, and `sequence(...)` are supported for arrays/enums/sequences.
 
-Top-level
----------
+## Top-level
+
 Two equivalent forms are accepted:
 
 - Anonymous schema:
@@ -32,8 +34,8 @@ schema People {
 }
 ```
 
-Field declaration
------------------
+## Field declaration
+
 Syntax:
 
 ```
@@ -47,8 +49,8 @@ Both of these are accepted (parser normalises to the colon form):
 "town": address.city
 ```
 
-Type expressions
-----------------
+## Type expressions
+
 General form:
 
 ```
@@ -59,57 +61,102 @@ generator.subtype(args)
 
 Common generators and forms:
 
-- `name`, `name.firstname`, `name.surname`
-- `address.city`, `address.postcode`
-- `string`, `string(pattern="<regex>", min=..., max=...)`
+- `"raw string"` - with templates for other fields 
+   - "{{field1}}-ABC"
+   - "{{firstname}}.{{lastname}}@" + list("potatoes") + ".com
+- `name` - `name.firstname`, `name.surname`, `name.initial`, `name.title`
+- `address.city`, `address.postcode`, `address.street`, `address.suburb`, `address.city`, `address.district`, `address.country`, `address.state`, `address.housename`, `address.streetnumber`
+- `locale([value,value,...]?)` - Locale
 - `number(min,max)` (exclusive upper bound by default)
-- `number[min,max]` (inclusive bounds)
 - `float(min,max, precision=N)` (precision optional)
-- `enum("A","B","C")` or `list("a","b","c")` for discrete choices
-- `list(type, n)` fixed-length list
-- `list(type, min..max)` ranged-length list (inclusive bounds)
-- `sequence(start, end?, step?)` — sequence of numbers; loops by default if `end` provided (use `loop=false` to stop)
+- `enum("A","B","C")`
+- `list("rocks", mode?)`, `list("potatoes")`, `list("./mycustom-list.txt")` is a predefined list, or a user supplied list which accepts a filename.
+  - `mode` can be sequential, or random
+- `sequence(start, end?, step?)` — sequence of numbers; loops by default if `end` provided
+- `regexgen("[a-z][a-z0-9]+@[a-z]{4,6}[0-9]+\.com")`
+- `sequence(start?)` - incrementing number - start is the beginning value. `start=0` is the default.
+- `human` - `human.eyecolor`, `human.haircolor`, `human.height`, `human.weight`, `human.age`, `human.dob`, `human.sex`, `human.gender`
+- `contact` - `contact.email`, `contact.phone`, `contact.mobile`
+- `date` - `date.time`, `date.date`, `date.full`, `date.format(...)`, `date.now`
+- `uuid.*` - `uuid.v4`
+- `hash` - `hash.sha256`, `hash.blake3`
 
-Template interpolation
-----------------------
-Templates use `{{...}}` interpolation for field placeholders. Use `{{field_name}}` to insert a previously-generated field value into a template string. Example:
+
+### Linked Properties
+- The following properties are linked (the value of one is dependent upon the value of another). To not use the dependency, supply `no-depends` e.g. 
+- locale based 
+  - address.*
+  - name.*
+  - human.*
+  - conmtat.*
+- human.sex
+  - name.*
+  - human.*
+- human.gender
+  - name.*
+  - human.*
+
+
+## Template interpolation
+
+Templates are found in the strings. `{{...}}` interpolation for field placeholders. Use `{{field_name}}` to insert a previously-generated field value into a template string. Example:
 
 ```
-"fullname": template("{{firstname}} {{surname}}")
+"fullname": "{{firstname}} {{surname}}"
 ```
 
 Escaping: use `\{{` to emit a literal `{{` in output. Template placeholders accept only simple identifiers (no arbitrary expressions) in the MVP.
 
-Notes on semantics
-------------------
+## Notes on semantics
+
 - Number bounds: `number(1,40)` → integers >=1 and <40 (upper exclusive). Use `number[1,40]` for inclusive 1..40.
 - Dot notation selects a subtype/generator family: `name.firstname` picks the firstname generator from the `name` family.
 - `enum(...)` and `list(...)` may accept strings or numbers. `list` is also used for repeated values.
 - `sequence` behaviour: with `sequence(1,10)` the generator emits 1..10 then loops back to 1. To produce a non-looping sequence, set `loop=false`.
 
-Override & merge rules
-----------------------
+## Nested fields
+
+As the schema supports generating JSON, nesting fields looks like 
+
+```
+{ 
+   "prop" : {
+      "foo" : name.firstname,
+      "bar" : number(1,100)
+   },
+   "somefield" : list["a","b","c"]
+   
+}
+```
+
+When this is generated to CSV, it will produce `prop.foo, prop.bar, somefield` rows.
+
+## Override & merge rules
+
+When used in programs as test generation, the dadgen inspector will automatically make a schema, from the struct, obect, class that you supply. 
+In these situations, a field may want to be altered from __dadagen's__ guess. 
+
 - Override schemas can be provided with a subset of fields. Merging rules:
   - If override contains a field present in default → replace the generator for that field.
   - If override contains a new field → append it to the schema.
   - Unmentioned fields keep their default generators.
 
-Examples
---------
+## Examples
+
 
 People schema (canonical):
 
 ```
 schema People {
-  "id": rownumber
+  "id": sequence
   "r_uuid": regexgen("[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}")
   "gender": gender
   "firstname": name.firstname
   "surname": name.surname
-  "fullname": template("{{firstname}} {{surname}}")
+  "fullname": "{{firstname}} {{surname}}"
   "dob": regexgen("19[3-9][0-9]-(1[012]|0[1-9])-(0[0-9]|1[0-9]|2[0-9])")
   "street_number": number(1,100)
-  "street_name": template("RS Performance Street")
+  "street_name": "RS " +  number(100,900) + " " + address.street_type
   "town": address.city
   "postcode": regexgen("[A-Z][A-Z][0-9] [0-9][A-Z][A-Z]")
   "initial_investment": number(10000,90000) precision 2
@@ -125,16 +172,17 @@ schema {
 }
 ```
 
-Notes for implementers
-----------------------
+## Notes for implementers
+
 - Parser should accept both colon and whitespace forms but normalise to colon form in AST/pretty-printing.
 - Support english shorthand (`number between 1 and 40`) as a syntactic sugar that canonicalises to `number(1,40)`.
 - Bounds are inclusive/exclusive as specified above; make that explicit in parser docs and tests.
 - Provide a small linter/pretty-printer to convert legacy `field { "name" <gen> }` forms to the canonical form.
 
-Comments
---------
+## Comments
+
 Supported comment styles:
+  - `//`, `#` and `/* ... */`
 
 - Line comments starting with `#` (preferred for DSL/config users):
 
@@ -162,14 +210,11 @@ Parser notes:
 - `/* ... */` is treated as a block comment and can span multiple lines.
 - Comment markers inside quoted strings are not treated as comments.
 
+## Appendix: quick reference
 
-Appendix: quick reference
-------------------------
 - Field: `"name": generator`  
 - Subtype: `generator.subtype`  
 - Number (exclusive): `number(a,b)`  
 - Number (inclusive): `number[a,b]`  
 - Enum: `enum("a","b","c")`  
-- List fixed: `list(type, n)`  
-- List range: `list(type, min..max)`  
-- Sequence: `sequence(start, end?, step?, loop=true)`
+- Sequence: `sequence(start=0, end?, step?, loop=true)`
