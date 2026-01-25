@@ -502,6 +502,21 @@ impl DataGenerator for TemplateDataGenerator {
                 message: "Template cannot be empty".to_string(),
             });
         }
+
+        // Ensure there are no empty template placeholders like {{}}
+        let placeholder_re = regex::Regex::new(r"\{\{([^}]*)\}\}").map_err(|e| DadagenError::ValidationError {
+            message: format!("Invalid template placeholder regex: {}", e),
+        })?;
+
+        for caps in placeholder_re.captures_iter(&self.config.template) {
+            let name = caps.get(1).map(|m| m.as_str().trim()).unwrap_or("");
+            if name.is_empty() {
+                return Err(DadagenError::ValidationError {
+                    message: "Template variable name cannot be empty".to_string(),
+                });
+            }
+        }
+
         Ok(())
     }
     
