@@ -314,17 +314,23 @@ impl eframe::App for DadagenApp {
                             DataViewMode::Tabbed => {
                                 ui.vertical(|ui| {
                                     ui.horizontal(|ui| {
-                                        let _ = ui.selectable_label(self.generation_error.is_none() && self.generated_data.headers.is_empty(), "📄 Original Data");
-                                        let _ = ui.selectable_label(self.generation_error.is_some() || !self.generated_data.headers.is_empty(), "✨ Generated Data");
+                                        if ui.selectable_label(self.tab_selected == TabbedDataView::Original, "📄 Original Data").clicked() {
+                                            self.tab_selected = TabbedDataView::Original;
+                                        }
+                                        if ui.selectable_label(self.tab_selected == TabbedDataView::Generated, "✨ Generated Data").clicked() {
+                                            self.tab_selected = TabbedDataView::Generated;
+                                        }
                                     });
                                     ui.separator();
                                     
                                     let avail_h = ui.available_height();
-                                    // Show based on selection (simplified for now - show generated if available)
-                                    if !self.generated_data.headers.is_empty() || self.generation_error.is_some() {
-                                        self.show_generated_data_panel(ui, avail_h);
-                                    } else {
-                                        self.show_original_data_panel(ui, avail_h);
+                                    match self.tab_selected {
+                                        TabbedDataView::Original => {
+                                            self.show_original_data_panel(ui, avail_h);
+                                        }
+                                        TabbedDataView::Generated => {
+                                            self.show_generated_data_panel(ui, avail_h);
+                                        }
                                     }
                                 });
                             }
@@ -828,6 +834,7 @@ impl DadagenApp {
             total_rows: self.generate_row_count,
         };
         
+        self.tab_selected = TabbedDataView::Generated;
         self.is_generating = false;
         tracing::info!("Generated {} rows of fake data", self.generate_row_count);
     }
