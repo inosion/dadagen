@@ -35,7 +35,7 @@ base_generator = _{
   | gender_generator
   | name_generator
   | address_generator
-  | counter_generator
+  | sequence_generator
   | regexgen_generator
 }
 
@@ -142,7 +142,7 @@ list_mode_constraint = { "mode" ~ WSNL* ~ "=" ~ WSNL* ~ ("random" | "sequential"
 list_name_value = { (ASCII_ALPHA | ASCII_DIGIT | FIELD_NAME_CHARACTERS | " " | "\\" | ":")+ }
 
 /* * Number Generator int */
-number_generator_label = { "number" | "integer" | "int" }
+number_generator_label = { "number" }
 number_generator       = { 
     number_generator_label ~ WSNL* ~ "(" ~ WSNL* ~ number_constraints ~ WSNL* ~ ")"
   | number_generator_label
@@ -183,8 +183,8 @@ gender_generator_label = { "gender" }
 gender_generator       = { gender_generator_label }
 
 /* gender (male, female) */
-counter_label     = { "iteration" | "rownumber" | "counter" | "count" }
-counter_generator = { counter_label }
+sequence_label     = { "sequence" }
+sequence_generator = { sequence_label }
 
 /* given name, surname */
 name_generator_label = { "name" }

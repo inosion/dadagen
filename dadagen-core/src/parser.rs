@@ -178,7 +178,7 @@ fn parse_generator(pair: Pair<Rule>) -> AstResult<Generator> {
         Rule::list_generator => Ok(Generator::List(parse_list_generator(pair)?)),
         Rule::template_generator => Ok(Generator::Template(parse_template_generator(pair)?)),
         Rule::regexgen_generator => Ok(Generator::Regex(parse_regex_generator(pair)?)),
-        Rule::counter_generator => Ok(Generator::Counter(parse_counter_generator(pair)?)),
+        Rule::sequence_generator => Ok(Generator::Counter(parse_counter_generator(pair)?)),
         Rule::gender_generator => Ok(Generator::Gender(parse_gender_generator(pair)?)),
         Rule::name_generator => Ok(Generator::Name(parse_name_generator(pair)?)),
         Rule::address_generator => Ok(Generator::Address(parse_address_generator(pair)?)),
@@ -843,7 +843,7 @@ mod tests {
 
     #[test]
     fn test_parse_number_with_constraints() {
-        let input = r#""age": integer(min=18, max=99)"#;
+        let input = r#""age": number(min=18, max=99)"#;
         let doc = parse_dsl(input).unwrap();
         
         assert_eq!(doc.fields.len(), 1);
@@ -888,9 +888,9 @@ mod tests {
     #[test]
     fn test_parse_multiple_fields() {
         let input = r#"
-            "id": counter
+            "id": sequence
             "name": string(min_length=3, max_length=20)
-            "age": integer(min=18, max=99)
+            "age": number(min=18, max=99)
         "#;
         let doc = parse_dsl(input).unwrap();
         
@@ -903,8 +903,8 @@ mod tests {
     #[test]
     fn test_validation_duplicate_fields() {
         let input = r#"
-            "id": counter
-            "id": number
+            "id": sequence
+            "id": gender
         "#;
         let result = parse_dsl(input);
         assert!(result.is_err());

@@ -1,6 +1,17 @@
-#[derive(pest_derive::Parser)]
+use pest_derive::Parser;
+
+#[derive(Parser)]
 #[grammar = "dsl.pest"]
 pub struct DslGrammarParser;
+
+impl DslGrammarParser {
+    pub fn parse(
+        rule: Rule,
+        input: &str,
+    ) -> Result<pest::iterators::Pairs<Rule>, pest::error::Error<Rule>> {
+        <Self as pest::Parser<Rule>>::parse(rule, input)
+    }
+}
 
 pub use pest::Parser;
 // No alias: prefer explicit names. Use `DslGrammarParser` for grammar-level parsing
@@ -30,7 +41,7 @@ mod tests {
         let mut result = DslGrammarParser::parse(Rule::dsl, input).unwrap();
         assert_eq!(result.next().unwrap().as_span().as_str(), input);
 
-        let input = r#""r_rand1": number between 10000 and 90000"#;
+        let input = r#""r_rand1": number(min=10000, max=90000)"#;
         let mut result = DslGrammarParser::parse(Rule::dsl, input).unwrap();
         assert_eq!(result.next().unwrap().as_span().as_str(), input);
 
@@ -46,19 +57,12 @@ mod tests {
         let mut result = DslGrammarParser::parse(Rule::dsl, input).unwrap();
         assert_eq!(result.next().unwrap().as_span().as_str(), input);
 
-        let input = r#""id": counter"#;
+        let input = r#""id": sequence"#;
         let mut result = DslGrammarParser::parse(Rule::dsl, input).unwrap();
         assert_eq!(result.next().unwrap().as_span().as_str(), input);
 
-        let input = r#""id": count"#;
-        let mut result = DslGrammarParser::parse(Rule::dsl, input).unwrap();
-        assert_eq!(result.next().unwrap().as_span().as_str(), input);
-
-        let input = r#""id": iteration"#;
-        let mut result = DslGrammarParser::parse(Rule::dsl, input).unwrap();
-        assert_eq!(result.next().unwrap().as_span().as_str(), input);
-
-        let input = r#""id": rownumber"#;
+        // Only `sequence` is supported now (deprecated aliases removed)
+        let input = r#""id": sequence"#;
         let mut result = DslGrammarParser::parse(Rule::dsl, input).unwrap();
         assert_eq!(result.next().unwrap().as_span().as_str(), input);
 
@@ -98,7 +102,7 @@ mod tests {
         let mut result = DslGrammarParser::parse(Rule::dsl, input).unwrap();
         assert_eq!(result.next().unwrap().as_span().as_str(), input);
 
-        let input = r#""street_number": number between 1 and 100"#;
+        let input = r#""street_number": number(min=1, max=100)"#;
         let mut result = DslGrammarParser::parse(Rule::dsl, input).unwrap();
         assert_eq!(result.next().unwrap().as_span().as_str(), input);
 
@@ -138,7 +142,7 @@ mod tests {
         let mut result = DslGrammarParser::parse(Rule::dsl, input).unwrap();
         assert_eq!(result.next().unwrap().as_span().as_str(), input);
 
-        let input = r#"  "initial_investment": number between 10000.00 and 90000.00"#;
+        let input = r#"  "initial_investment": number(min=10000.00, max=90000.00)"#;
         let mut result = DslGrammarParser::parse(Rule::dsl, input).unwrap();
         assert_eq!(result.next().unwrap().as_span().as_str(), input);
         print!("{:?}", result);
@@ -147,7 +151,7 @@ mod tests {
         let mut result = DslGrammarParser::parse(Rule::dsl, input).unwrap();
         assert_eq!(result.next().unwrap().as_span().as_str(), input);
 
-        let input = r#""account_number": number between 8800000 and 8899999"#;
+        let input = r#""account_number": number(min=8800000, max=8899999)"#;
         let mut result = DslGrammarParser::parse(Rule::dsl, input).unwrap();
         assert_eq!(result.next().unwrap().as_span().as_str(), input);
 
@@ -159,16 +163,16 @@ mod tests {
         let mut result = DslGrammarParser::parse(Rule::dsl, input).unwrap();
         assert_eq!(result.next().unwrap().as_span().as_str(), input);
 
-        let input = r#""retirement_age": number between 65 and 75"#;
+        let input = r#""retirement_age": number(min=65, max=75)"#;
         let mut result = DslGrammarParser::parse(Rule::dsl, input).unwrap();
         assert_eq!(result.next().unwrap().as_span().as_str(), input);
 
-        let input = r#""simple_gen_template": template "{{gen:counter}}""#;
+        let input = r#""simple_gen_template": template "{{gen:sequence}}""#;
         let mut result = DslGrammarParser::parse(Rule::dsl, input).unwrap();
         assert_eq!(result.next().unwrap().as_span().as_str(), input);
 
 
-        let input = r#""complex_template": template "Something : {{gen:counter}} {{gen:address town}} {{gen:number between 1 and 200}}""#;
+        let input = r#""complex_template": template "Something : {{gen:sequence}} {{gen:address town}} {{gen:number(min=1, max=200)}}""#;
         let mut result = DslGrammarParser::parse(Rule::dsl, input).unwrap();
         assert_eq!(result.next().unwrap().as_span().as_str(), input);
 

@@ -5,7 +5,7 @@ members = [
     "dadagen-web",
     "dadagen-python",
     "dadagen-cli",
-    "dadagen-gui",  # Now using pure Rust egui
+    "dadagen-gui", 
 ]
 
 resolver = "2"

@@ -13,7 +13,7 @@
 //! # Example
 //! 
 //! ```rust,no_run
-//! use dadagen_core::{DslParser, Context, Result};
+//! use dadagen_core::{DslGrammarParser, Context, Result};
 //! 
 //! fn generate_data() -> Result<()> {
 //!     let dsl = r#"

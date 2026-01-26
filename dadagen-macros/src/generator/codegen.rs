@@ -310,6 +310,7 @@ fn generate_generator_init(config: &FieldConfig) -> syn::Result<TokenStream> {
                         name: #name.to_string(),
                         discriminator: None,
                         weighted: false,
+                        mode: dadagen_core::ast::ListMode::Random,
                         span: None,
                     }
                 )
