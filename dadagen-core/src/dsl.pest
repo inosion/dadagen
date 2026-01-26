@@ -21,9 +21,9 @@ field_expr = { WSNL_COMMENT* ~ (named_field | hidden_field) ~ WSNL_COMMENT* }
 quote_string = _{ "\"" }
 
 // Define all generator types (prioritized by specificity)
-base_generator = _{
-    implicit_template
-  | string_generator
+base_generator = {
+    string_generator
+  | string_template_generator
   | boolean_generator
   | datetime_generator
   | date_generator
@@ -40,10 +40,10 @@ base_generator = _{
 }
 
 // Implicit template: quoted string with {{placeholder}} parts
-implicit_template = { quote_string ~ implicit_template_body* ~ quote_string }
-implicit_template_body = { placeholder | implicit_template_char }
-implicit_template_char = { !"{{" ~ ANY }
-placeholder = { "{{" ~ WSNL* ~ field_name ~ WSNL* ~ "}}" }
+string_template_generator = { quote_string ~ string_template_generator_body* ~ quote_string }
+string_template_generator_body = { placeholder | string_template_generator_char }
+string_template_generator_char = { !("\"" | "{{") ~ ANY }
+placeholder = { "{{" ~ field_name ~ "}}" }
 
 term = _{ base_generator | template_generator }
 // Concatenation expression: term (+ term)*
@@ -139,7 +139,7 @@ list_mode_constraint = { "mode" ~ WSNL* ~ "=" ~ WSNL* ~ ("random" | "sequential"
 // Allow spaces inside quoted list names/paths
 // Allow backslash for Windows paths too
 // Also allow colon for Windows drive letter (C:) and other common filename chars
-list_name_value = { (ASCII_ALPHA | ASCII_DIGIT | FIELD_NAME_CHARACTERS | " " | "\\" | ":")+ }
+list_name_value = { (ASCII_ALPHA | ASCII_DIGIT | "." | "-" | "_" | "/" | " " | "\\" | ":")+ }
 
 /* * Number Generator int */
 number_generator_label = { "number" }
@@ -242,8 +242,8 @@ END = { !ANY }
 
 // ASCII character rules
 ASCII_ALPHA           =  { 'a'..'z' | 'A'..'Z' }
-ASCII_DIGIT           =  { '0'..'9' | "." }
+ASCII_DIGIT           =  { '0'..'9'}
 ASCII_CHARS           =  { ":" | "." | "-" | "_" | "(" | ")" | "+" | "/" | "<" | "=" | ">" | "@" | "[" | "]" | "^" | "|" | "~" }
-FIELD_NAME_CHARACTERS =  { "." | "-" | "_" | "(" | ")" | "+" | "/" | "<" | "=" | ">" | "@" | "[" | "]" | "^" | "|" | "~" }
+FIELD_NAME_CHARACTERS =  { "." | "-" | "_" }
 
 // regex = { "regexgen" ~ whitespace ~ ("(" ~ string ~ ")") }

@@ -205,25 +205,6 @@ fn parse_generator(pair: Pair<Rule>) -> AstResult<Generator> {
 
             for term_pair in terms.into_iter() {
                 match term_pair.as_rule() {
-                    Rule::implicit_template => {
-                        // implicit_template: iterate inner parts (placeholder or char)
-                        for part in term_pair.into_inner() {
-                            match part.as_rule() {
-                                Rule::placeholder => {
-                                    // placeholder text like {{name}}; push as-is and register variable
-                                    let text = part.as_str();
-                                    if let Some(var_name) = text.strip_prefix("{{").and_then(|s| s.strip_suffix("}}")) {
-                                        template.push_str(&format!("{{{{{}}}}}", var_name));
-                                        variables.push(TemplateVariable { name: var_name.to_string(), generator: None });
-                                    }
-                                }
-                                Rule::implicit_template_char => {
-                                    template.push_str(part.as_str());
-                                }
-                                _ => {}
-                            }
-                        }
-                    }
                     _ => {
                         // Other generator term: treat as embedded variable with generated sub-generator
                         var_idx += 1;
@@ -253,6 +234,17 @@ fn parse_generator(pair: Pair<Rule>) -> AstResult<Generator> {
         Rule::gender_generator => Ok(Generator::Gender(parse_gender_generator(pair)?)),
         Rule::name_generator => Ok(Generator::Name(parse_name_generator(pair)?)),
         Rule::address_generator => Ok(Generator::Address(parse_address_generator(pair)?)),
+        Rule::base_generator => {
+            let mut inner = pair.into_inner();
+            if let Some(inner_pair) = inner.next() {
+                parse_generator(inner_pair)
+            } else {
+                Err(AstError::InvalidValue {
+                    message: "Empty base_generator".to_string(),
+                    span: Some(span),
+                })
+            }
+        }
         _ => Err(AstError::InvalidValue {
             message: format!("Unknown generator type: {:?}", pair.as_rule()),
             span: Some(span),

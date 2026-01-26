@@ -5,6 +5,7 @@
 
 use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
+use regex;
 
 /// Location information for error reporting
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -420,6 +421,34 @@ impl Validate for StringGenerator {
             }
         }
         
+        // Validate placeholders in the string
+        if let Some(pattern) = &self.pattern {
+            let placeholder_re = regex::Regex::new(r"\{\{([^}]*)\}\}").map_err(|e| AstError::InvalidConstraint {
+                message: format!("Invalid regex for placeholder validation: {}", e),
+                span: self.span.clone(),
+            })?;
+            for caps in placeholder_re.captures_iter(pattern) {
+                let name = caps.get(1).map(|m| m.as_str().trim()).unwrap_or("");
+                if name.is_empty() {
+                    return Err(AstError::InvalidConstraint {
+                        message: "Template variable name cannot be empty".to_string(),
+                        span: self.span.clone(),
+                    });
+                }
+                // Check if name matches the required regex
+                let name_re = regex::Regex::new(r"^[A-Za-z_][A-Za-z0-9_.-]*$").map_err(|e| AstError::InvalidConstraint {
+                    message: format!("Invalid regex for name validation: {}", e),
+                    span: self.span.clone(),
+                })?;
+                if !name_re.is_match(name) {
+                    return Err(AstError::InvalidConstraint {
+                        message: format!("Invalid placeholder name '{}'. Placeholder names must match [A-Za-z_][A-Za-z0-9_.-]*", name),
+                        span: self.span.clone(),
+                    });
+                }
+            }
+        }
+        
         Ok(())
     }
 }
@@ -506,6 +535,22 @@ impl Validate for TemplateGenerator {
                 span: self.span.clone(),
             });
         }
+
+        // Validate placeholders
+        let placeholder_re = regex::Regex::new(r"\{\{([^}]*)\}\}").map_err(|e| AstError::InvalidConstraint {
+            message: format!("Invalid regex for placeholder validation: {}", e),
+            span: self.span.clone(),
+        })?;
+        for caps in placeholder_re.captures_iter(&self.template) {
+            let name = caps.get(1).map(|m| m.as_str().trim()).unwrap_or("");
+            if name.is_empty() {
+                return Err(AstError::InvalidConstraint {
+                    message: "Template variable name cannot be empty".to_string(),
+                    span: self.span.clone(),
+                });
+            }
+        }
+
         Ok(())
     }
 }

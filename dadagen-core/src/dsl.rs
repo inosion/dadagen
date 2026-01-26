@@ -1,4 +1,5 @@
 use pest_derive::Parser;
+use crate::ast::Validate;
 
 #[derive(Parser)]
 #[grammar = "dsl.pest"]
@@ -22,7 +23,9 @@ pub struct DslSemanticParser;
 
 impl DslSemanticParser {
     pub fn parse(input: &str) -> crate::ast::AstResult<crate::ast::DslDocument> {
-        crate::parser::parse_dsl(input)
+        let document = crate::parser::parse_dsl(input)?;
+        document.validate()?;
+        Ok(document)
     }
 }
 #[cfg(test)]
