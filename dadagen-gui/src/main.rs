@@ -204,10 +204,9 @@ impl eframe::App for DadagenApp {
         
         // Main unified layout
         egui::CentralPanel::default().show(ctx, |ui| {
-            // Top section: DSL Editor (30% of window height)
+            // Top section: DSL Editor (35% of window height)
             let total_height = ui.available_height();
             let dsl_height = total_height * 0.35;
-            let data_height = total_height * 0.65;
             
             ui.vertical(|ui| {
                 // DSL Editor Section
@@ -250,45 +249,87 @@ impl eframe::App for DadagenApp {
                 });
                 
                 ui.add_space(5.0);
+
+                // Middle Section: Controls
+                ui.horizontal(|ui| {
+                    ui.heading("🚀 Generation Controls");
+                    ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                        if ui.button("💾 Export Data").clicked() {
+                            self.export_generated_data();
+                        }
+                        
+                        ui.separator();
+
+                        if self.is_generating {
+                            ui.spinner();
+                            ui.label("Generating...");
+                        } else {
+                            ui.add(egui::DragValue::new(&mut self.generate_row_count)
+                                .speed(10)
+                                .range(1..=10000)
+                                .prefix("Rows: "));
+                            
+                            let button = egui::Button::new("🎲 Generate Fake Data");
+                            if ui.add_enabled(!self.dsl_output.is_empty(), button).clicked() {
+                                self.generate_fake_data();
+                            }
+                        }
+                    });
+                });
+
+                ui.add_space(5.0);
                 
-                // Bottom section: Data Views (70% of window height)
+                // Bottom section: Data Views
                 ui.group(|ui| {
-                    ui.set_height(data_height);
+                    let container_h = ui.available_height();
+                    ui.set_height(container_h);
                     
-                    match self.data_view_mode {
-                        DataViewMode::SideBySide => {
-                            ui.horizontal(|ui| {
-                                // Left: Original Data
-                                ui.vertical(|ui| {
-                                    ui.set_width(ui.available_width() * 0.5);
-                                    self.show_original_data_panel(ui, data_height);
-                                });
+                    ui.vertical(|ui| {
+                        ui.set_height(container_h);
+                        match self.data_view_mode {
+                            DataViewMode::SideBySide => {
+                                let avail_h = ui.available_height();
+                                let avail_w = ui.available_width();
                                 
-                                ui.separator();
-                                
-                                // Right: Generated Data
-                                ui.vertical(|ui| {
-                                    self.show_generated_data_panel(ui, data_height);
-                                });
-                            });
-                        }
-                        DataViewMode::Tabbed => {
-                            ui.vertical(|ui| {
                                 ui.horizontal(|ui| {
-                                    let _ = ui.selectable_label(self.generation_error.is_none() && self.generated_data.headers.is_empty(), "📄 Original Data");
-                                    let _ = ui.selectable_label(self.generation_error.is_some() || !self.generated_data.headers.is_empty(), "✨ Generated Data");
+                                    ui.set_height(avail_h);
+                                    
+                                    // Left: Original Data
+                                    ui.vertical(|ui| {
+                                        ui.set_width(avail_w * 0.5 - 4.0);
+                                        ui.set_height(avail_h);
+                                        self.show_original_data_panel(ui, avail_h);
+                                    });
+                                    
+                                    ui.separator();
+                                    
+                                    // Right: Generated Data
+                                    ui.vertical(|ui| {
+                                        ui.set_width(ui.available_width());
+                                        ui.set_height(avail_h);
+                                        self.show_generated_data_panel(ui, avail_h);
+                                    });
                                 });
-                                ui.separator();
-                                
-                                // Show based on selection (simplified for now - show generated if available)
-                                if !self.generated_data.headers.is_empty() || self.generation_error.is_some() {
-                                    self.show_generated_data_panel(ui, data_height - 50.0);
-                                } else {
-                                    self.show_original_data_panel(ui, data_height - 50.0);
-                                }
-                            });
+                            }
+                            DataViewMode::Tabbed => {
+                                ui.vertical(|ui| {
+                                    ui.horizontal(|ui| {
+                                        let _ = ui.selectable_label(self.generation_error.is_none() && self.generated_data.headers.is_empty(), "📄 Original Data");
+                                        let _ = ui.selectable_label(self.generation_error.is_some() || !self.generated_data.headers.is_empty(), "✨ Generated Data");
+                                    });
+                                    ui.separator();
+                                    
+                                    let avail_h = ui.available_height();
+                                    // Show based on selection (simplified for now - show generated if available)
+                                    if !self.generated_data.headers.is_empty() || self.generation_error.is_some() {
+                                        self.show_generated_data_panel(ui, avail_h);
+                                    } else {
+                                        self.show_original_data_panel(ui, avail_h);
+                                    }
+                                });
+                            }
                         }
-                    }
+                    });
                 });
             });
         });
@@ -312,6 +353,7 @@ impl DadagenApp {
     // Panel implementations
     fn show_original_data_panel(&mut self, ui: &mut egui::Ui, panel_height: f32) {
         ui.vertical(|ui| {
+            ui.set_height(panel_height);
             ui.horizontal(|ui| {
                 ui.heading("📄 Original Data");
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
@@ -335,7 +377,9 @@ impl DadagenApp {
             // Data table
             if !self.parsed_data.headers.is_empty() {
                 egui::ScrollArea::both()
-                    .max_height(panel_height - 120.0)
+                    .id_salt("original_data_scroll")
+                    .auto_shrink([false; 2])
+                    .min_scrolled_height(ui.available_height())
                     .show(ui, |ui| {
                         self.show_data_table(ui, &self.parsed_data, &self.column_types);
                     });
@@ -352,28 +396,9 @@ impl DadagenApp {
     
     fn show_generated_data_panel(&mut self, ui: &mut egui::Ui, panel_height: f32) {
         ui.vertical(|ui| {
+            ui.set_height(panel_height);
             ui.horizontal(|ui| {
                 ui.heading("✨ Generated Data");
-                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                    if ui.button("💾 Export").clicked() {
-                        self.export_generated_data();
-                    }
-                    
-                    if self.is_generating {
-                        ui.spinner();
-                        ui.label("Generating...");
-                    } else {
-                        ui.add(egui::DragValue::new(&mut self.generate_row_count)
-                            .speed(10)
-                            .range(1..=10000)
-                            .prefix("Rows: "));
-                        
-                        let button = egui::Button::new("🎲 Generate");
-                        if ui.add_enabled(!self.dsl_output.is_empty(), button).clicked() {
-                            self.generate_fake_data();
-                        }
-                    }
-                });
             });
             
             ui.separator();
@@ -392,7 +417,9 @@ impl DadagenApp {
                 ui.add_space(5.0);
                 
                 egui::ScrollArea::both()
-                    .max_height(panel_height.max(400.0))
+                    .id_salt("generated_data_scroll")
+                    .auto_shrink([false; 2])
+                    .min_scrolled_height(ui.available_height())
                     .show(ui, |ui| {
                         // Use empty types vec since we don't need type annotations for generated data
                         let empty_types = vec![];
@@ -418,48 +445,51 @@ impl DadagenApp {
         if data.headers.is_empty() {
             return;
         }
-        
-        TableBuilder::new(ui)
-            .striped(true)
-            .resizable(true)
-            .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
-            .columns(Column::auto(), data.headers.len())
-            .min_scrolled_height(0.0)
-            .header(25.0, |mut header| {
-                for (idx, col_name) in data.headers.iter().enumerate() {
-                    header.col(|ui| {
-                        ui.vertical_centered(|ui| {
-                            ui.strong(col_name);
-                            // Show inferred type if available
-                            if let Some(col_type) = types.get(idx) {
-                                let type_str = match col_type {
-                                    InferredType::String => "String",
-                                    InferredType::Integer => "Integer",
-                                    InferredType::Float => "Float",
-                                    InferredType::Boolean => "Boolean",
-                                    InferredType::Date => "Date",
-                                    InferredType::Email => "Email",
-                                    InferredType::Url => "URL",
-                                    InferredType::Unknown => "Unknown",
-                                };
-                                ui.small(format!("({})", type_str));
-                            }
-                        });
-                    });
-                }
-            })
-            .body(|body| {
-                body.rows(20.0, data.rows.len(), |mut row| {
-                    let row_index = row.index();
-                    if let Some(data_row) = data.rows.get(row_index) {
-                        for cell in data_row {
-                            row.col(|ui| {
-                                ui.label(cell);
+
+        ui.push_id(if types.is_empty() { "gen_table" } else { "orig_table" }, |ui| {
+            let table = TableBuilder::new(ui)
+                    .striped(true)
+                    .resizable(true)
+                    .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
+                    .columns(Column::auto(), data.headers.len())
+                    .min_scrolled_height(0.0)
+                    .vscroll(false); // Let the outer ScrollArea handle scrolling
+                            
+            table.header(25.0, |mut header| {
+                    for (idx, col_name) in data.headers.iter().enumerate() {
+                        header.col(|ui| {
+                            ui.vertical_centered(|ui| {
+                                ui.strong(col_name);
+                                // Show inferred type if available
+                                if let Some(col_type) = types.get(idx) {
+                                    let type_str = match col_type {
+                                        InferredType::String => "String",
+                                        InferredType::Integer => "Integer",
+                                        InferredType::Float => "Float",
+                                        InferredType::Boolean => "Boolean",
+                                        InferredType::Date => "Date",
+                                        InferredType::Email => "Email",
+                                        InferredType::Url => "URL",
+                                        InferredType::Unknown => "Unknown",
+                                    };
+                                    ui.small(format!("({})", type_str));
+                                }
                             });
-                        }
+                        });
                     }
+                }).body(|body| {
+                    body.rows(20.0, data.rows.len(), |mut row| {
+                        let row_index = row.index();
+                        if let Some(data_row) = data.rows.get(row_index) {
+                            for cell in data_row {
+                                row.col(|ui| {
+                                    ui.label(cell);
+                                });
+                            }
+                        }
+                    });
                 });
-            });
+        });
     }
     
     fn show_settings_dialog(&mut self, ctx: &egui::Context) {
@@ -608,25 +638,25 @@ impl DadagenApp {
                     InferredType::Integer => {
                         // Sample min/max from data
                         let (min, max) = self.get_number_range(idx);
-                        format!("  field {{ \"{}\" number(min = {}, max = {}) }}", 
+                        format!("  \"{}\": number(min={}, max={}),", 
                             field_name, min.unwrap_or(0), max.unwrap_or(1000))
                     }
                     InferredType::Float => {
                         let (min, max) = self.get_number_range(idx);
-                        format!("  field {{ \"{}\" number between {}.0 and {}.0 }}", 
+                        format!("  \"{}\": number(min={}, max={}),", 
                             field_name, min.unwrap_or(0), max.unwrap_or(1000))
                     }
                     InferredType::Boolean => {
-                        format!("  field {{ \"{}\" boolean }}", field_name)
+                        format!("  \"{}\": boolean,", field_name)
                     }
                     InferredType::Email => {
-                        format!("  field {{ \"{}\" regexgen \"[a-z]{{{{5,10}}}}@[a-z]{{{{3,8}}}}\\\\.com\" }}", field_name)
+                        format!("  \"{}\": regexgen \"[a-z]{{5,10}}@[a-z]{{3,8}}\\.com\",", field_name)
                     }
                     InferredType::Url => {
-                        format!("  field {{ \"{}\" template(\"https://example.com/{{{{id}}}}\") }}", field_name)
+                        format!("  \"{}\": template \"https://example.com/{{id}}\",", field_name)
                     }
                     InferredType::Date => {
-                        format!("  field {{ \"{}\" regexgen \"20[0-2][0-9]-[0-1][0-9]-[0-3][0-9]\" }}", field_name)
+                        format!("  \"{}\": regexgen \"20[0-2][0-9]-[0-1][0-9]-[0-3][0-9]\",", field_name)
                     }
                     InferredType::String | InferredType::Unknown => {
                         // Check if it could be from a list
@@ -636,17 +666,17 @@ impl DadagenApp {
                             let quoted_values: Vec<String> = unique_values.iter()
                                 .map(|v| format!("\"{}\"", v))
                                 .collect();
-                            format!("  field {{ \"{}\" choice({}) }}", field_name, quoted_values.join(", "))
+                            format!("  \"{}\": choice({}),", field_name, quoted_values.join(", "))
                         } else {
                             // Check average length for string pattern
                             let avg_len = self.get_average_string_length(idx);
-                            format!("  field {{ \"{}\" regexgen \"[A-Za-z0-9 ]{{{{5,{}}}}}\" }}", 
+                            format!("  \"{}\": regexgen \"[A-Za-z0-9 ]{{5,{}}}\",", 
                                 field_name, avg_len.max(10))
                         }
                     }
                 }
             } else {
-                format!("  field {{ \"{}\" string }}", field_name)
+                format!("  \"{}\": string,", field_name)
             };
             
             dsl.push_str(&field_def);
@@ -858,13 +888,6 @@ impl DadagenApp {
             }
             records.push(Value::Object(obj));
         }
-// Tabbed data view selection
-#[derive(Default, Clone, Copy, PartialEq, Eq, Debug)]
-enum TabbedDataView {
-    #[default]
-    Original,
-    Generated,
-}
         let json_output = serde_json::to_string_pretty(&records)?;
         std::fs::write(path, json_output)?;
         Ok(())
