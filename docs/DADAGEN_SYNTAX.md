@@ -39,8 +39,9 @@ schema People {
 Syntax:
 
 ```
-"field_name": TypeExpr
-     hidden : TypeExpr
+"field_name": TypeExpr         # normal case
+     hidden : TypeExpr         # useful as dependency seed (locale, gender, country etc)
+"field_name" hidden: TypeExpr  # useful when the value is needed in a template string (e.g. "field_needed" : "this is {{field_name}}")
 ```
 
 ## Type expressions
@@ -57,7 +58,7 @@ generator.subtype(args)
 
 - `"raw string"` - with templates for other fields 
    - "{{field1}}-ABC"
-   - "{{firstname}}.{{lastname}}@" + list("potatoes") + ".com
+   - "{{my_firstname}}.{{my_lastname}}@" + list("potatoes") + ".com
 - `name` - `name.firstname`, `name.surname`, `name.initial`, `name.title`
 - `address.city`, `address.postcode`, `address.street`, `address.suburb`, `address.city`, `address.district`, `address.country`, `address.state`, `address.housename`, `address.streetnumber`
 - `locale([value,value,...]?)` - Locale
@@ -100,7 +101,7 @@ Templates are found in the strings. `{{...}}` interpolation for field placeholde
 "fullname": "{{firstname}} {{surname}}"
 ```
 
-Escaping: use `\{{` to emit a literal `{{` in output. Template placeholders accept only simple identifiers (no arbitrary expressions) in the MVP.
+Escaping: use `\{{` to emit a literal `{{` in output. Template placeholders accept only simple identifiers (no arbitrary expressions, or other generators).
 
 ## Notes on semantics
 
@@ -128,7 +129,7 @@ When this is generated to CSV, it will produce `prop.foo, prop.bar, somefield` r
 
 ## Override & merge rules
 
-When used in programs as test generation, the dadgen inspector will automatically make a schema, from the struct, obect, class that you supply. 
+When used in programs as test generation, the dadgen inspector will automatically make a schema, from the struct, object, class that you supply. 
 In these situations, a field may want to be altered from __dadagen's__ guess. 
 
 - Override schemas can be provided with a subset of fields. Merging rules:
@@ -139,7 +140,7 @@ In these situations, a field may want to be altered from __dadagen's__ guess.
 ## Examples
 
 
-People schema (canonical):
+People schema (example):
 
 ```
 schema People {
@@ -220,6 +221,6 @@ Parser notes:
 
 Notes:
 - Templates are expressed only via quoted strings containing `{{...}}` placeholders.
-- Placeholder content may be a field name (`{{id}}`) or an embedded generator expression (`{{name.firstname}}`). Embedded generators are evaluated and substituted.
+- Placeholder content may be a field name (`{{id}}`)
 - Escape `{{` as `\{{` to emit a literal `{{` in output.
 - Use `list("...")` to reference named lists managed by the list resolver; `enum(...)` is for small inline lists defined in-schema.

@@ -70,13 +70,36 @@ fn parse_field(pair: Pair<Rule>) -> AstResult<FieldDefinition> {
     let mut name = String::new();
     let mut generator = None;
 
+    // `pair` may contain different sub-rules depending on grammar variations:
+    // - named_field (colon form)
+    // - hidden_field
+    // - field_block (legacy `field { "name" generator }`)
     for inner_pair in pair.into_inner() {
         match inner_pair.as_rule() {
+            Rule::named_field => {
+                // named_field contains a quoted field_name and a generator inside
+                for p in inner_pair.into_inner() {
+                    match p.as_rule() {
+                        Rule::field_name => { name = p.as_str().to_string(); }
+                        _ => { generator = Some(parse_generator(p)?); }
+                    }
+                }
+            }
+            Rule::hidden_field => {
+                // Hidden seed: produce a synthetic name for now and parse generator
+                // Name will be empty and treated as hidden by later AST updates.
+                let mut idx = 0usize;
+                for _ in 0..1 { idx += 1; }
+                name = format!("__hidden_{}", idx);
+                for p in inner_pair.into_inner() {
+                    generator = Some(parse_generator(p)?);
+                }
+            }
             Rule::field_name => {
                 name = inner_pair.as_str().to_string();
             }
             _ => {
-                // This is a generator rule
+                // Fallback: attempt to parse generator if present
                 generator = Some(parse_generator(inner_pair)?);
             }
         }
@@ -96,6 +119,54 @@ fn parse_generator(pair: Pair<Rule>) -> AstResult<Generator> {
     let span = create_span(&pair);
     
     match pair.as_rule() {
+        Rule::concat_expr => {
+            // Build a TemplateGenerator by concatenating term parts. Terms may be
+            // implicit templates (quoted strings with placeholders) or generator terms.
+            let span = create_span(&pair);
+            let mut template = String::new();
+            let mut variables: Vec<TemplateVariable> = Vec::new();
+            let mut var_idx = 0usize;
+            let mut terms: Vec<Pair<Rule>> = pair.into_inner().collect();
+            // If only a single term, delegate to parsing that term directly
+            if terms.len() == 1 {
+                return parse_generator(terms.remove(0));
+            }
+
+            for term_pair in terms.into_iter() {
+                match term_pair.as_rule() {
+                    Rule::implicit_template => {
+                        // implicit_template: iterate inner parts (placeholder or char)
+                        for part in term_pair.into_inner() {
+                            match part.as_rule() {
+                                Rule::placeholder => {
+                                    // placeholder text like {{name}}; push as-is and register variable
+                                    let text = part.as_str();
+                                    if let Some(var_name) = text.strip_prefix("{{").and_then(|s| s.strip_suffix("}}")) {
+                                        template.push_str(&format!("{{{{{}}}}}", var_name));
+                                        variables.push(TemplateVariable { name: var_name.to_string(), generator: None });
+                                    }
+                                }
+                                Rule::implicit_template_char => {
+                                    template.push_str(part.as_str());
+                                }
+                                _ => {}
+                            }
+                        }
+                    }
+                    _ => {
+                        // Other generator term: treat as embedded variable with generated sub-generator
+                        var_idx += 1;
+                        let var_name = format!("__g{}", var_idx);
+                        template.push_str(&format!("{{{{{}}}}}", var_name));
+                        let gen = parse_generator(term_pair)?;
+                        variables.push(TemplateVariable { name: var_name.clone(), generator: Some(Box::new(gen)) });
+                    }
+                }
+            }
+
+            let tg = TemplateGenerator { template, variables, span: Some(span) };
+            return Ok(Generator::Template(tg));
+        }
         Rule::string_generator => Ok(Generator::String(parse_string_generator(pair)?)),
         Rule::boolean_generator => Ok(Generator::Boolean(parse_boolean_generator(pair)?)),
         Rule::number_generator => Ok(Generator::Number(parse_number_generator(pair)?)),
@@ -411,21 +482,28 @@ fn parse_list_generator(pair: Pair<Rule>) -> AstResult<ListGenerator> {
     let mut weighted = false;
 
     for inner_pair in pair.into_inner() {
-        if inner_pair.as_rule() == Rule::list_constraints {
-            for constraint_pair in inner_pair.into_inner() {
-                match constraint_pair.as_rule() {
-                    Rule::list_name_constraint => {
-                        name = extract_list_name_value(constraint_pair)?;
+        match inner_pair.as_rule() {
+            Rule::list_constraints => {
+                for constraint_pair in inner_pair.into_inner() {
+                    match constraint_pair.as_rule() {
+                        Rule::list_name_constraint => {
+                            name = extract_list_name_value(constraint_pair)?;
+                        }
+                        Rule::list_discriminator_constraint => {
+                            discriminator = Some(extract_string_value(constraint_pair)?);
+                        }
+                        Rule::list_weighted_constraint => {
+                            weighted = extract_bool_value(constraint_pair)?;
+                        }
+                        _ => {}
                     }
-                    Rule::list_discriminator_constraint => {
-                        discriminator = Some(extract_string_value(constraint_pair)?);
-                    }
-                    Rule::list_weighted_constraint => {
-                        weighted = extract_bool_value(constraint_pair)?;
-                    }
-                    _ => {}
                 }
             }
+            Rule::list_name_value => {
+                // positional quoted form: list("name") => list_name_value appears as child
+                name = inner_pair.as_str().to_string();
+            }
+            _ => {}
         }
     }
 
@@ -782,7 +860,7 @@ mod tests {
 
     #[test]
     fn test_parse_simple_field() {
-        let input = r#"field { "test" boolean }"#;
+        let input = r#""test": boolean"#;
         let doc = parse_dsl(input).unwrap();
         
         assert_eq!(doc.fields.len(), 1);
@@ -792,7 +870,7 @@ mod tests {
 
     #[test]
     fn test_parse_string_with_constraints() {
-        let input = r#"field { "username" string(min_length=5, max_length=15, charset="alphanumeric") }"#;
+        let input = r#""username": string(min_length=5, max_length=15, charset="alphanumeric")"#;
         let doc = parse_dsl(input).unwrap();
         
         assert_eq!(doc.fields.len(), 1);
@@ -807,7 +885,7 @@ mod tests {
 
     #[test]
     fn test_parse_number_with_constraints() {
-        let input = r#"field { "age" integer(min=18, max=99) }"#;
+        let input = r#""age": integer(min=18, max=99)"#;
         let doc = parse_dsl(input).unwrap();
         
         assert_eq!(doc.fields.len(), 1);
@@ -821,7 +899,7 @@ mod tests {
 
     #[test]
     fn test_parse_choice_generator() {
-        let input = r#"field { "status" choice("pending", "active", "closed") }"#;
+        let input = r#""status": choice("pending", "active", "closed")"#;
         let doc = parse_dsl(input).unwrap();
         
         assert_eq!(doc.fields.len(), 1);
@@ -837,7 +915,7 @@ mod tests {
 
     #[test]
     fn test_parse_list_generator() {
-        let input = r#"field { "city" list(name="cities", discriminator="country") }"#;
+        let input = r#""city": list(name="cities", discriminator="country")"#;
         let doc = parse_dsl(input).unwrap();
         
         assert_eq!(doc.fields.len(), 1);
@@ -852,9 +930,9 @@ mod tests {
     #[test]
     fn test_parse_multiple_fields() {
         let input = r#"
-            field { "id" counter }
-            field { "name" string(min_length=3, max_length=20) }
-            field { "age" integer(min=18, max=99) }
+            "id": counter
+            "name": string(min_length=3, max_length=20)
+            "age": integer(min=18, max=99)
         "#;
         let doc = parse_dsl(input).unwrap();
         
@@ -867,8 +945,8 @@ mod tests {
     #[test]
     fn test_validation_duplicate_fields() {
         let input = r#"
-            field { "id" counter }
-            field { "id" number }
+            "id": counter
+            "id": number
         "#;
         let result = parse_dsl(input);
         assert!(result.is_err());
@@ -876,7 +954,7 @@ mod tests {
 
     #[test]
     fn test_validation_invalid_constraints() {
-        let input = r#"field { "test" string(min_length=20, max_length=10) }"#;
+        let input = r#""test": string(min_length=20, max_length=10)"#;
         let result = parse_dsl(input);
         assert!(result.is_err());
     }

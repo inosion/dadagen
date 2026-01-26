@@ -73,7 +73,7 @@ pub mod utils {
 mod dsl;
 
 #[cfg(test)]
-mod dsl_new_syntax_tests;
+mod dsl_syntax_tests;
 
 // Legacy modules (to be refactored)
 mod address_generation;

@@ -12,18 +12,18 @@ schema_name = { (ASCII_ALPHANUMERIC | "_" | "-")+ }
 // Field list: field... field...
 field_list = { field_expr+ }
 
-field = _{ "field" }
-// Define a field
-field_expr = { WSNL_COMMENT* ~ field ~ WSNL_COMMENT+ ~ "{" ~ WSNL_COMMENT* ~ field_name_expr ~ WSNL_COMMENT+ ~ generator ~ WSNL_COMMENT* ~ "}" ~ WSNL_COMMENT* }
-
-// Define a field name
-field_name_expr = _{ quote_string ~ field_name ~ quote_string }
+// Define a named field (colon form) and hidden field forms
+named_field = { quote_string ~ field_name ~ quote_string ~ WSNL* ~ ("hidden" ~ WSNL* ~ ":")? ~ WSNL* ~ ":" ~ WSNL* ~ generator }
+hidden_field = { "hidden" ~ WSNL* ~ ":" ~ WSNL* ~ generator }
+// A field expression may be a named field or a hidden seed (legacy `field {}` removed)
+field_expr = { WSNL_COMMENT* ~ (named_field | hidden_field) ~ WSNL_COMMENT* }
 
 quote_string = _{ "\"" }
 
 // Define all generator types (prioritized by specificity)
 base_generator = _{
-    string_generator
+    implicit_template
+  | string_generator
   | boolean_generator
   | datetime_generator
   | date_generator
@@ -39,7 +39,16 @@ base_generator = _{
   | regexgen_generator
 }
 
-generator = _{ base_generator | template_generator }
+// Implicit template: quoted string with {{placeholder}} parts
+implicit_template = { quote_string ~ implicit_template_body* ~ quote_string }
+implicit_template_body = { placeholder | implicit_template_char }
+implicit_template_char = { !"{{" ~ ANY }
+placeholder = { "{{" ~ WSNL* ~ field_name ~ WSNL* ~ "}}" }
+
+term = _{ base_generator | template_generator }
+// Concatenation expression: term (+ term)*
+concat_expr = { term ~ (WSNL* ~ "+" ~ WSNL* ~ term)* }
+generator = _{ concat_expr }
 
 /* String Generator with constraints */
 string_label = { "string" }
@@ -102,7 +111,7 @@ datetime_value = { (ASCII_ALPHA | ASCII_DIGIT | ":" | "-" | "/" | " " | "T" | "Z
 format_string = { (ASCII_ALPHA | ASCII_DIGIT | "%" | ":" | "-" | "/" | " ")+ }
 
 /* Choice/Enum Generator */
-choice_label = { "choice" | "enum" | "oneof" }
+choice_label = { "choice" | "enum" }
 choice_generator = { 
     choice_label ~ WSNL* ~ "(" ~ WSNL* ~ choice_options ~ WSNL* ~ ")" 
 }
@@ -113,7 +122,7 @@ choice_value = { (ASCII_ALPHA | ASCII_DIGIT | ASCII_CHARS | WS)* }
 /* List Generator with discriminator support */
 list_label = { "list" }
 list_generator = { 
-    list_label ~ WSNL* ~ "(" ~ WSNL* ~ list_constraints ~ WSNL* ~ ")" 
+  list_label ~ WSNL* ~ "(" ~ WSNL* ~ ( (quote_string ~ list_name_value ~ quote_string ~ (WSNL* ~ "," ~ WSNL* ~ list_constraints)? ) | list_constraints )? ~ WSNL* ~ ")" 
 }
 list_constraints = { list_constraint ~ (WSNL* ~ "," ~ WSNL* ~ list_constraint)* }
 list_constraint = _{
@@ -124,7 +133,11 @@ list_constraint = _{
 list_name_constraint = { "name" ~ WSNL* ~ "=" ~ WSNL* ~ quote_string ~ list_name_value ~ quote_string }
 list_discriminator_constraint = { "discriminator" ~ WSNL* ~ "=" ~ WSNL* ~ quote_string ~ field_name ~ quote_string }
 list_weighted_constraint = { "weighted" ~ WSNL* ~ "=" ~ WSNL* ~ ("true" | "false") }
-list_name_value = { (ASCII_ALPHA | ASCII_DIGIT | "_" | "-")+ }
+// Allow filenames and simple paths (dots, slashes, dashes, underscores)
+// Allow spaces inside quoted list names/paths
+// Allow backslash for Windows paths too
+// Also allow colon for Windows drive letter (C:) and other common filename chars
+list_name_value = { (ASCII_ALPHA | ASCII_DIGIT | FIELD_NAME_CHARACTERS | " " | "\\" | ":")+ }
 
 /* * Number Generator int */
 number_generator_label = { "number" | "integer" | "int" }
