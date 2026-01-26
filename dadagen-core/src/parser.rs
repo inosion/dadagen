@@ -10,7 +10,78 @@ use pest::iterators::Pair;
 
 /// Parse a DSL string into an AST document
 pub fn parse_dsl(input: &str) -> AstResult<DslDocument> {
-    let mut pairs = DslGrammarParser::parse(Rule::dsl, input)
+    // Normalize top-level commas to newlines so comma-separated field lists
+    // (with optional trailing comma) are accepted by the existing whitespace-
+    // separated grammar. This only replaces commas that are not inside
+    // quotes, parentheses, braces or comments.
+    fn normalize_top_level_commas(s: &str) -> String {
+        let mut out = String::with_capacity(s.len());
+        let mut in_quote = false;
+        let mut in_comment = false;
+        let mut paren_depth: i32 = 0;
+        let mut brace_depth: i32 = 0;
+        let mut bracket_depth: i32 = 0;
+        let mut prev_backslash = false;
+
+        for ch in s.chars() {
+            if in_comment {
+                out.push(ch);
+                if ch == '\n' {
+                    in_comment = false;
+                }
+                prev_backslash = false;
+                continue;
+            }
+
+            if ch == '#' && !in_quote {
+                in_comment = true;
+                out.push(ch);
+                prev_backslash = false;
+                continue;
+            }
+
+            if ch == '"' && !prev_backslash {
+                in_quote = !in_quote;
+                out.push(ch);
+                prev_backslash = false;
+                continue;
+            }
+
+            if !in_quote {
+                match ch {
+                    '(' => { paren_depth += 1; out.push(ch); }
+                    ')' => { if paren_depth > 0 { paren_depth -= 1; } out.push(ch); }
+                    '{' => { brace_depth += 1; out.push(ch); }
+                    '}' => { if brace_depth > 0 { brace_depth -= 1; } out.push(ch); }
+                    '[' => { bracket_depth += 1; out.push(ch); }
+                    ']' => { if bracket_depth > 0 { bracket_depth -= 1; } out.push(ch); }
+                    ',' => {
+                        if paren_depth == 0 && brace_depth == 0 && bracket_depth == 0 {
+                            // top-level comma: convert to newline
+                            out.push('\n');
+                        } else {
+                            out.push(ch);
+                        }
+                    }
+                    '\\' => { out.push(ch); prev_backslash = !prev_backslash; }
+                    _ => { out.push(ch); prev_backslash = false; }
+                }
+            } else {
+                // inside quote
+                out.push(ch);
+                prev_backslash = ch == '\\' && !prev_backslash;
+            }
+        }
+        out
+    }
+
+    let normalized = normalize_top_level_commas(input);
+
+    // Debug: show normalized input when running tests to help diagnose parsing
+    // issues with comma-separation (removed once verified).
+    eprintln!("[dsl normalized]\n{}", normalized);
+
+    let mut pairs = DslGrammarParser::parse(Rule::dsl, &normalized)
         .map_err(|e| AstError::InvalidValue {
             message: format!("Parse error: {}", e),
             span: None,
@@ -888,8 +959,8 @@ mod tests {
     #[test]
     fn test_parse_multiple_fields() {
         let input = r#"
-            "id": sequence
-            "name": string(min_length=3, max_length=20)
+            "id": sequence,
+            "name": string(min_length=3, max_length=20),
             "age": number(min=18, max=99)
         "#;
         let doc = parse_dsl(input).unwrap();

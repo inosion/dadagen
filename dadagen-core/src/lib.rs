@@ -17,8 +17,8 @@
 //! 
 //! fn generate_data() -> Result<()> {
 //!     let dsl = r#"
-//!         field name: firstname + " " + lastname
-//!         field email: lowercase(firstname) + "@example.com"
+//!         "name": firstname + " " + lastname,
+//!         "email": lowercase(firstname) + "@example.com"
 //!     "#;
 //!     
 //!     // Parse DSL and generate data
