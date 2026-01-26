@@ -223,7 +223,14 @@ pub struct ListGenerator {
     pub name: String,
     pub discriminator: Option<String>,
     pub weighted: bool,
+    pub mode: ListMode,
     pub span: Option<Span>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub enum ListMode {
+    Random,
+    Sequential,
 }
 
 /// Template generator with variable substitution

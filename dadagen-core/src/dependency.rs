@@ -310,6 +310,7 @@ mod tests {
                 name: "test_list".to_string(),
                 discriminator: discriminator.map(|s| s.to_string()),
                 weighted: false,
+                mode: ListMode::Random,
                 span: None,
             }),
         )

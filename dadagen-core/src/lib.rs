@@ -89,7 +89,7 @@ pub use context::{Context, GenerationMetadata, ContextSnapshot};
 pub use context_pool::ContextPool;
 
 // Re-export parser types
-pub use parsers::dsl::{DslParser, Rule};
+pub use parsers::dsl::{DslGrammarParser, Rule};
 
 // Re-export utility types
 pub use utils::list_manager::{ListManager, GLOBAL_LIST_MANAGER};

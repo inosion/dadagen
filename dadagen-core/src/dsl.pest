@@ -128,11 +128,13 @@ list_constraints = { list_constraint ~ (WSNL* ~ "," ~ WSNL* ~ list_constraint)* 
 list_constraint = _{
     list_name_constraint
   | list_discriminator_constraint
+  | list_mode_constraint
   | list_weighted_constraint
 }
 list_name_constraint = { "name" ~ WSNL* ~ "=" ~ WSNL* ~ quote_string ~ list_name_value ~ quote_string }
 list_discriminator_constraint = { "discriminator" ~ WSNL* ~ "=" ~ WSNL* ~ quote_string ~ field_name ~ quote_string }
 list_weighted_constraint = { "weighted" ~ WSNL* ~ "=" ~ WSNL* ~ ("true" | "false") }
+list_mode_constraint = { "mode" ~ WSNL* ~ "=" ~ WSNL* ~ ("random" | "sequential") }
 // Allow filenames and simple paths (dots, slashes, dashes, underscores)
 // Allow spaces inside quoted list names/paths
 // Allow backslash for Windows paths too
@@ -143,7 +145,6 @@ list_name_value = { (ASCII_ALPHA | ASCII_DIGIT | FIELD_NAME_CHARACTERS | " " | "
 number_generator_label = { "number" | "integer" | "int" }
 number_generator       = { 
     number_generator_label ~ WSNL* ~ "(" ~ WSNL* ~ number_constraints ~ WSNL* ~ ")"
-  | number_generator_label ~ WSNL+ ~ number_range
   | number_generator_label
 }
 number_constraints = { number_constraint ~ (WSNL* ~ "," ~ WSNL* ~ number_constraint)* }
@@ -160,12 +161,10 @@ number_decimal_places_constraint = { "decimal_places" ~ WSNL* ~ "=" ~ WSNL* ~ nu
 number_distribution_constraint = { "distribution" ~ WSNL* ~ "=" ~ WSNL* ~ quote_string ~ distribution_type ~ quote_string }
 number_seed_constraint = { "seed" ~ WSNL* ~ "=" ~ WSNL* ~ number }
 distribution_type = { "uniform" | "normal" | "exponential" }
-number_range           = { between ~ WSNL ~ number ~ WSNL ~ and ~ WSNL ~ number }
 
 /* * Number Generators - float (double) */
 double_number_generator    =  { 
-    number_generator_label ~ WSNL+ ~ (double_number_range | double_number_range_first | double_number_range_second)
-  | number_generator_label ~ WSNL* ~ "(" ~ WSNL* ~ double_constraints ~ WSNL* ~ ")"
+  number_generator_label ~ WSNL* ~ "(" ~ WSNL* ~ double_constraints ~ WSNL* ~ ")"
 }
 double_constraints = { double_constraint ~ (WSNL* ~ "," ~ WSNL* ~ double_constraint)* }
 double_constraint = _{
@@ -178,9 +177,6 @@ double_constraint = _{
 double_min_constraint = { "min" ~ WSNL* ~ "=" ~ WSNL* ~ double_number }
 double_max_constraint = { "max" ~ WSNL* ~ "=" ~ WSNL* ~ double_number }
 double_decimal_places_constraint = { "decimal_places" ~ WSNL* ~ "=" ~ WSNL* ~ number }
-double_number_range        = _{ between ~ WSNL ~ double_number ~ WSNL ~ and ~ WSNL ~ double_number }
-double_number_range_first  =  { between ~ WSNL ~ double_number ~ WSNL ~ and ~ WSNL ~ number }
-double_number_range_second =  { between ~ WSNL ~ number ~ WSNL ~ and ~ WSNL ~ double_number }
 
 /* gender (male, female) */
 gender_generator_label = { "gender" }
@@ -249,7 +245,5 @@ ASCII_ALPHA           =  { 'a'..'z' | 'A'..'Z' }
 ASCII_DIGIT           =  { '0'..'9' | "." }
 ASCII_CHARS           =  { ":" | "." | "-" | "_" | "(" | ")" | "+" | "/" | "<" | "=" | ">" | "@" | "[" | "]" | "^" | "|" | "~" }
 FIELD_NAME_CHARACTERS =  { "." | "-" | "_" | "(" | ")" | "+" | "/" | "<" | "=" | ">" | "@" | "[" | "]" | "^" | "|" | "~" }
-between               = _{ "between" }
-and                   = _{ "and" }
 
 // regex = { "regexgen" ~ whitespace ~ ("(" ~ string ~ ")") }

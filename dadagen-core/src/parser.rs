@@ -4,13 +4,13 @@
 //! into a strongly-typed AST structure with proper error handling.
 
 use crate::ast::*;
-use crate::dsl::{DslParser, Rule};
+use crate::dsl::{DslGrammarParser, Rule};
 use pest::Parser;
 use pest::iterators::Pair;
 
 /// Parse a DSL string into an AST document
 pub fn parse_dsl(input: &str) -> AstResult<DslDocument> {
-    let mut pairs = DslParser::parse(Rule::dsl, input)
+    let mut pairs = DslGrammarParser::parse(Rule::dsl, input)
         .map_err(|e| AstError::InvalidValue {
             message: format!("Parse error: {}", e),
             span: None,
@@ -268,16 +268,8 @@ fn parse_number_generator(pair: Pair<Rule>) -> AstResult<NumberGenerator> {
     };
 
     for inner_pair in pair.into_inner() {
-        match inner_pair.as_rule() {
-            Rule::number_constraints => {
-                parse_number_constraints(&mut gen, inner_pair)?;
-            }
-            Rule::number_range => {
-                let (min, max) = extract_number_range(inner_pair)?;
-                gen.min = Some(min);
-                gen.max = Some(max);
-            }
-            _ => {}
+        if inner_pair.as_rule() == Rule::number_constraints {
+            parse_number_constraints(&mut gen, inner_pair)?;
         }
     }
 
@@ -293,16 +285,8 @@ fn parse_double_number_generator(pair: Pair<Rule>) -> AstResult<NumberGenerator>
     };
 
     for inner_pair in pair.into_inner() {
-        match inner_pair.as_rule() {
-            Rule::double_constraints => {
-                parse_double_constraints(&mut gen, inner_pair)?;
-            }
-            Rule::double_number_range_first | Rule::double_number_range_second => {
-                let (min, max) = extract_double_range(inner_pair)?;
-                gen.min = Some(min);
-                gen.max = Some(max);
-            }
-            _ => {}
+        if inner_pair.as_rule() == Rule::double_constraints {
+            parse_double_constraints(&mut gen, inner_pair)?;
         }
     }
 
@@ -480,6 +464,7 @@ fn parse_list_generator(pair: Pair<Rule>) -> AstResult<ListGenerator> {
     let mut name = String::new();
     let mut discriminator = None;
     let mut weighted = false;
+    let mut mode: crate::ast::ListMode = crate::ast::ListMode::Random;
 
     for inner_pair in pair.into_inner() {
         match inner_pair.as_rule() {
@@ -495,6 +480,15 @@ fn parse_list_generator(pair: Pair<Rule>) -> AstResult<ListGenerator> {
                         Rule::list_weighted_constraint => {
                             weighted = extract_bool_value(constraint_pair)?;
                         }
+                        Rule::list_mode_constraint => {
+                            // Parse mode token from the constraint text
+                            let s = constraint_pair.as_str();
+                            if s.contains("random") {
+                                mode = crate::ast::ListMode::Random;
+                            } else if s.contains("sequential") {
+                                mode = crate::ast::ListMode::Sequential;
+                            }
+                        }
                         _ => {}
                     }
                 }
@@ -507,10 +501,19 @@ fn parse_list_generator(pair: Pair<Rule>) -> AstResult<ListGenerator> {
         }
     }
 
+    // Semantic validation: weighted lists cannot be sequential
+    if weighted && mode == crate::ast::ListMode::Sequential {
+        return Err(AstError::InvalidValue {
+            message: "Invalid list configuration: weighted lists cannot use mode=sequential".to_string(),
+            span: Some(span.clone()),
+        });
+    }
+
     let gen = ListGenerator {
         name,
         discriminator,
         weighted,
+        mode,
         span: Some(span),
     };
 
@@ -807,51 +810,6 @@ fn extract_bool_value(pair: Pair<Rule>) -> AstResult<bool> {
         message: "No boolean value found".to_string(),
         span: None,
     })
-}
-
-fn extract_number_range(pair: Pair<Rule>) -> AstResult<(f64, f64)> {
-    let mut values = Vec::new();
-    for inner in pair.into_inner() {
-        if inner.as_rule() == Rule::number {
-            values.push(inner.as_str().parse().map_err(|_| AstError::InvalidValue {
-                message: format!("Invalid number: {}", inner.as_str()),
-                span: Some(create_span(&inner)),
-            })?);
-        }
-    }
-    
-    if values.len() == 2 {
-        Ok((values[0], values[1]))
-    } else {
-        Err(AstError::InvalidValue {
-            message: "Range must have exactly 2 values".to_string(),
-            span: None,
-        })
-    }
-}
-
-fn extract_double_range(pair: Pair<Rule>) -> AstResult<(f64, f64)> {
-    let mut values = Vec::new();
-    for inner in pair.into_inner() {
-        match inner.as_rule() {
-            Rule::number | Rule::double_number => {
-                values.push(inner.as_str().parse().map_err(|_| AstError::InvalidValue {
-                    message: format!("Invalid number: {}", inner.as_str()),
-                    span: Some(create_span(&inner)),
-                })?);
-            }
-            _ => {}
-        }
-    }
-    
-    if values.len() == 2 {
-        Ok((values[0], values[1]))
-    } else {
-        Err(AstError::InvalidValue {
-            message: "Range must have exactly 2 values".to_string(),
-            span: None,
-        })
-    }
 }
 
 #[cfg(test)]

@@ -1197,6 +1197,7 @@ mod tests {
             name: "test_list".to_string(),
             discriminator: None,
             weighted: false,
+            mode: ListMode::Random,
             span: None,
         };
         
@@ -1213,6 +1214,7 @@ mod tests {
             name: "filtered_list".to_string(),
             discriminator: Some("category".to_string()),
             weighted: false,
+            mode: ListMode::Random,
             span: None,
         };
         
@@ -1229,6 +1231,7 @@ mod tests {
             name: "test_list".to_string(),
             discriminator: Some("filter_field".to_string()),
             weighted: false,
+            mode: ListMode::Random,
             span: None,
         };
         
@@ -1245,6 +1248,7 @@ mod tests {
             name: "".to_string(),
             discriminator: None,
             weighted: false,
+            mode: ListMode::Random,
             span: None,
         };
         
@@ -1393,6 +1397,7 @@ mod tests {
             name: "test".to_string(),
             discriminator: None,
             weighted: false,
+            mode: ListMode::Random,
             span: None,
         });
         
