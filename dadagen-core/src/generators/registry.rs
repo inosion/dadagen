@@ -389,7 +389,7 @@ mod tests {
         registry.register_factory("integer", Arc::new(IntegerGeneratorFactory));
 
         let generator = registry.create_generator("string", "").unwrap();
-        assert_eq!(gen.name(), "string");
+        assert_eq!(generator.name(), "string");
         let gen2 = registry.create_generator("integer", "").unwrap();
         assert_eq!(gen2.name(), "integer");
         assert!(registry.list_types().contains(&"string".to_string()));
