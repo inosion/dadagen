@@ -11,28 +11,28 @@ use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 
 /// Core trait for all data generators
-/// 
+///
 /// Generators produce values based on configurations from the AST and runtime context.
 /// They are designed to be composable, testable, and type-safe.
 pub trait DataGenerator: Debug + Send + Sync {
     /// Generate a value as a string (unified output format)
     fn generate(&self, context: &Context) -> Result<String>;
-    
+
     /// Get the list of field dependencies for this generator
     /// Returns field names that must be generated before this one
     fn dependencies(&self) -> Vec<String> {
         Vec::new()
     }
-    
+
     /// Get the generator type identifier
     fn generator_type(&self) -> GeneratorType;
-    
+
     /// Validate generator configuration
     /// Called during AST construction to catch errors early
     fn validate(&self) -> Result<()> {
         Ok(())
     }
-    
+
     /// Clone the generator as a trait object
     fn clone_box(&self) -> Box<dyn DataGenerator>;
 }
@@ -91,29 +91,36 @@ impl StringDataGenerator {
     pub fn new(config: StringGenerator) -> Self {
         Self { config }
     }
-    
+
     pub fn from_ast(ast: &StringGenerator) -> Result<Self> {
-        let gen = Self::new(ast.clone());
-        gen.validate()?;
-        Ok(gen)
+        let generator = Self::new(ast.clone());
+        generator.validate()?;
+        Ok(generator)
     }
 }
 
 impl DataGenerator for StringDataGenerator {
     fn generate(&self, _context: &Context) -> Result<String> {
-        use rand::{Rng, SeedableRng};
         use rand::rngs::StdRng;
         use rand::seq::SliceRandom;
-        
+        use rand::{Rng, SeedableRng};
+
         let mut rng = StdRng::from_entropy();
-        
+
         // Determine length
-        let length = match (self.config.length, self.config.min_length, self.config.max_length) {
+        let length = match (
+            self.config.length,
+            self.config.min_length,
+            self.config.max_length,
+        ) {
             (Some(len), _, _) => len,
             (None, Some(min), Some(max)) => {
                 if min > max {
                     return Err(DadagenError::ValidationError {
-                        message: format!("min_length ({}) cannot be greater than max_length ({})", min, max),
+                        message: format!(
+                            "min_length ({}) cannot be greater than max_length ({})",
+                            min, max
+                        ),
                     });
                 }
                 rng.gen_range(min..=max)
@@ -122,28 +129,38 @@ impl DataGenerator for StringDataGenerator {
             (None, None, Some(max)) => rng.gen_range(1..=max),
             (None, None, None) => 10, // Default length
         };
-        
+
         // Get character set
         let chars: Vec<char> = match &self.config.charset {
-            CharacterSet::Alpha => "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ".chars().collect(),
+            CharacterSet::Alpha => "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+                .chars()
+                .collect(),
             CharacterSet::Numeric => "0123456789".chars().collect(),
-            CharacterSet::AlphaNumeric => "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".chars().collect(),
+            CharacterSet::AlphaNumeric => {
+                "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+                    .chars()
+                    .collect()
+            }
             CharacterSet::Hex => "0123456789ABCDEF".chars().collect(),
             CharacterSet::Ascii => (32u8..=126u8).map(|b| b as char).collect(),
-            CharacterSet::Base64 => "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/".chars().collect(),
+            CharacterSet::Base64 => {
+                "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+                    .chars()
+                    .collect()
+            }
         };
-        
+
         if chars.is_empty() {
             return Err(DadagenError::GenerationError {
                 message: "Character set is empty".to_string(),
             });
         }
-        
+
         // Generate string
         let mut result: String = (0..length)
             .map(|_| chars.choose(&mut rng).unwrap())
             .collect();
-        
+
         // Apply case transformation
         result = match self.config.case {
             Case::Lower => result.to_lowercase(),
@@ -157,24 +174,27 @@ impl DataGenerator for StringDataGenerator {
             }
             Case::Mixed => result,
         };
-        
+
         Ok(result)
     }
-    
+
     fn generator_type(&self) -> GeneratorType {
         GeneratorType::String
     }
-    
+
     fn validate(&self) -> Result<()> {
         // Validate length constraints
         if let (Some(min), Some(max)) = (self.config.min_length, self.config.max_length) {
             if min > max {
                 return Err(DadagenError::ValidationError {
-                    message: format!("min_length ({}) cannot be greater than max_length ({})", min, max),
+                    message: format!(
+                        "min_length ({}) cannot be greater than max_length ({})",
+                        min, max
+                    ),
                 });
             }
         }
-        
+
         if let Some(_length) = self.config.length {
             if self.config.min_length.is_some() || self.config.max_length.is_some() {
                 return Err(DadagenError::ValidationError {
@@ -182,10 +202,10 @@ impl DataGenerator for StringDataGenerator {
                 });
             }
         }
-        
+
         Ok(())
     }
-    
+
     fn clone_box(&self) -> Box<dyn DataGenerator> {
         Box::new(self.clone())
     }
@@ -201,36 +221,36 @@ impl NumberDataGenerator {
     pub fn new(config: NumberGenerator) -> Self {
         Self { config }
     }
-    
+
     pub fn from_ast(ast: &NumberGenerator) -> Result<Self> {
-        let gen = Self::new(ast.clone());
-        gen.validate()?;
-        Ok(gen)
+        let generator = Self::new(ast.clone());
+        generator.validate()?;
+        Ok(generator)
     }
 }
 
 impl DataGenerator for NumberDataGenerator {
     fn generate(&self, _context: &Context) -> Result<String> {
-        use rand::{Rng, SeedableRng};
         use rand::rngs::StdRng;
-        use rand_distr::{Normal, Exp, Distribution as RandDist};
-        
+        use rand::{Rng, SeedableRng};
+        use rand_distr::{Distribution as RandDist, Exp, Normal};
+
         let mut rng = match self.config.seed {
             Some(seed) => StdRng::seed_from_u64(seed as u64),
             None => StdRng::from_entropy(),
         };
-        
+
         let (min, max) = (
             self.config.min.unwrap_or(0.0),
             self.config.max.unwrap_or(100.0),
         );
-        
+
         if min >= max {
             return Err(DadagenError::ValidationError {
                 message: format!("min ({}) must be less than max ({})", min, max),
             });
         }
-        
+
         // Generate based on distribution
         let value: f64 = match &self.config.distribution {
             crate::ast::Distribution::Uniform => {
@@ -241,9 +261,10 @@ impl DataGenerator for NumberDataGenerator {
                 }
             }
             crate::ast::Distribution::Normal { mean, std_dev } => {
-                let normal = Normal::new(*mean, *std_dev).map_err(|e| DadagenError::GenerationError {
-                    message: format!("Failed to create normal distribution: {}", e),
-                })?;
+                let normal =
+                    Normal::new(*mean, *std_dev).map_err(|e| DadagenError::GenerationError {
+                        message: format!("Failed to create normal distribution: {}", e),
+                    })?;
                 normal.sample(&mut rng).clamp(min, max)
             }
             crate::ast::Distribution::Exponential { lambda } => {
@@ -254,21 +275,21 @@ impl DataGenerator for NumberDataGenerator {
                 (min + sample).clamp(min, max)
             }
         };
-        
+
         // Format based on decimal places
         if let Some(places) = self.config.decimal_places {
             if places > 0 {
                 return Ok(format!("{:.prec$}", value, prec = places));
             }
         }
-        
+
         Ok((value as i64).to_string())
     }
-    
+
     fn generator_type(&self) -> GeneratorType {
         GeneratorType::Number
     }
-    
+
     fn validate(&self) -> Result<()> {
         if let (Some(min), Some(max)) = (self.config.min, self.config.max) {
             if min >= max {
@@ -279,7 +300,7 @@ impl DataGenerator for NumberDataGenerator {
         }
         Ok(())
     }
-    
+
     fn clone_box(&self) -> Box<dyn DataGenerator> {
         Box::new(self.clone())
     }
@@ -295,30 +316,30 @@ impl BooleanDataGenerator {
     pub fn new(config: BooleanGenerator) -> Self {
         Self { config }
     }
-    
+
     pub fn from_ast(ast: &BooleanGenerator) -> Result<Self> {
-        let gen = Self::new(ast.clone());
-        gen.validate()?;
-        Ok(gen)
+        let generator = Self::new(ast.clone());
+        generator.validate()?;
+        Ok(generator)
     }
 }
 
 impl DataGenerator for BooleanDataGenerator {
     fn generate(&self, _context: &Context) -> Result<String> {
-        use rand::{Rng, SeedableRng};
         use rand::rngs::StdRng;
-        
+        use rand::{Rng, SeedableRng};
+
         let mut rng = StdRng::from_entropy();
-        let random_value: f64 = rng.gen();
-        
+        let random_value: f64 = rng.r#gen();
+
         let result = random_value < self.config.true_probability;
         Ok(result.to_string())
     }
-    
+
     fn generator_type(&self) -> GeneratorType {
         GeneratorType::Boolean
     }
-    
+
     fn validate(&self) -> Result<()> {
         if self.config.true_probability < 0.0 || self.config.true_probability > 1.0 {
             return Err(DadagenError::ValidationError {
@@ -330,7 +351,7 @@ impl DataGenerator for BooleanDataGenerator {
         }
         Ok(())
     }
-    
+
     fn clone_box(&self) -> Box<dyn DataGenerator> {
         Box::new(self.clone())
     }
@@ -346,39 +367,41 @@ impl ChoiceDataGenerator {
     pub fn new(config: ChoiceGenerator) -> Self {
         Self { config }
     }
-    
+
     pub fn from_ast(ast: &ChoiceGenerator) -> Result<Self> {
-        let gen = Self::new(ast.clone());
-        gen.validate()?;
-        Ok(gen)
+        let generator = Self::new(ast.clone());
+        generator.validate()?;
+        Ok(generator)
     }
 }
 
 impl DataGenerator for ChoiceDataGenerator {
     fn generate(&self, _context: &Context) -> Result<String> {
-        use rand::{SeedableRng, seq::SliceRandom};
         use rand::rngs::StdRng;
-        
+        use rand::{SeedableRng, seq::SliceRandom};
+
         if self.config.options.is_empty() {
             return Err(DadagenError::GenerationError {
                 message: "Choice generator has no options".to_string(),
             });
         }
-        
+
         let mut rng = StdRng::from_entropy();
-        let choice = self.config.options
-            .choose(&mut rng)
-            .ok_or_else(|| DadagenError::GenerationError {
-                message: "Failed to choose from options".to_string(),
-            })?;
-        
+        let choice =
+            self.config
+                .options
+                .choose(&mut rng)
+                .ok_or_else(|| DadagenError::GenerationError {
+                    message: "Failed to choose from options".to_string(),
+                })?;
+
         Ok(choice.clone())
     }
-    
+
     fn generator_type(&self) -> GeneratorType {
         GeneratorType::Choice
     }
-    
+
     fn validate(&self) -> Result<()> {
         if self.config.options.is_empty() {
             return Err(DadagenError::ValidationError {
@@ -387,7 +410,7 @@ impl DataGenerator for ChoiceDataGenerator {
         }
         Ok(())
     }
-    
+
     fn clone_box(&self) -> Box<dyn DataGenerator> {
         Box::new(self.clone())
     }
@@ -408,7 +431,7 @@ impl CounterDataGenerator {
             current: std::sync::Arc::new(std::sync::Mutex::new(start)),
         }
     }
-    
+
     pub fn from_ast(ast: &CounterGenerator) -> Result<Self> {
         Ok(Self::new(ast.clone()))
     }
@@ -422,11 +445,11 @@ impl DataGenerator for CounterDataGenerator {
         *current += step;
         Ok(value.to_string())
     }
-    
+
     fn generator_type(&self) -> GeneratorType {
         GeneratorType::Counter
     }
-    
+
     fn clone_box(&self) -> Box<dyn DataGenerator> {
         Box::new(Self {
             config: self.config.clone(),
@@ -449,53 +472,60 @@ impl TemplateDataGenerator {
     pub fn new(config: TemplateGenerator) -> Self {
         Self { config }
     }
-    
+
     pub fn from_ast(ast: &TemplateGenerator) -> Result<Self> {
-        let gen = Self::new(ast.clone());
-        gen.validate()?;
-        Ok(gen)
+        let generator = Self::new(ast.clone());
+        generator.validate()?;
+        Ok(generator)
     }
 }
 
 impl DataGenerator for TemplateDataGenerator {
     fn generate(&self, context: &Context) -> Result<String> {
         use regex::Regex;
-        
+
         let mut result = self.config.template.clone();
-        
+
         // Replace {{field_name}} with values from context
-            let field_regex = Regex::new(r"\{\{([^}]+)\}\}").map_err(|e| DadagenError::GenerationError {
-            message: format!("Invalid regex pattern: {}", e),
-        })?;
-        
-        result = field_regex.replace_all(&result, |caps: &regex::Captures| {
-            let field_name = &caps[1];
-            
-            // Check if it's a generator expression like gen:string
-            if field_name.starts_with("gen:") {
-                // For now, return placeholder - full gen: support in future
-                format!("[{}]", field_name)
-            } else {
-                // Try to get field value from context
-                match context.get_field_state::<String>(field_name) {
-                    Ok(Some(value)) => value,
-                    Ok(None) => format!("[missing:{}]", field_name),
-                    Err(_) => format!("[error:{}]", field_name),
+        let field_regex =
+            Regex::new(r"\{\{([^}]+)\}\}").map_err(|e| DadagenError::GenerationError {
+                message: format!("Invalid regex pattern: {}", e),
+            })?;
+
+        result = field_regex
+            .replace_all(&result, |caps: &regex::Captures| {
+                let field_name = &caps[1];
+
+                // Check if it's a generator expression like gen:string
+                if field_name.starts_with("gen:") {
+                    // For now, return placeholder - full gen: support in future
+                    format!("[{}]", field_name)
+                } else {
+                    // Try to get field value from context
+                    match context.get_field_state::<String>(field_name) {
+                        Ok(Some(value)) => value,
+                        Ok(None) => format!("[missing:{}]", field_name),
+                        Err(_) => format!("[error:{}]", field_name),
+                    }
                 }
-            }
-        }).to_string();
-        
+            })
+            .to_string();
+
         Ok(result)
     }
-    
+
     fn dependencies(&self) -> Vec<String> {
-        self.config.variables.iter().map(|v| v.name.clone()).collect()
+        self.config
+            .variables
+            .iter()
+            .map(|v| v.name.clone())
+            .collect()
     }
-    
+
     fn generator_type(&self) -> GeneratorType {
         GeneratorType::Template
     }
-    
+
     fn validate(&self) -> Result<()> {
         if self.config.template.is_empty() {
             return Err(DadagenError::ValidationError {
@@ -504,9 +534,10 @@ impl DataGenerator for TemplateDataGenerator {
         }
 
         // Ensure there are no empty template placeholders like {{}}
-        let placeholder_re = regex::Regex::new(r"\{\{([^}]*)\}\}").map_err(|e| DadagenError::ValidationError {
-            message: format!("Invalid template placeholder regex: {}", e),
-        })?;
+        let placeholder_re =
+            regex::Regex::new(r"\{\{([^}]*)\}\}").map_err(|e| DadagenError::ValidationError {
+                message: format!("Invalid template placeholder regex: {}", e),
+            })?;
 
         for caps in placeholder_re.captures_iter(&self.config.template) {
             let name = caps.get(1).map(|m| m.as_str().trim()).unwrap_or("");
@@ -519,7 +550,7 @@ impl DataGenerator for TemplateDataGenerator {
 
         Ok(())
     }
-    
+
     fn clone_box(&self) -> Box<dyn DataGenerator> {
         Box::new(self.clone())
     }
@@ -540,13 +571,13 @@ impl ListDataGenerator {
             list_data: std::sync::Arc::new(std::sync::RwLock::new(None)),
         }
     }
-    
+
     pub fn from_ast(ast: &ListGenerator) -> Result<Self> {
-        let gen = Self::new(ast.clone());
-        gen.validate()?;
-        Ok(gen)
+        let generator = Self::new(ast.clone());
+        generator.validate()?;
+        Ok(generator)
     }
-    
+
     fn load_list_data(&self) -> Result<Vec<String>> {
         // Check cache first
         {
@@ -555,7 +586,7 @@ impl ListDataGenerator {
                 return Ok(data.clone());
             }
         }
-        
+
         // Load from list manager (simplified for now - would use actual list manager)
         // For now, return dummy data
         let data = vec![
@@ -563,63 +594,75 @@ impl ListDataGenerator {
             format!("item2_{}", self.config.name),
             format!("item3_{}", self.config.name),
         ];
-        
+
         // Cache the data
         {
             let mut cache = self.list_data.write().unwrap();
             *cache = Some(data.clone());
         }
-        
+
         Ok(data)
     }
 }
 
 impl DataGenerator for ListDataGenerator {
     fn generate(&self, context: &Context) -> Result<String> {
-        use rand::{SeedableRng, seq::SliceRandom};
         use rand::rngs::StdRng;
-        
+        use rand::{SeedableRng, seq::SliceRandom};
+
         // If there's a discriminator, get its value first
         let discriminator_value = if let Some(discriminator_field) = &self.config.discriminator {
             match context.get_field_state::<String>(discriminator_field) {
                 Ok(Some(value)) => Some(value),
                 Ok(None) => {
                     return Err(DadagenError::GenerationError {
-                        message: format!("Discriminator field '{}' not found in context", discriminator_field),
+                        message: format!(
+                            "Discriminator field '{}' not found in context",
+                            discriminator_field
+                        ),
                     });
                 }
                 Err(e) => {
                     return Err(DadagenError::GenerationError {
-                        message: format!("Error reading discriminator field '{}': {}", discriminator_field, e),
+                        message: format!(
+                            "Error reading discriminator field '{}': {}",
+                            discriminator_field, e
+                        ),
                     });
                 }
             }
         } else {
             None
         };
-        
+
         // Load list data
         let items = self.load_list_data()?;
-        
+
         if items.is_empty() {
             return Err(DadagenError::GenerationError {
                 message: format!("List '{}' is empty", self.config.name),
             });
         }
-        
+
         // Filter by discriminator if provided
         let filtered_items: Vec<&String> = if let Some(disc_val) = discriminator_value {
-            items.iter().filter(|item| item.contains(&disc_val)).collect()
+            items
+                .iter()
+                .filter(|item| item.contains(&disc_val))
+                .collect()
         } else {
             items.iter().collect()
         };
-        
+
         if filtered_items.is_empty() {
             return Err(DadagenError::GenerationError {
-                message: format!("No items match discriminator in list '{}'", self.config.name),
+                message: format!(
+                    "No items match discriminator in list '{}'",
+                    self.config.name
+                ),
             });
         }
-        
+
         // Select item (weighted or uniform)
         let mut rng = StdRng::from_entropy();
         let selected = if self.config.weighted {
@@ -629,14 +672,14 @@ impl DataGenerator for ListDataGenerator {
         } else {
             filtered_items.choose(&mut rng)
         };
-        
+
         Ok(selected
             .ok_or_else(|| DadagenError::GenerationError {
                 message: "Failed to select item from list".to_string(),
             })?
             .to_string())
     }
-    
+
     fn dependencies(&self) -> Vec<String> {
         if let Some(discriminator) = &self.config.discriminator {
             vec![discriminator.clone()]
@@ -644,11 +687,11 @@ impl DataGenerator for ListDataGenerator {
             Vec::new()
         }
     }
-    
+
     fn generator_type(&self) -> GeneratorType {
         GeneratorType::List
     }
-    
+
     fn validate(&self) -> Result<()> {
         if self.config.name.is_empty() {
             return Err(DadagenError::ValidationError {
@@ -657,7 +700,7 @@ impl DataGenerator for ListDataGenerator {
         }
         Ok(())
     }
-    
+
     fn clone_box(&self) -> Box<dyn DataGenerator> {
         Box::new(Self {
             config: self.config.clone(),
@@ -676,57 +719,54 @@ impl RegexDataGenerator {
     pub fn new(config: RegexGenerator) -> Self {
         Self { config }
     }
-    
+
     pub fn from_ast(ast: &RegexGenerator) -> Result<Self> {
-        let gen = Self::new(ast.clone());
-        gen.validate()?;
-        Ok(gen)
+        let generator = Self::new(ast.clone());
+        generator.validate()?;
+        Ok(generator)
     }
 }
 
 impl DataGenerator for RegexDataGenerator {
     fn generate(&self, _context: &Context) -> Result<String> {
-        use rand::{Rng, SeedableRng};
         use rand::rngs::StdRng;
+        use rand::{Rng, SeedableRng};
         use rand_regex::Regex;
-        
+
         let pattern = &self.config.pattern;
         let mut rng = StdRng::from_entropy();
-        
+
         // Use rand_regex crate for full regex support
         // Set max_repeat to 100 to limit potentially infinite patterns
-        let generator = Regex::compile(pattern, 100).map_err(|e| {
-            DadagenError::GenerationError {
+        let generator =
+            Regex::compile(pattern, 100).map_err(|e| DadagenError::GenerationError {
                 message: format!("Invalid regex pattern '{}': {}", pattern, e),
-            }
-        })?;
-        
+            })?;
+
         // Sample a random string matching the pattern
         Ok(rng.sample(&generator))
     }
-    
+
     fn generator_type(&self) -> GeneratorType {
         GeneratorType::Regex
     }
-    
+
     fn validate(&self) -> Result<()> {
         if self.config.pattern.is_empty() {
             return Err(DadagenError::ValidationError {
                 message: "Regex pattern cannot be empty".to_string(),
             });
         }
-        
+
         // Validate regex syntax by attempting to compile
         use rand_regex::Regex;
-        Regex::compile(&self.config.pattern, 100).map_err(|e| {
-            DadagenError::ValidationError {
-                message: format!("Invalid regex pattern '{}': {}", self.config.pattern, e),
-            }
+        Regex::compile(&self.config.pattern, 100).map_err(|e| DadagenError::ValidationError {
+            message: format!("Invalid regex pattern '{}': {}", self.config.pattern, e),
         })?;
-        
+
         Ok(())
     }
-    
+
     fn clone_box(&self) -> Box<dyn DataGenerator> {
         Box::new(self.clone())
     }
@@ -742,7 +782,7 @@ impl AddressDataGenerator {
     pub fn new(config: AddressGenerator) -> Self {
         Self { config }
     }
-    
+
     pub fn from_ast(ast: &AddressGenerator) -> Result<Self> {
         Ok(Self::new(ast.clone()))
     }
@@ -750,15 +790,22 @@ impl AddressDataGenerator {
 
 impl DataGenerator for AddressDataGenerator {
     fn generate(&self, _context: &Context) -> Result<String> {
-        use rand::{SeedableRng, seq::SliceRandom};
         use rand::rngs::StdRng;
-        
+        use rand::{SeedableRng, seq::SliceRandom};
+
         let mut rng = StdRng::from_entropy();
-        
+
         // Generate based on address component type
         let result = match self.config.component {
             AddressComponent::CityTown => {
-                let cities = vec!["Sydney", "Melbourne", "Brisbane", "Perth", "Adelaide", "Canberra"];
+                let cities = vec![
+                    "Sydney",
+                    "Melbourne",
+                    "Brisbane",
+                    "Perth",
+                    "Adelaide",
+                    "Canberra",
+                ];
                 cities.choose(&mut rng).unwrap().to_string()
             }
             AddressComponent::Suburb => {
@@ -771,15 +818,23 @@ impl DataGenerator for AddressDataGenerator {
             AddressComponent::Street => {
                 let streets = vec!["Main", "High", "Park", "Church", "Station"];
                 let types = vec!["Street", "Road", "Avenue", "Lane", "Drive"];
-                format!("{} {}", 
+                format!(
+                    "{} {}",
                     streets.choose(&mut rng).unwrap(),
-                    types.choose(&mut rng).unwrap())
+                    types.choose(&mut rng).unwrap()
+                )
             }
             AddressComponent::Property => {
                 format!("{}", rng.gen_range(1..999))
             }
             AddressComponent::Country => {
-                let countries = vec!["Australia", "United States", "United Kingdom", "Canada", "New Zealand"];
+                let countries = vec![
+                    "Australia",
+                    "United States",
+                    "United Kingdom",
+                    "Canada",
+                    "New Zealand",
+                ];
                 countries.choose(&mut rng).unwrap().to_string()
             }
             AddressComponent::StateCounty => {
@@ -787,14 +842,14 @@ impl DataGenerator for AddressDataGenerator {
                 states.choose(&mut rng).unwrap().to_string()
             }
         };
-        
+
         Ok(result)
     }
-    
+
     fn generator_type(&self) -> GeneratorType {
         GeneratorType::Address
     }
-    
+
     fn clone_box(&self) -> Box<dyn DataGenerator> {
         Box::new(self.clone())
     }
@@ -810,7 +865,7 @@ impl NameDataGenerator {
     pub fn new(config: NameGenerator) -> Self {
         Self { config }
     }
-    
+
     pub fn from_ast(ast: &NameGenerator) -> Result<Self> {
         Ok(Self::new(ast.clone()))
     }
@@ -818,35 +873,37 @@ impl NameDataGenerator {
 
 impl DataGenerator for NameDataGenerator {
     fn generate(&self, _context: &Context) -> Result<String> {
-        use rand::{SeedableRng, seq::SliceRandom};
         use rand::rngs::StdRng;
-        
+        use rand::{SeedableRng, seq::SliceRandom};
+
         let mut rng = StdRng::from_entropy();
-        
-        let first_names = vec!["James", "Mary", "John", "Patricia", "Robert", "Jennifer", "Michael", "Linda"];
-        let last_names = vec!["Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis"];
-        
+
+        let first_names = vec![
+            "James", "Mary", "John", "Patricia", "Robert", "Jennifer", "Michael", "Linda",
+        ];
+        let last_names = vec![
+            "Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis",
+        ];
+
         let result = match self.config.name_type {
-            NameType::GivenName => {
-                first_names.choose(&mut rng).unwrap().to_string()
-            }
-            NameType::Surname => {
-                last_names.choose(&mut rng).unwrap().to_string()
-            }
+            NameType::GivenName => first_names.choose(&mut rng).unwrap().to_string(),
+            NameType::Surname => last_names.choose(&mut rng).unwrap().to_string(),
             NameType::Full => {
-                format!("{} {}", 
+                format!(
+                    "{} {}",
                     first_names.choose(&mut rng).unwrap(),
-                    last_names.choose(&mut rng).unwrap())
+                    last_names.choose(&mut rng).unwrap()
+                )
             }
         };
-        
+
         Ok(result)
     }
-    
+
     fn generator_type(&self) -> GeneratorType {
         GeneratorType::Name
     }
-    
+
     fn clone_box(&self) -> Box<dyn DataGenerator> {
         Box::new(self.clone())
     }
@@ -862,7 +919,7 @@ impl GenderDataGenerator {
     pub fn new(config: GenderGenerator) -> Self {
         Self { config }
     }
-    
+
     pub fn from_ast(ast: &GenderGenerator) -> Result<Self> {
         Ok(Self::new(ast.clone()))
     }
@@ -870,19 +927,19 @@ impl GenderDataGenerator {
 
 impl DataGenerator for GenderDataGenerator {
     fn generate(&self, _context: &Context) -> Result<String> {
-        use rand::{SeedableRng, seq::SliceRandom};
         use rand::rngs::StdRng;
-        
+        use rand::{SeedableRng, seq::SliceRandom};
+
         let mut rng = StdRng::from_entropy();
         let genders = vec!["Male", "Female", "Other", "Prefer not to say"];
-        
+
         Ok(genders.choose(&mut rng).unwrap().to_string())
     }
-    
+
     fn generator_type(&self) -> GeneratorType {
         GeneratorType::Gender
     }
-    
+
     fn clone_box(&self) -> Box<dyn DataGenerator> {
         Box::new(self.clone())
     }
@@ -916,12 +973,14 @@ pub fn create_generator(ast_gen: &Generator) -> Result<Box<dyn DataGenerator>> {
 
 #[cfg(test)]
 mod tests {
+    use crate::generator_registry;
+
     use super::*;
-    
+
     fn test_context() -> Context {
         Context::new()
     }
-    
+
     #[test]
     fn test_string_generator_basic() {
         let config = StringGenerator {
@@ -933,14 +992,14 @@ mod tests {
             pattern: None,
             span: None,
         };
-        
-        let gen = StringDataGenerator::new(config);
-        let result = gen.generate(&test_context()).unwrap();
-        
+
+        let generator = StringDataGenerator::new(config);
+        let result = generator.generate(&test_context()).unwrap();
+
         assert_eq!(result.len(), 10);
         assert!(result.chars().all(|c| c.is_alphabetic()));
     }
-    
+
     #[test]
     fn test_string_generator_range() {
         let config = StringGenerator {
@@ -952,30 +1011,30 @@ mod tests {
             pattern: None,
             span: None,
         };
-        
-        let gen = StringDataGenerator::new(config);
-        let result = gen.generate(&test_context()).unwrap();
-        
+
+        let generator = StringDataGenerator::new(config);
+        let result = generator.generate(&test_context()).unwrap();
+
         assert!(result.len() >= 5 && result.len() <= 15);
         assert_eq!(result, result.to_lowercase());
     }
-    
+
     #[test]
     fn test_string_generator_validation() {
         let config = StringGenerator {
             length: Some(10),
-            min_length: Some(5),  // Conflict!
+            min_length: Some(5), // Conflict!
             max_length: Some(15),
             charset: CharacterSet::Alpha,
             case: Case::Mixed,
             pattern: None,
             span: None,
         };
-        
-        let gen = StringDataGenerator::new(config);
-        assert!(gen.validate().is_err());
+
+        let generator = StringDataGenerator::new(config);
+        assert!(generator.validate().is_err());
     }
-    
+
     #[test]
     fn test_number_generator_range() {
         let config = NumberGenerator {
@@ -986,14 +1045,14 @@ mod tests {
             seed: Some(42),
             span: None,
         };
-        
-        let gen = NumberDataGenerator::new(config);
-        let result = gen.generate(&test_context()).unwrap();
+
+        let generator = NumberDataGenerator::new(config);
+        let result = generator.generate(&test_context()).unwrap();
         let value: i64 = result.parse().unwrap();
-        
+
         assert!(value >= 1 && value <= 100);
     }
-    
+
     #[test]
     fn test_number_generator_decimal() {
         let config = NumberGenerator {
@@ -1004,56 +1063,56 @@ mod tests {
             seed: Some(42),
             span: None,
         };
-        
-        let gen = NumberDataGenerator::new(config);
-        let result = gen.generate(&test_context()).unwrap();
-        
+
+        let generator = NumberDataGenerator::new(config);
+        let result = generator.generate(&test_context()).unwrap();
+
         // Should have decimal point
         assert!(result.contains('.'));
-        
+
         // Should have at most 2 decimal places
         let parts: Vec<&str> = result.split('.').collect();
         assert_eq!(parts.len(), 2);
         assert!(parts[1].len() <= 2);
     }
-    
+
     #[test]
     fn test_boolean_generator() {
         let config = BooleanGenerator {
             true_probability: 1.0, // Always true
             span: None,
         };
-        
-        let gen = BooleanDataGenerator::new(config);
-        let result = gen.generate(&test_context()).unwrap();
-        
+
+        let generator = BooleanDataGenerator::new(config);
+        let result = generator.generate(&test_context()).unwrap();
+
         assert_eq!(result, "true");
     }
-    
+
     #[test]
     fn test_boolean_validation() {
         let config = BooleanGenerator {
             true_probability: 1.5, // Invalid!
             span: None,
         };
-        
-        let gen = BooleanDataGenerator::new(config);
-        assert!(gen.validate().is_err());
+
+        let generator = BooleanDataGenerator::new(config);
+        assert!(generator.validate().is_err());
     }
-    
+
     #[test]
     fn test_choice_generator() {
         let config = ChoiceGenerator {
             options: vec!["red".to_string(), "green".to_string(), "blue".to_string()],
             span: None,
         };
-        
-        let gen = ChoiceDataGenerator::new(config);
-        let result = gen.generate(&test_context()).unwrap();
-        
+
+        let generator = ChoiceDataGenerator::new(config);
+        let result = generator.generate(&test_context()).unwrap();
+
         assert!(["red", "green", "blue"].contains(&result.as_str()));
     }
-    
+
     #[test]
     fn test_counter_generator() {
         let config = CounterGenerator {
@@ -1061,14 +1120,14 @@ mod tests {
             step: Some(5),
             span: None,
         };
-        
-        let gen = CounterDataGenerator::new(config);
-        
-        assert_eq!(gen.generate(&test_context()).unwrap(), "100");
-        assert_eq!(gen.generate(&test_context()).unwrap(), "105");
-        assert_eq!(gen.generate(&test_context()).unwrap(), "110");
+
+        let generator = CounterDataGenerator::new(config);
+
+        assert_eq!(generator.generate(&test_context()).unwrap(), "100");
+        assert_eq!(generator.generate(&test_context()).unwrap(), "105");
+        assert_eq!(generator.generate(&test_context()).unwrap(), "110");
     }
-    
+
     #[test]
     fn test_generator_factory() {
         let ast_gen = Generator::String(StringGenerator {
@@ -1080,18 +1139,18 @@ mod tests {
             pattern: None,
             span: None,
         });
-        
-        let gen = create_generator(&ast_gen).unwrap();
-        let result = gen.generate(&test_context()).unwrap();
-        
+
+        let generator = create_generator(&ast_gen).unwrap();
+        let result = generator.generate(&test_context()).unwrap();
+
         assert_eq!(result.len(), 5);
         assert!(result.chars().all(|c| c.is_numeric()));
     }
-    
+
     // ========================================================================
     // Specialized Generator Tests
     // ========================================================================
-    
+
     #[test]
     fn test_template_generator_basic() {
         let config = TemplateGenerator {
@@ -1102,17 +1161,18 @@ mod tests {
             }],
             span: None,
         };
-        
-        let gen = TemplateDataGenerator::new(config);
-        
+
+        let generator = TemplateDataGenerator::new(config);
+
         // Test with context containing the field
         let ctx = test_context();
-        ctx.insert_field_state("name".to_string(), "World".to_string()).unwrap();
-        
-        let result = gen.generate(&ctx).unwrap();
+        ctx.insert_field_state("name".to_string(), "World".to_string())
+            .unwrap();
+
+        let result = generator.generate(&ctx).unwrap();
         assert_eq!(result, "Hello World!");
     }
-    
+
     #[test]
     fn test_template_generator_missing_field() {
         let config = TemplateGenerator {
@@ -1123,56 +1183,74 @@ mod tests {
             }],
             span: None,
         };
-        
-        let gen = TemplateDataGenerator::new(config);
-        
+
+        let generator = TemplateDataGenerator::new(config);
+
         // Generate with missing field should show placeholder
-        let result = gen.generate(&test_context()).unwrap();
+        let result = generator.generate(&test_context()).unwrap();
         assert_eq!(result, "User: [missing:username]");
     }
-    
+
     #[test]
     fn test_template_generator_multiple_variables() {
         let config = TemplateGenerator {
             template: "{{first}} {{last}} - {{email}}".to_string(),
             variables: vec![
-                TemplateVariable { name: "first".to_string(), generator: None },
-                TemplateVariable { name: "last".to_string(), generator: None },
-                TemplateVariable { name: "email".to_string(), generator: None },
+                TemplateVariable {
+                    name: "first".to_string(),
+                    generator: None,
+                },
+                TemplateVariable {
+                    name: "last".to_string(),
+                    generator: None,
+                },
+                TemplateVariable {
+                    name: "email".to_string(),
+                    generator: None,
+                },
             ],
             span: None,
         };
-        
-        let gen = TemplateDataGenerator::new(config);
-        
+
+        let generator = TemplateDataGenerator::new(config);
+
         let ctx = test_context();
-        ctx.insert_field_state("first".to_string(), "John".to_string()).unwrap();
-        ctx.insert_field_state("last".to_string(), "Doe".to_string()).unwrap();
-        ctx.insert_field_state("email".to_string(), "john.doe@example.com".to_string()).unwrap();
-        
-        let result = gen.generate(&ctx).unwrap();
+        ctx.insert_field_state("first".to_string(), "John".to_string())
+            .unwrap();
+        ctx.insert_field_state("last".to_string(), "Doe".to_string())
+            .unwrap();
+        ctx.insert_field_state("email".to_string(), "john.doe@example.com".to_string())
+            .unwrap();
+
+        let result = generator.generate(&ctx).unwrap();
         assert_eq!(result, "John Doe - john.doe@example.com");
     }
-    
+
     #[test]
     fn test_template_generator_dependencies() {
         let config = TemplateGenerator {
             template: "{{user_id}}-{{user_name}}".to_string(),
             variables: vec![
-                TemplateVariable { name: "user_id".to_string(), generator: None },
-                TemplateVariable { name: "user_name".to_string(), generator: None },
+                TemplateVariable {
+                    name: "user_id".to_string(),
+                    generator: None,
+                },
+                TemplateVariable {
+                    name: "user_name".to_string(),
+                    generator: None,
+                },
             ],
             span: None,
         };
-        
-        let gen = TemplateDataGenerator::new(config);
-        let deps = gen.dependencies();
-        
+
+        let generator = TemplateDataGenerator::new(config);
+        let deps = generator.dependencies();
+
         assert_eq!(deps.len(), 2);
         assert!(deps.contains(&"user_id".to_string()));
         assert!(deps.contains(&"user_name".to_string()));
     }
-    
+
     #[test]
     fn test_template_generator_validation() {
         let config = TemplateGenerator {
@@ -1180,17 +1258,17 @@ mod tests {
             variables: vec![],
             span: None,
         };
-        
+
         let result = TemplateDataGenerator::from_ast(&config);
         assert!(result.is_err());
-        
+
         if let Err(DadagenError::ValidationError { message }) = result {
             assert!(message.contains("cannot be empty"));
         } else {
             panic!("Expected ValidationError");
         }
     }
-    
+
     #[test]
     fn test_list_generator_basic() {
         let config = ListGenerator {
@@ -1200,14 +1278,14 @@ mod tests {
             mode: ListMode::Random,
             span: None,
         };
-        
-        let gen = ListDataGenerator::new(config);
-        let result = gen.generate(&test_context()).unwrap();
-        
+
+        let generator = ListDataGenerator::new(config);
+        let result = generator.generate(&test_context()).unwrap();
+
         // Should return one of the predefined test items
         assert!(result.starts_with("item"));
     }
-    
+
     #[test]
     fn test_list_generator_with_discriminator() {
         let config = ListGenerator {
@@ -1217,14 +1295,14 @@ mod tests {
             mode: ListMode::Random,
             span: None,
         };
-        
-        let gen = ListDataGenerator::new(config);
-        
+
+        let generator = ListDataGenerator::new(config);
+
         // Without discriminator field, should error
-        let result = gen.generate(&test_context());
+        let result = generator.generate(&test_context());
         assert!(result.is_err());
     }
-    
+
     #[test]
     fn test_list_generator_dependencies() {
         let config = ListGenerator {
@@ -1234,14 +1312,14 @@ mod tests {
             mode: ListMode::Random,
             span: None,
         };
-        
-        let gen = ListDataGenerator::new(config);
-        let deps = gen.dependencies();
-        
+
+        let generator = ListDataGenerator::new(config);
+        let deps = generator.dependencies();
+
         assert_eq!(deps.len(), 1);
         assert_eq!(deps[0], "filter_field");
     }
-    
+
     #[test]
     fn test_list_generator_validation() {
         let config = ListGenerator {
@@ -1251,132 +1329,130 @@ mod tests {
             mode: ListMode::Random,
             span: None,
         };
-        
+
         let result = ListDataGenerator::from_ast(&config);
         assert!(result.is_err());
     }
-    
+
     #[test]
     fn test_regex_generator_character_class() {
         let config = RegexGenerator {
             pattern: "[abc]".to_string(),
             span: None,
         };
-        
-        let gen = RegexDataGenerator::new(config);
-        let result = gen.generate(&test_context()).unwrap();
-        
+
+        let generator = RegexDataGenerator::new(config);
+        let result = generator.generate(&test_context()).unwrap();
+
         assert!(["a", "b", "c"].contains(&result.as_str()));
     }
-    
+
     #[test]
     fn test_regex_generator_range() {
         let config = RegexGenerator {
             pattern: "[0-9]".to_string(),
             span: None,
         };
-        
-        let gen = RegexDataGenerator::new(config);
-        let result = gen.generate(&test_context()).unwrap();
-        
+
+        let generator = RegexDataGenerator::new(config);
+        let result = generator.generate(&test_context()).unwrap();
+
         assert_eq!(result.len(), 1);
         assert!(result.chars().next().unwrap().is_numeric());
     }
-    
+
     #[test]
     fn test_regex_generator_validation() {
         let config = RegexGenerator {
             pattern: "".to_string(),
             span: None,
         };
-        
+
         let result = RegexDataGenerator::from_ast(&config);
         assert!(result.is_err());
     }
-    
+
     #[test]
     fn test_address_generator_city() {
         let config = AddressGenerator {
             component: AddressComponent::CityTown,
             span: None,
         };
-        
-        let gen = AddressDataGenerator::new(config);
-        let result = gen.generate(&test_context()).unwrap();
-        
+
+        let generator = AddressDataGenerator::new(config);
+        let result = generator.generate(&test_context()).unwrap();
+
         assert!(!result.is_empty());
-        assert_eq!(gen.generator_type(), GeneratorType::Address);
+        assert_eq!(generator.generator_type(), GeneratorType::Address);
     }
-    
+
     #[test]
     fn test_address_generator_postcode() {
         let config = AddressGenerator {
             component: AddressComponent::PostZipCode,
             span: None,
         };
-        
-        let gen = AddressDataGenerator::new(config);
-        let result = gen.generate(&test_context()).unwrap();
-        
+
+        let generator = AddressDataGenerator::new(config);
+        let result = generator.generate(&test_context()).unwrap();
+
         assert_eq!(result.len(), 4);
         assert!(result.chars().all(|c| c.is_numeric()));
     }
-    
+
     #[test]
     fn test_address_generator_street() {
         let config = AddressGenerator {
             component: AddressComponent::Street,
             span: None,
         };
-        
-        let gen = AddressDataGenerator::new(config);
-        let result = gen.generate(&test_context()).unwrap();
-        
+
+        let generator = AddressDataGenerator::new(config);
+        let result = generator.generate(&test_context()).unwrap();
+
         // Should contain both street name and type (e.g., "Main Street")
         assert!(result.contains(' '));
     }
-    
+
     #[test]
     fn test_name_generator_given_name() {
         let config = NameGenerator {
             name_type: NameType::GivenName,
             span: None,
         };
-        
-        let gen = NameDataGenerator::new(config);
-        let result = gen.generate(&test_context()).unwrap();
-        
+
+        let generator = NameDataGenerator::new(config);
+        let result = generator.generate(&test_context()).unwrap();
+
         assert!(!result.is_empty());
-        assert_eq!(gen.generator_type(), GeneratorType::Name);
+        assert_eq!(generator.generator_type(), GeneratorType::Name);
     }
-    
+
     #[test]
     fn test_name_generator_full_name() {
         let config = NameGenerator {
             name_type: NameType::Full,
             span: None,
         };
-        
-        let gen = NameDataGenerator::new(config);
-        let result = gen.generate(&test_context()).unwrap();
-        
+
+        let generator = NameDataGenerator::new(config);
+        let result = generator.generate(&test_context()).unwrap();
+
         // Full name should contain space between first and last
         assert!(result.contains(' '));
     }
-    
+
     #[test]
     fn test_gender_generator() {
-        let config = GenderGenerator {
-            span: None,
-        };
-        
-        let gen = GenderDataGenerator::new(config);
-        let result = gen.generate(&test_context()).unwrap();
-        
+        let config = GenderGenerator { span: None };
+
+        let generator = GenderDataGenerator::new(config);
+        let result = generator.generate(&test_context()).unwrap();
+
         assert!(!result.is_empty());
-        assert_eq!(gen.generator_type(), GeneratorType::Gender);
+        assert_eq!(generator.generator_type(), GeneratorType::Gender);
     }
-    
+
     #[test]
     fn test_factory_with_specialized_generators() {
         // Test template generator factory
@@ -1388,10 +1464,10 @@ mod tests {
             }],
             span: None,
         });
-        
-        let gen = create_generator(&template_ast).unwrap();
-        assert_eq!(gen.generator_type(), GeneratorType::Template);
-        
+
+        let generator = create_generator(&template_ast).unwrap();
+        assert_eq!(generator.generator_type(), GeneratorType::Template);
+
         // Test list generator factory
         let list_ast = Generator::List(ListGenerator {
             name: "test".to_string(),
@@ -1400,26 +1476,26 @@ mod tests {
             mode: ListMode::Random,
             span: None,
         });
-        
-        let gen = create_generator(&list_ast).unwrap();
-        assert_eq!(gen.generator_type(), GeneratorType::List);
-        
+
+        let generator = create_generator(&list_ast).unwrap();
+        assert_eq!(generator.generator_type(), GeneratorType::List);
+
         // Test regex generator factory
         let regex_ast = Generator::Regex(RegexGenerator {
             pattern: "[a-z]".to_string(),
             span: None,
         });
-        
-        let gen = create_generator(&regex_ast).unwrap();
-        assert_eq!(gen.generator_type(), GeneratorType::Regex);
-        
+
+        let generator = create_generator(&regex_ast).unwrap();
+        assert_eq!(generator.generator_type(), GeneratorType::Regex);
+
         // Test address generator factory
         let address_ast = Generator::Address(AddressGenerator {
             component: AddressComponent::CityTown,
             span: None,
         });
-        
-        let gen = create_generator(&address_ast).unwrap();
-        assert_eq!(gen.generator_type(), GeneratorType::Address);
+
+        let generator = create_generator(&address_ast).unwrap();
+        assert_eq!(generator.generator_type(), GeneratorType::Address);
     }
 }

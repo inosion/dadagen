@@ -1,5 +1,5 @@
 //! Python bindings for dadagen
-//! 
+//!
 //! High-performance data generation from Python
 //! using PyO3 bindings.
 

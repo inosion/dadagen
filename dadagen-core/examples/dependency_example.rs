@@ -1,7 +1,6 @@
 use dadagen_core::dependency::DependencyGraph;
 use dadagen_core::parser::parse_dsl;
 
-
 fn main2() {
     // Example DSL with dependencies
     let dsl_input = r#"
@@ -37,7 +36,6 @@ fn main2() {
         println!("  {}. {}", i + 1, field);
     }
 }
-
 
 fn main() {
     // Example DSL with dependencies

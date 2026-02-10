@@ -80,7 +80,8 @@ mod tests {
 
     #[test]
     fn test_datetime_generators() {
-        let input = r#""created_at": datetime(start="2020-01-01T00:00:00Z", end="2025-12-31T23:59:59Z")"#;
+        let input =
+            r#""created_at": datetime(start="2020-01-01T00:00:00Z", end="2025-12-31T23:59:59Z")"#;
         let mut result = DslGrammarParser::parse(Rule::dsl, input).unwrap();
         assert_eq!(result.next().unwrap().as_span().as_str(), input);
 
@@ -162,7 +163,8 @@ mod tests {
         let mut result = DslGrammarParser::parse(Rule::dsl, input).unwrap();
         assert_eq!(result.next().unwrap().as_span().as_str(), input);
 
-        let input = r#""firstname": list(name="/Some/path/filename/firstnames-4000 with spaces.txt")"#;
+        let input =
+            r#""firstname": list(name="/Some/path/filename/firstnames-4000 with spaces.txt")"#;
         let mut result = DslGrammarParser::parse(Rule::dsl, input).unwrap();
         assert_eq!(result.next().unwrap().as_span().as_str(), input);
 
@@ -193,7 +195,10 @@ mod tests {
         // this should fail at semantic validation as mode=sequential and weighted=true are incompatible
         let input = r#""skill": list(name="skills", weighted=true, mode=sequential)"#;
         let result = crate::dsl::DslSemanticParser::parse(input);
-        assert!(result.is_err(), "Expected semantic validation to fail for incompatible weighted+sequential mode");
+        assert!(
+            result.is_err(),
+            "Expected semantic validation to fail for incompatible weighted+sequential mode"
+        );
     }
 
     #[test]
@@ -222,37 +227,58 @@ mod tests {
         // Test placeholder validation - empty placeholders should fail at semantic level
         let input = r#""bad": "{{}}""#;
         let result = crate::dsl::DslSemanticParser::parse(input);
-        assert!(result.is_err(), "Empty placeholder should be rejected by semantic parser");
+        assert!(
+            result.is_err(),
+            "Empty placeholder should be rejected by semantic parser"
+        );
 
         // Test invalid placeholder characters (should fail at semantic level)
         let input = r#""bad": "{{field(with)}}""#;
         let result = crate::dsl::DslSemanticParser::parse(input);
-        assert!(result.is_err(), "Invalid placeholder characters should be rejected");
+        assert!(
+            result.is_err(),
+            "Invalid placeholder characters should be rejected"
+        );
 
         let input = r#""bad": "{{field+invalid}}""#;
         let result = crate::dsl::DslSemanticParser::parse(input);
-        assert!(result.is_err(), "Invalid placeholder characters should be rejected");
+        assert!(
+            result.is_err(),
+            "Invalid placeholder characters should be rejected"
+        );
         // New syntax (legacy syntax removed)
         let input = r#""id": number.something"#;
         let result = DslGrammarParser::parse(Rule::dsl, input);
         // confirm that parsing fails
-        assert!(result.is_err(), "Unexpectedly parsed invalid generator syntax");
-        
+        assert!(
+            result.is_err(),
+            "Unexpectedly parsed invalid generator syntax"
+        );
+
         let input = r#""rand": number between 10 and 100"#;
         let result = DslGrammarParser::parse(Rule::dsl, input);
         assert!(result.is_err(), "Old syntax is not supported anymore");
 
         let input = r#""counter": itration"#;
         let result = DslGrammarParser::parse(Rule::dsl, input);
-        assert!(result.is_err(), "Typo in generator name should cause parse error");
+        assert!(
+            result.is_err(),
+            "Typo in generator name should cause parse error"
+        );
 
         let input = r#""gender": nothing.gender"#;
         let result = DslGrammarParser::parse(Rule::dsl, input);
-        assert!(result.is_err(), "Wrong word before generator should cause parse error");
+        assert!(
+            result.is_err(),
+            "Wrong word before generator should cause parse error"
+        );
 
         let input = r#""gender": name firstname"#;
         let result = DslGrammarParser::parse(Rule::dsl, input);
-        assert!(result.is_err(), "name firstname is not valid generator syntax; needs to be name.firstname");
+        assert!(
+            result.is_err(),
+            "name firstname is not valid generator syntax; needs to be name.firstname"
+        );
 
         let input = r#""id" number "#;
         let result = DslGrammarParser::parse(Rule::dsl, input);
@@ -325,11 +351,11 @@ mod tests {
         let input = r#""email_address" template "TEST_{{firstname}}{{surname}}@noemail.test"  "#;
         let result = DslGrammarParser::parse(Rule::dsl, input);
         assert!(result.is_err());
-        
+
         let input = r#""regex_nesty" regexgen "([A-K]{2}|ABC|BAC)[0-9]"  "#;
         let result = DslGrammarParser::parse(Rule::dsl, input);
         assert!(result.is_err());
-        
+
         let input = r#""choice_with_multiplier" regexgen "([A-K]|LAB){2}"  "#;
         let result = DslGrammarParser::parse(Rule::dsl, input);
         assert!(result.is_err());
@@ -361,7 +387,7 @@ mod tests {
         let input = r#""street" address property "#;
         let result = DslGrammarParser::parse(Rule::dsl, input);
         assert!(result.is_err());
-        
+
         let input = r#""street" address statecounty "#;
         let result = DslGrammarParser::parse(Rule::dsl, input);
         assert!(result.is_err());
@@ -406,7 +432,6 @@ mod tests {
         let result = DslGrammarParser::parse(Rule::dsl, input);
         assert!(result.is_err());
 
-
         let input = r#""complex_template" template "Something : {{gen:sequence}} {{gen:address town}} {{gen:number between 1 and 200}}" "#;
         let result = DslGrammarParser::parse(Rule::dsl, input);
         assert!(result.is_err());
@@ -414,17 +439,24 @@ mod tests {
         // Test placeholder validation - empty placeholders should fail
         let input = r#""bad": "{{}}""#;
         let result = DslGrammarParser::parse(Rule::dsl, input);
-        assert!(result.is_err(), "Empty placeholder should be rejected by parser");
+        assert!(
+            result.is_err(),
+            "Empty placeholder should be rejected by parser"
+        );
 
         // Test invalid placeholder characters (should fail at parse time with new restrictive rule)
         let input = r#""bad": "{{field(with)}}""#;
         let result = DslGrammarParser::parse(Rule::dsl, input);
-        assert!(result.is_err(), "Invalid placeholder characters should be rejected");
+        assert!(
+            result.is_err(),
+            "Invalid placeholder characters should be rejected"
+        );
 
         let input = r#""bad": "{{field+invalid}}""#;
         let result = DslGrammarParser::parse(Rule::dsl, input);
-        assert!(result.is_err(), "Invalid placeholder characters should be rejected");
-
+        assert!(
+            result.is_err(),
+            "Invalid placeholder characters should be rejected"
+        );
     }
-
 }

@@ -1,18 +1,22 @@
 //! Generator trait system and implementations
-//! 
+//!
 //! This module provides a unified interface for all data generators
 //! and concrete implementations for basic types.
 
 pub mod core;
 pub mod number;
+pub mod registry;
 pub mod string;
 pub mod template;
-pub mod registry;
 
 // Re-export commonly used types
-pub use core::{Generator, ConfigurableGenerator, GeneratorMetadata, BaseGenerator};
-pub use number::{IntegerGenerator, FloatGenerator, RangeGenerator, NumberConfig, NumberDistribution};
-pub use string::{StringGenerator, PatternGenerator, ListGenerator, StringConfig, CharacterSet, Case};
-pub use template::{TemplateGenerator, CompositeGenerator};
+pub use core::{BaseGenerator, ConfigurableGenerator, Generator, GeneratorMetadata};
+pub use number::{
+    FloatGenerator, IntegerGenerator, NumberConfig, NumberDistribution, RangeGenerator,
+};
+pub use string::{
+    Case, CharacterSet, ListGenerator, PatternGenerator, StringConfig, StringGenerator,
+};
+pub use template::{CompositeGenerator, TemplateGenerator};
 
-pub use registry::{GeneratorRegistry, GeneratorFactory, BoxedGenerator};
+pub use registry::{BoxedGenerator, GeneratorFactory, GeneratorRegistry};

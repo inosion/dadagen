@@ -1,5 +1,5 @@
 //! WASM web application for dadagen
-//! 
+//!
 //! Provides dadagen functionality in web browsers
 //! via WebAssembly.
 

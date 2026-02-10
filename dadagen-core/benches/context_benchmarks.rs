@@ -2,7 +2,7 @@
 //!
 //! Run with: cargo bench --bench context_benchmarks
 
-use criterion::{black_box, criterion_group, criterion_main, Criterion, BenchmarkId};
+use criterion::{BenchmarkId, Criterion, black_box, criterion_group, criterion_main};
 use dadagen_core::{Context, ContextPool};
 
 /// Benchmark basic context creation
@@ -25,21 +25,25 @@ fn bench_context_creation(c: &mut Criterion) {
 /// Benchmark field state operations
 fn bench_field_operations(c: &mut Criterion) {
     let mut group = c.benchmark_group("field_operations");
-    
+
     // Benchmark insert
     group.bench_function("insert_string", |b| {
         let context = Context::new();
         let mut counter = 0;
         b.iter(|| {
             counter += 1;
-            context.insert_field_state(format!("field_{}", counter), "value".to_string()).unwrap();
+            context
+                .insert_field_state(format!("field_{}", counter), "value".to_string())
+                .unwrap();
         });
     });
 
     // Benchmark get (existing field)
     group.bench_function("get_existing", |b| {
         let context = Context::new();
-        context.insert_field_state("test".to_string(), "value".to_string()).unwrap();
+        context
+            .insert_field_state("test".to_string(), "value".to_string())
+            .unwrap();
         b.iter(|| {
             let _value: Option<String> = black_box(context.get_field_state("test").unwrap());
         });
@@ -56,7 +60,9 @@ fn bench_field_operations(c: &mut Criterion) {
     // Benchmark type mismatch
     group.bench_function("get_type_mismatch", |b| {
         let context = Context::new();
-        context.insert_field_state("test".to_string(), 42i64).unwrap();
+        context
+            .insert_field_state("test".to_string(), 42i64)
+            .unwrap();
         b.iter(|| {
             let _value: Option<String> = black_box(context.get_field_state("test").unwrap());
         });
@@ -103,8 +109,12 @@ fn bench_context_cloning(c: &mut Criterion) {
     // Benchmark shallow clone (cheap - just Arc clones)
     group.bench_function("shallow_clone", |b| {
         let context = Context::new();
-        context.insert_field_state("field1".to_string(), "value1".to_string()).unwrap();
-        context.insert_field_state("field2".to_string(), 42i64).unwrap();
+        context
+            .insert_field_state("field1".to_string(), "value1".to_string())
+            .unwrap();
+        context
+            .insert_field_state("field2".to_string(), 42i64)
+            .unwrap();
         b.iter(|| {
             let cloned = black_box(context.clone());
             drop(cloned);
@@ -114,8 +124,12 @@ fn bench_context_cloning(c: &mut Criterion) {
     // Benchmark deep clone (expensive - full copy)
     group.bench_function("deep_clone", |b| {
         let context = Context::new();
-        context.insert_field_state("field1".to_string(), "value1".to_string()).unwrap();
-        context.insert_field_state("field2".to_string(), 42i64).unwrap();
+        context
+            .insert_field_state("field1".to_string(), "value1".to_string())
+            .unwrap();
+        context
+            .insert_field_state("field2".to_string(), 42i64)
+            .unwrap();
         b.iter(|| {
             let cloned = black_box(context.deep_clone().unwrap());
             drop(cloned);
@@ -125,12 +139,18 @@ fn bench_context_cloning(c: &mut Criterion) {
     // Benchmark snapshot creation (serialization)
     group.bench_function("create_snapshot", |b| {
         let context = Context::new();
-        context.insert_field_state("field1".to_string(), "value1".to_string()).unwrap();
-        context.insert_field_state("field2".to_string(), 42i64).unwrap();
-        context.register_field_dependency(
-            "field3".to_string(),
-            vec!["field1".to_string(), "field2".to_string()]
-        ).unwrap();
+        context
+            .insert_field_state("field1".to_string(), "value1".to_string())
+            .unwrap();
+        context
+            .insert_field_state("field2".to_string(), 42i64)
+            .unwrap();
+        context
+            .register_field_dependency(
+                "field3".to_string(),
+                vec!["field1".to_string(), "field2".to_string()],
+            )
+            .unwrap();
         b.iter(|| {
             let snapshot = black_box(context.create_snapshot().unwrap());
             drop(snapshot);
@@ -158,7 +178,7 @@ fn bench_context_pool(c: &mut Criterion) {
         let pool = ContextPool::new(1);
         let context = pool.acquire().unwrap();
         pool.release(context).unwrap();
-        
+
         b.iter(|| {
             let context = black_box(pool.acquire().unwrap());
             pool.release(context).unwrap();
@@ -190,14 +210,14 @@ fn bench_scalability(c: &mut Criterion) {
                 b.iter(|| {
                     let context = Context::new();
                     for i in 0..field_count {
-                        context.insert_field_state(
-                            format!("field_{}", i),
-                            format!("value_{}", i)
-                        ).unwrap();
+                        context
+                            .insert_field_state(format!("field_{}", i), format!("value_{}", i))
+                            .unwrap();
                     }
                     // Access all fields
                     for i in 0..field_count {
-                        let _: Option<String> = context.get_field_state(&format!("field_{}", i)).unwrap();
+                        let _: Option<String> =
+                            context.get_field_state(&format!("field_{}", i)).unwrap();
                     }
                 });
             },
@@ -216,19 +236,23 @@ fn bench_dependency_tracking(c: &mut Criterion) {
         let mut counter = 0;
         b.iter(|| {
             counter += 1;
-            context.register_field_dependency(
-                format!("field_{}", counter),
-                vec!["dep1".to_string(), "dep2".to_string(), "dep3".to_string()]
-            ).unwrap();
+            context
+                .register_field_dependency(
+                    format!("field_{}", counter),
+                    vec!["dep1".to_string(), "dep2".to_string(), "dep3".to_string()],
+                )
+                .unwrap();
         });
     });
 
     group.bench_function("get_dependencies", |b| {
         let context = Context::new();
-        context.register_field_dependency(
-            "field".to_string(),
-            vec!["dep1".to_string(), "dep2".to_string(), "dep3".to_string()]
-        ).unwrap();
+        context
+            .register_field_dependency(
+                "field".to_string(),
+                vec!["dep1".to_string(), "dep2".to_string(), "dep3".to_string()],
+            )
+            .unwrap();
         b.iter(|| {
             let deps = black_box(context.get_field_dependencies("field").unwrap());
             drop(deps);
@@ -238,10 +262,12 @@ fn bench_dependency_tracking(c: &mut Criterion) {
     group.bench_function("all_dependencies", |b| {
         let context = Context::new();
         for i in 0..10 {
-            context.register_field_dependency(
-                format!("field_{}", i),
-                vec![format!("dep_{}_1", i), format!("dep_{}_2", i)]
-            ).unwrap();
+            context
+                .register_field_dependency(
+                    format!("field_{}", i),
+                    vec![format!("dep_{}_1", i), format!("dep_{}_2", i)],
+                )
+                .unwrap();
         }
         b.iter(|| {
             let all = black_box(context.all_dependencies().unwrap());

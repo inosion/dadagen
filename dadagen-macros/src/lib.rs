@@ -1,5 +1,5 @@
 //! # Dadagen Procedural Macros
-//! 
+//!
 //! This crate provides procedural macros for compile-time code generation
 //! with the dadagen data generation framework.
 //!
@@ -13,7 +13,7 @@
 //!
 //! ```rust
 //! use dadagen_macros::DataGenerator;
-//! 
+//!
 //! #[derive(DataGenerator, Debug)]
 //! struct User {
 //!     #[dadagen(string(length = 10, charset = "alpha"))]
@@ -63,15 +63,15 @@
 //! ```
 
 use proc_macro::TokenStream;
-use syn::{parse_macro_input, DeriveInput};
+use syn::{DeriveInput, parse_macro_input};
 
+mod field_generators;
 mod generator;
 mod schema;
-mod field_generators;
 mod utils;
 
 /// Derive macro to automatically implement data generator traits
-/// 
+///
 /// This macro analyzes your struct definition and generates appropriate
 /// data generators for each field based on type inference and attributes.
 ///
@@ -91,7 +91,7 @@ mod utils;
 ///
 /// ```rust
 /// use dadagen_macros::DataGenerator;
-/// 
+///
 /// #[derive(DataGenerator, Debug)]
 /// struct Person {
 ///     #[dadagen(string(min_length = 2, max_length = 50))]
@@ -111,7 +111,7 @@ mod utils;
 ///
 /// ```rust
 /// use dadagen_macros::DataGenerator;
-/// 
+///
 /// #[derive(DataGenerator, Debug)]
 /// struct User {
 ///     user_id: u64,
@@ -148,20 +148,20 @@ mod utils;
 #[proc_macro_derive(DataGenerator, attributes(dadagen))]
 pub fn derive_data_generator(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
-    
+
     // Check for debug mode
     if std::env::var("DADAGEN_MACRO_DEBUG").is_ok() {
         eprintln!("=== Dadagen Macro Debug ===");
         eprintln!("Input: {:#?}", input);
     }
-    
+
     match generator::expand_generator_derive(&input) {
         Ok(tokens) => {
             if std::env::var("DADAGEN_MACRO_DEBUG").is_ok() {
                 eprintln!("Generated tokens: {}", tokens);
             }
             tokens.into()
-        },
+        }
         Err(err) => {
             let error = err.to_compile_error();
             if std::env::var("DADAGEN_MACRO_DEBUG").is_ok() {
@@ -173,7 +173,7 @@ pub fn derive_data_generator(input: TokenStream) -> TokenStream {
 }
 
 /// Function-like macro for defining data schemas at compile time
-/// 
+///
 /// This macro provides a DSL-like syntax for defining complete data schemas
 /// including relationships, constraints, and generation strategies.
 ///

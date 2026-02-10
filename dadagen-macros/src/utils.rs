@@ -99,50 +99,50 @@ mod tests {
     fn test_is_option_type() {
         let ty: syn::Type = parse_quote!(Option<String>);
         assert!(is_option_type(&ty));
-        
+
         let ty: syn::Type = parse_quote!(String);
         assert!(!is_option_type(&ty));
     }
-    
+
     #[test]
     fn test_is_vec_type() {
         let ty: syn::Type = parse_quote!(Vec<i32>);
         assert!(is_vec_type(&ty));
-        
+
         let ty: syn::Type = parse_quote!(i32);
         assert!(!is_vec_type(&ty));
     }
-    
+
     #[test]
     fn test_type_name() {
         let ty: syn::Type = parse_quote!(String);
         assert_eq!(type_name(&ty), Some("String".to_string()));
-        
+
         let ty: syn::Type = parse_quote!(Option<i32>);
         assert_eq!(type_name(&ty), Some("Option".to_string()));
     }
-    
+
     #[test]
     fn test_map_type_to_generator() {
         let ty: syn::Type = parse_quote!(String);
         assert_eq!(map_type_to_generator(&ty), Some("string"));
-        
+
         let ty: syn::Type = parse_quote!(i32);
         assert_eq!(map_type_to_generator(&ty), Some("integer"));
-        
+
         let ty: syn::Type = parse_quote!(f64);
         assert_eq!(map_type_to_generator(&ty), Some("float"));
-        
+
         let ty: syn::Type = parse_quote!(bool);
         assert_eq!(map_type_to_generator(&ty), Some("boolean"));
     }
-    
+
     #[test]
     fn test_extract_option_inner() {
         let ty: syn::Type = parse_quote!(Option<String>);
         let inner = extract_option_inner(&ty);
         assert!(inner.is_some());
-        
+
         let ty: syn::Type = parse_quote!(String);
         let inner = extract_option_inner(&ty);
         assert!(inner.is_none());

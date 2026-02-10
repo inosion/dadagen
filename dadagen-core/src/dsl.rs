@@ -1,5 +1,5 @@
-use pest_derive::Parser;
 use crate::ast::Validate;
+use pest_derive::Parser;
 
 #[derive(Parser)]
 #[grammar = "dsl.pest"]
@@ -35,7 +35,6 @@ mod tests {
 
     #[test]
     fn test_dsl_parser() {
-        
         let input = r#""id": number"#;
         let mut result = DslGrammarParser::parse(Rule::dsl, input).unwrap();
         assert_eq!(result.next().unwrap().as_span().as_str(), input);
@@ -92,11 +91,11 @@ mod tests {
         let input = r#""email_address": template "TEST_{{firstname}}{{surname}}@noemail.test""#;
         let mut result = DslGrammarParser::parse(Rule::dsl, input).unwrap();
         assert_eq!(result.next().unwrap().as_span().as_str(), input);
-        
+
         let input = r#""regex_nesty": regexgen "([A-K]{2}|ABC|BAC)[0-9]""#;
         let mut result = DslGrammarParser::parse(Rule::dsl, input).unwrap();
         assert_eq!(result.next().unwrap().as_span().as_str(), input);
-        
+
         let input = r#""choice_with_multiplier": regexgen "([A-K]|LAB){2}""#;
         let mut result = DslGrammarParser::parse(Rule::dsl, input).unwrap();
         assert_eq!(result.next().unwrap().as_span().as_str(), input);
@@ -128,7 +127,7 @@ mod tests {
         let input = r#""street": address property"#;
         let mut result = DslGrammarParser::parse(Rule::dsl, input).unwrap();
         assert_eq!(result.next().unwrap().as_span().as_str(), input);
-        
+
         let input = r#""street": address statecounty"#;
         let mut result = DslGrammarParser::parse(Rule::dsl, input).unwrap();
         assert_eq!(result.next().unwrap().as_span().as_str(), input);
@@ -174,10 +173,8 @@ mod tests {
         let mut result = DslGrammarParser::parse(Rule::dsl, input).unwrap();
         assert_eq!(result.next().unwrap().as_span().as_str(), input);
 
-
         let input = r#""complex_template": template "Something : {{gen:sequence}} {{gen:address town}} {{gen:number(min=1, max=200)}}""#;
         let mut result = DslGrammarParser::parse(Rule::dsl, input).unwrap();
         assert_eq!(result.next().unwrap().as_span().as_str(), input);
-
     }
 }

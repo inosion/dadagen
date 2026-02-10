@@ -1,8 +1,10 @@
-
+use anyhow::{Context as AnyhowContext, Result};
+use calamine::{Data, Reader, Xlsx, open_workbook};
+use csv::ReaderBuilder;
 /// Cross-platform GUI application for dadagen
-/// 
+///
 /// Built with egui for pure Rust native UI across all platforms.
-/// 
+///
 /// Features:
 /// - File upload with drag-and-drop support (CSV, JSON, Excel)
 /// - Data preview and analysis
@@ -10,19 +12,15 @@
 /// - Real-time DSL editing with syntax highlighting
 /// - Data generation preview
 /// - Export functionality for DSL and generated data
-
 use eframe::egui;
-use std::path::PathBuf;
-use std::fs;
-use anyhow::{Result, Context as AnyhowContext};
-use csv::ReaderBuilder;
-use calamine::{Reader, open_workbook, Xlsx, Data};
 use serde_json::Value as JsonValue;
+use std::fs;
+use std::path::PathBuf;
 
 fn main() -> Result<(), eframe::Error> {
     // Set up logging
     tracing_subscriber::fmt::init();
-    
+
     let options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()
             .with_inner_size([1280.0, 800.0])
@@ -31,7 +29,7 @@ fn main() -> Result<(), eframe::Error> {
             .with_drag_and_drop(true),
         ..Default::default()
     };
-    
+
     eframe::run_native(
         "Dadagen",
         options,
@@ -41,7 +39,6 @@ fn main() -> Result<(), eframe::Error> {
             Ok(Box::new(DadagenApp::new(cc)))
         }),
     )
-
 }
 
 #[derive(Default, PartialEq, Eq, Clone, Copy)]
@@ -63,24 +60,24 @@ struct DadagenApp {
     file_path: Option<PathBuf>,
     file_content: String,
     file_type: FileType,
-    
+
     // Parsed data
     parsed_data: ParsedData,
     column_types: Vec<InferredType>,
-    
+
     // DSL generation
     dsl_output: String,
-    
+
     // Generated data
     generated_data: ParsedData,
     is_generating: bool,
     generation_error: Option<String>,
-    
+
     // UI state
     data_view_mode: DataViewMode,
     show_settings: bool,
     show_about: bool,
-    
+
     // Settings
     theme_dark: bool,
     max_preview_rows: usize,
@@ -154,7 +151,7 @@ impl eframe::App for DadagenApp {
         } else {
             ctx.set_visuals(egui::Visuals::light());
         }
-        
+
         // Menu bar
         egui::TopBottomPanel::top("menu_bar").show(ctx, |ui| {
             egui::menu::bar(ui, |ui| {
@@ -177,13 +174,17 @@ impl eframe::App for DadagenApp {
                         ctx.send_viewport_cmd(egui::ViewportCommand::Close);
                     }
                 });
-                
+
                 ui.menu_button("View", |ui| {
                     ui.label("Data View Mode:");
-                    ui.radio_value(&mut self.data_view_mode, DataViewMode::SideBySide, "📊 Side-by-Side");
+                    ui.radio_value(
+                        &mut self.data_view_mode,
+                        DataViewMode::SideBySide,
+                        "📊 Side-by-Side",
+                    );
                     ui.radio_value(&mut self.data_view_mode, DataViewMode::Tabbed, "📑 Tabbed");
                 });
-                
+
                 ui.menu_button("Help", |ui| {
                     if ui.button("📖 Documentation").clicked() {
                         let _ = open::that("https://github.com/inosion/dadagen");
@@ -194,20 +195,20 @@ impl eframe::App for DadagenApp {
                         ui.close_menu();
                     }
                 });
-                
+
                 // Spacer
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                     ui.label("Dadagen v0.1.0");
                 });
             });
         });
-        
+
         // Main unified layout
         egui::CentralPanel::default().show(ctx, |ui| {
             // Top section: DSL Editor (35% of window height)
             let total_height = ui.available_height();
             let dsl_height = total_height * 0.35;
-            
+
             ui.vertical(|ui| {
                 // DSL Editor Section
                 ui.group(|ui| {
@@ -215,23 +216,31 @@ impl eframe::App for DadagenApp {
                     ui.vertical(|ui| {
                         ui.horizontal(|ui| {
                             ui.heading("🔧 DSL Configuration");
-                            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                                if ui.button("📋 Copy").clicked() {
-                                    ui.output_mut(|o| o.copied_text = self.dsl_output.clone());
-                                }
-                                if ui.button("💾 Save").clicked() {
-                                    self.save_dsl();
-                                }
-                            });
+                            ui.with_layout(
+                                egui::Layout::right_to_left(egui::Align::Center),
+                                |ui| {
+                                    if ui.button("📋 Copy").clicked() {
+                                        ui.output_mut(|o| o.copied_text = self.dsl_output.clone());
+                                    }
+                                    if ui.button("💾 Save").clicked() {
+                                        self.save_dsl();
+                                    }
+                                },
+                            );
                         });
-                        
+
                         ui.separator();
-                        
+
                         if self.dsl_output.is_empty() {
                             ui.vertical_centered(|ui| {
                                 ui.add_space(dsl_height * 0.3);
                                 ui.label(egui::RichText::new("No DSL generated yet").weak());
-                                ui.label(egui::RichText::new("Open a file to automatically generate a DSL schema").weak());
+                                ui.label(
+                                    egui::RichText::new(
+                                        "Open a file to automatically generate a DSL schema",
+                                    )
+                                    .weak(),
+                                );
                             });
                         } else {
                             egui::ScrollArea::vertical()
@@ -241,13 +250,13 @@ impl eframe::App for DadagenApp {
                                     ui.add(
                                         egui::TextEdit::multiline(&mut self.dsl_output)
                                             .code_editor()
-                                            .desired_width(f32::INFINITY)
+                                            .desired_width(f32::INFINITY),
                                     );
                                 });
                         }
                     });
                 });
-                
+
                 ui.add_space(5.0);
 
                 // Middle Section: Controls
@@ -257,20 +266,25 @@ impl eframe::App for DadagenApp {
                         if ui.button("💾 Export Data").clicked() {
                             self.export_generated_data();
                         }
-                        
+
                         ui.separator();
 
                         if self.is_generating {
                             ui.spinner();
                             ui.label("Generating...");
                         } else {
-                            ui.add(egui::DragValue::new(&mut self.generate_row_count)
-                                .speed(10)
-                                .range(1..=10000)
-                                .prefix("Rows: "));
-                            
+                            ui.add(
+                                egui::DragValue::new(&mut self.generate_row_count)
+                                    .speed(10)
+                                    .range(1..=10000)
+                                    .prefix("Rows: "),
+                            );
+
                             let button = egui::Button::new("🎲 Generate Fake Data");
-                            if ui.add_enabled(!self.dsl_output.is_empty(), button).clicked() {
+                            if ui
+                                .add_enabled(!self.dsl_output.is_empty(), button)
+                                .clicked()
+                            {
                                 self.generate_fake_data();
                             }
                         }
@@ -278,31 +292,31 @@ impl eframe::App for DadagenApp {
                 });
 
                 ui.add_space(5.0);
-                
+
                 // Bottom section: Data Views
                 ui.group(|ui| {
                     let container_h = ui.available_height();
                     ui.set_height(container_h);
-                    
+
                     ui.vertical(|ui| {
                         ui.set_height(container_h);
                         match self.data_view_mode {
                             DataViewMode::SideBySide => {
                                 let avail_h = ui.available_height();
                                 let avail_w = ui.available_width();
-                                
+
                                 ui.horizontal(|ui| {
                                     ui.set_height(avail_h);
-                                    
+
                                     // Left: Original Data
                                     ui.vertical(|ui| {
                                         ui.set_width(avail_w * 0.5 - 4.0);
                                         ui.set_height(avail_h);
                                         self.show_original_data_panel(ui, avail_h);
                                     });
-                                    
+
                                     ui.separator();
-                                    
+
                                     // Right: Generated Data
                                     ui.vertical(|ui| {
                                         ui.set_width(ui.available_width());
@@ -314,15 +328,27 @@ impl eframe::App for DadagenApp {
                             DataViewMode::Tabbed => {
                                 ui.vertical(|ui| {
                                     ui.horizontal(|ui| {
-                                        if ui.selectable_label(self.tab_selected == TabbedDataView::Original, "📄 Original Data").clicked() {
+                                        if ui
+                                            .selectable_label(
+                                                self.tab_selected == TabbedDataView::Original,
+                                                "📄 Original Data",
+                                            )
+                                            .clicked()
+                                        {
                                             self.tab_selected = TabbedDataView::Original;
                                         }
-                                        if ui.selectable_label(self.tab_selected == TabbedDataView::Generated, "✨ Generated Data").clicked() {
+                                        if ui
+                                            .selectable_label(
+                                                self.tab_selected == TabbedDataView::Generated,
+                                                "✨ Generated Data",
+                                            )
+                                            .clicked()
+                                        {
                                             self.tab_selected = TabbedDataView::Generated;
                                         }
                                     });
                                     ui.separator();
-                                    
+
                                     let avail_h = ui.available_height();
                                     match self.tab_selected {
                                         TabbedDataView::Original => {
@@ -339,17 +365,17 @@ impl eframe::App for DadagenApp {
                 });
             });
         });
-        
+
         // Settings dialog
         if self.show_settings {
             self.show_settings_dialog(ctx);
         }
-        
-        // About dialog  
+
+        // About dialog
         if self.show_about {
             self.show_about_dialog(ctx);
         }
-        
+
         // Handle drag and drop
         self.handle_drag_drop(ctx);
     }
@@ -368,18 +394,25 @@ impl DadagenApp {
                     }
                 });
             });
-            
+
             ui.separator();
-            
+
             if let Some(path) = &self.file_path {
-                ui.label(egui::RichText::new(format!("File: {}", path.file_name().unwrap().to_string_lossy()))
-                    .strong());
-                ui.label(format!("Rows: {} | Columns: {}", 
+                ui.label(
+                    egui::RichText::new(format!(
+                        "File: {}",
+                        path.file_name().unwrap().to_string_lossy()
+                    ))
+                    .strong(),
+                );
+                ui.label(format!(
+                    "Rows: {} | Columns: {}",
                     self.parsed_data.total_rows,
-                    self.parsed_data.headers.len()));
+                    self.parsed_data.headers.len()
+                ));
                 ui.add_space(5.0);
             }
-            
+
             // Data table
             if !self.parsed_data.headers.is_empty() {
                 egui::ScrollArea::both()
@@ -394,34 +427,40 @@ impl DadagenApp {
                     ui.add_space(panel_height * 0.3);
                     ui.label(egui::RichText::new("📁 No file loaded").size(18.0).weak());
                     ui.label(egui::RichText::new("Drag & drop a file or click 'Open File'").weak());
-                    ui.label(egui::RichText::new("Supported: CSV, JSON, Excel").small().weak());
+                    ui.label(
+                        egui::RichText::new("Supported: CSV, JSON, Excel")
+                            .small()
+                            .weak(),
+                    );
                 });
             }
         });
     }
-    
+
     fn show_generated_data_panel(&mut self, ui: &mut egui::Ui, panel_height: f32) {
         ui.vertical(|ui| {
             ui.set_height(panel_height);
             ui.horizontal(|ui| {
                 ui.heading("✨ Generated Data");
             });
-            
+
             ui.separator();
-            
+
             // Show error if any
             if let Some(error) = &self.generation_error {
                 ui.colored_label(egui::Color32::RED, format!("❌ Error: {}", error));
                 ui.add_space(5.0);
             }
-            
+
             // Show generated data
             if !self.generated_data.headers.is_empty() {
-                ui.label(format!("Generated {} rows with {} columns", 
+                ui.label(format!(
+                    "Generated {} rows with {} columns",
                     self.generated_data.rows.len(),
-                    self.generated_data.headers.len()));
+                    self.generated_data.headers.len()
+                ));
                 ui.add_space(5.0);
-                
+
                 egui::ScrollArea::both()
                     .id_salt("generated_data_scroll")
                     .auto_shrink([false; 2])
@@ -434,70 +473,85 @@ impl DadagenApp {
             } else if !self.is_generating && self.generation_error.is_none() {
                 ui.vertical_centered(|ui| {
                     ui.add_space(panel_height * 0.3);
-                    ui.label(egui::RichText::new("✨ No data generated yet").size(18.0).weak());
+                    ui.label(
+                        egui::RichText::new("✨ No data generated yet")
+                            .size(18.0)
+                            .weak(),
+                    );
                     if self.dsl_output.is_empty() {
                         ui.label(egui::RichText::new("Load a file to generate DSL first").weak());
                     } else {
-                        ui.label(egui::RichText::new("Click 'Generate' to create fake data").weak());
+                        ui.label(
+                            egui::RichText::new("Click 'Generate' to create fake data").weak(),
+                        );
                     }
                 });
             }
         });
     }
-    
+
     fn show_data_table(&self, ui: &mut egui::Ui, data: &ParsedData, types: &[InferredType]) {
-        use egui_extras::{TableBuilder, Column};
-        
+        use egui_extras::{Column, TableBuilder};
+
         if data.headers.is_empty() {
             return;
         }
 
-        ui.push_id(if types.is_empty() { "gen_table" } else { "orig_table" }, |ui| {
-            let table = TableBuilder::new(ui)
+        ui.push_id(
+            if types.is_empty() {
+                "gen_table"
+            } else {
+                "orig_table"
+            },
+            |ui| {
+                let table = TableBuilder::new(ui)
                     .striped(true)
                     .resizable(true)
                     .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
                     .columns(Column::auto(), data.headers.len())
                     .min_scrolled_height(0.0)
                     .vscroll(false); // Let the outer ScrollArea handle scrolling
-                            
-            table.header(25.0, |mut header| {
-                    for (idx, col_name) in data.headers.iter().enumerate() {
-                        header.col(|ui| {
-                            ui.vertical_centered(|ui| {
-                                ui.strong(col_name);
-                                // Show inferred type if available
-                                if let Some(col_type) = types.get(idx) {
-                                    let type_str = match col_type {
-                                        InferredType::String => "String",
-                                        InferredType::Integer => "Integer",
-                                        InferredType::Float => "Float",
-                                        InferredType::Boolean => "Boolean",
-                                        InferredType::Date => "Date",
-                                        InferredType::Email => "Email",
-                                        InferredType::Url => "URL",
-                                        InferredType::Unknown => "Unknown",
-                                    };
-                                    ui.small(format!("({})", type_str));
-                                }
-                            });
-                        });
-                    }
-                }).body(|body| {
-                    body.rows(20.0, data.rows.len(), |mut row| {
-                        let row_index = row.index();
-                        if let Some(data_row) = data.rows.get(row_index) {
-                            for cell in data_row {
-                                row.col(|ui| {
-                                    ui.label(cell);
+
+                table
+                    .header(25.0, |mut header| {
+                        for (idx, col_name) in data.headers.iter().enumerate() {
+                            header.col(|ui| {
+                                ui.vertical_centered(|ui| {
+                                    ui.strong(col_name);
+                                    // Show inferred type if available
+                                    if let Some(col_type) = types.get(idx) {
+                                        let type_str = match col_type {
+                                            InferredType::String => "String",
+                                            InferredType::Integer => "Integer",
+                                            InferredType::Float => "Float",
+                                            InferredType::Boolean => "Boolean",
+                                            InferredType::Date => "Date",
+                                            InferredType::Email => "Email",
+                                            InferredType::Url => "URL",
+                                            InferredType::Unknown => "Unknown",
+                                        };
+                                        ui.small(format!("({})", type_str));
+                                    }
                                 });
-                            }
+                            });
                         }
+                    })
+                    .body(|body| {
+                        body.rows(20.0, data.rows.len(), |mut row| {
+                            let row_index = row.index();
+                            if let Some(data_row) = data.rows.get(row_index) {
+                                for cell in data_row {
+                                    row.col(|ui| {
+                                        ui.label(cell);
+                                    });
+                                }
+                            }
+                        });
                     });
-                });
-        });
+            },
+        );
     }
-    
+
     fn show_settings_dialog(&mut self, ctx: &egui::Context) {
         egui::Window::new("⚙️ Settings")
             .collapsible(false)
@@ -509,17 +563,17 @@ impl DadagenApp {
                     ui.radio_value(&mut self.theme_dark, true, "🌙 Dark");
                     ui.radio_value(&mut self.theme_dark, false, "☀️ Light");
                 });
-                
+
                 ui.add_space(10.0);
                 ui.separator();
                 ui.add_space(10.0);
-                
+
                 if ui.button("Close").clicked() {
                     self.show_settings = false;
                 }
             });
     }
-    
+
     fn show_about_dialog(&mut self, ctx: &egui::Context) {
         egui::Window::new("ℹ️ About Dadagen")
             .collapsible(false)
@@ -534,15 +588,15 @@ impl DadagenApp {
                     ui.add_space(10.0);
                     ui.hyperlink_to("GitHub", "https://github.com/inosion/dadagen");
                 });
-                
+
                 ui.add_space(10.0);
-                
+
                 if ui.button("Close").clicked() {
                     self.show_about = false;
                 }
             });
     }
-    
+
     // File operations
     fn open_file(&mut self) {
         if let Some(path) = rfd::FileDialog::new()
@@ -564,7 +618,7 @@ impl DadagenApp {
             Some("xlsx") | Some("xls") => FileType::Excel,
             _ => FileType::Unknown,
         };
-        
+
         // Parse the file based on type
         let parse_result = match self.file_type {
             FileType::Csv => self.parse_csv(&path),
@@ -575,7 +629,10 @@ impl DadagenApp {
                 match fs::read_to_string(&path) {
                     Ok(content) => {
                         self.file_content = if content.len() > 10000 {
-                            format!("{}...\n\n[File truncated, showing first 10KB]", &content[..10000])
+                            format!(
+                                "{}...\n\n[File truncated, showing first 10KB]",
+                                &content[..10000]
+                            )
                         } else {
                             content
                         };
@@ -585,7 +642,7 @@ impl DadagenApp {
                 }
             }
         };
-        
+
         match parse_result {
             Ok(_) => {
                 self.file_path = Some(path);
@@ -602,106 +659,136 @@ impl DadagenApp {
             }
         }
     }
-    
+
     fn generate_dsl(&mut self) {
         if self.parsed_data.headers.is_empty() {
             return;
         }
-        
-        let file_name = self.file_path.as_ref()
+
+        let file_name = self
+            .file_path
+            .as_ref()
             .and_then(|p| p.file_stem())
             .and_then(|n| n.to_str())
             .unwrap_or("data");
-        
+
         let mut dsl = String::new();
-        
+
         // Header
         dsl.push_str(&format!(
             "# Dadagen DSL Configuration\n\
              # Auto-generated from: {}\n\
              # Date: {}\n\
              # Total rows in source: {}\n\n",
-            self.file_path.as_ref()
+            self.file_path
+                .as_ref()
                 .and_then(|p| p.file_name())
                 .and_then(|n| n.to_str())
                 .unwrap_or("unknown"),
             chrono::Local::now().format("%Y-%m-%d %H:%M:%S"),
             self.parsed_data.total_rows
         ));
-        
+
         // Schema definition
         dsl.push_str(&format!("schema {} {{\n", file_name));
-        
+
         // Generate field definitions based on inferred types
         for (idx, header) in self.parsed_data.headers.iter().enumerate() {
-            let field_name = header
-                .replace(" ", "_")
-                .replace("-", "_")
-                .to_lowercase();
-            
+            let field_name = header.replace(" ", "_").replace("-", "_").to_lowercase();
+
             let field_def = if let Some(col_type) = self.column_types.get(idx) {
                 match col_type {
                     InferredType::Integer => {
                         // Sample min/max from data
                         let (min, max) = self.get_number_range(idx);
-                        format!("  \"{}\": number(min={}, max={}),", 
-                            field_name, min.unwrap_or(0), max.unwrap_or(1000))
+                        format!(
+                            "  \"{}\": number(min={}, max={}),",
+                            field_name,
+                            min.unwrap_or(0),
+                            max.unwrap_or(1000)
+                        )
                     }
                     InferredType::Float => {
                         let (min, max) = self.get_number_range(idx);
-                        format!("  \"{}\": number(min={}, max={}),", 
-                            field_name, min.unwrap_or(0), max.unwrap_or(1000))
+                        format!(
+                            "  \"{}\": number(min={}, max={}),",
+                            field_name,
+                            min.unwrap_or(0),
+                            max.unwrap_or(1000)
+                        )
                     }
                     InferredType::Boolean => {
                         format!("  \"{}\": boolean,", field_name)
                     }
                     InferredType::Email => {
-                        format!("  \"{}\": regexgen \"[a-z]{{5,10}}@[a-z]{{3,8}}\\.com\",", field_name)
+                        format!(
+                            "  \"{}\": regexgen \"[a-z]{{5,10}}@[a-z]{{3,8}}\\.com\",",
+                            field_name
+                        )
                     }
                     InferredType::Url => {
-                        format!("  \"{}\": template \"https://example.com/{{id}}\",", field_name)
+                        format!(
+                            "  \"{}\": template \"https://example.com/{{id}}\",",
+                            field_name
+                        )
                     }
                     InferredType::Date => {
-                        format!("  \"{}\": regexgen \"20[0-2][0-9]-[0-1][0-9]-[0-3][0-9]\",", field_name)
+                        format!(
+                            "  \"{}\": regexgen \"20[0-2][0-9]-[0-1][0-9]-[0-3][0-9]\",",
+                            field_name
+                        )
                     }
                     InferredType::String | InferredType::Unknown => {
                         // Check if it could be from a list
                         let unique_values = self.get_unique_values(idx);
                         if unique_values.len() <= 10 && unique_values.len() > 1 {
                             // Looks like categorical data
-                            let quoted_values: Vec<String> = unique_values.iter()
-                                .map(|v| format!("\"{}\"", v))
-                                .collect();
-                            format!("  \"{}\": choice({}),", field_name, quoted_values.join(", "))
+                            let quoted_values: Vec<String> =
+                                unique_values.iter().map(|v| format!("\"{}\"", v)).collect();
+                            format!(
+                                "  \"{}\": choice({}),",
+                                field_name,
+                                quoted_values.join(", ")
+                            )
                         } else {
                             // Check average length for string pattern
                             let avg_len = self.get_average_string_length(idx);
-                            format!("  \"{}\": regexgen \"[A-Za-z0-9 ]{{5,{}}}\",", 
-                                field_name, avg_len.max(10))
+                            format!(
+                                "  \"{}\": regexgen \"[A-Za-z0-9 ]{{5,{}}}\",",
+                                field_name,
+                                avg_len.max(10)
+                            )
                         }
                     }
                 }
             } else {
                 format!("  \"{}\": string,", field_name)
             };
-            
+
             dsl.push_str(&field_def);
             dsl.push('\n');
         }
-        
+
         dsl.push_str("}\n\n");
         dsl.push_str("# Usage:\n");
-        dsl.push_str("#   dadagen generate <schema_file> --output data.csv --count 100 --format csv\n");
-        dsl.push_str("#   dadagen generate <schema_file> --output data.json --count 100 --format json\n");
-        
+        dsl.push_str(
+            "#   dadagen generate <schema_file> --output data.csv --count 100 --format csv\n",
+        );
+        dsl.push_str(
+            "#   dadagen generate <schema_file> --output data.json --count 100 --format json\n",
+        );
+
         self.dsl_output = dsl;
-        tracing::info!("Generated DSL with {} fields", self.parsed_data.headers.len());
+        tracing::info!(
+            "Generated DSL with {} fields",
+            self.parsed_data.headers.len()
+        );
     }
-    
+
     fn get_number_range(&self, col_idx: usize) -> (Option<i64>, Option<i64>) {
         let mut min: Option<i64> = None;
         let mut max: Option<i64> = None;
-        
+
         for row in &self.parsed_data.rows {
             if let Some(val) = row.get(col_idx) {
                 if let Ok(num) = val.parse::<i64>() {
@@ -710,13 +797,13 @@ impl DadagenApp {
                 }
             }
         }
-        
+
         (min, max)
     }
-    
+
     fn get_unique_values(&self, col_idx: usize) -> Vec<String> {
         use std::collections::HashSet;
-        
+
         let mut unique: HashSet<String> = HashSet::new();
         for row in &self.parsed_data.rows {
             if let Some(val) = row.get(col_idx) {
@@ -725,33 +812,33 @@ impl DadagenApp {
                 }
             }
         }
-        
+
         unique.into_iter().collect()
     }
-    
+
     fn get_average_string_length(&self, col_idx: usize) -> usize {
         let mut total = 0;
         let mut count = 0;
-        
+
         for row in &self.parsed_data.rows {
             if let Some(val) = row.get(col_idx) {
                 total += val.len();
                 count += 1;
             }
         }
-        
+
         if count > 0 {
             (total / count).max(10)
         } else {
             20
         }
     }
-    
+
     fn save_dsl(&self) {
         if self.dsl_output.is_empty() {
             return;
         }
-        
+
         if let Some(path) = rfd::FileDialog::new()
             .add_filter("Dadagen DSL", &["dadagen"])
             .set_file_name("generated.dadagen")
@@ -767,14 +854,14 @@ impl DadagenApp {
             }
         }
     }
-    
+
     fn generate_fake_data(&mut self) {
-        use dadagen_core::{parser::parse_dsl, Context, generator_registry::GeneratorRegistry};
-        
+        use dadagen_core::{Context, generator_registry::GeneratorRegistry, parser::parse_dsl};
+
         self.is_generating = true;
         self.generation_error = None;
         self.generated_data = ParsedData::default();
-        
+
         // Parse DSL
         let doc = match parse_dsl(&self.dsl_output) {
             Ok(doc) => doc,
@@ -784,21 +871,37 @@ impl DadagenApp {
                 return;
             }
         };
-        
+
         // Create generator registry
         let registry = GeneratorRegistry::new();
-        
+
         // Generate data
         let mut headers = Vec::new();
         let mut rows = Vec::new();
-        
+
         // Extract field names for headers
         for field_def in &doc.fields {
             headers.push(field_def.name.clone());
         }
-        
+
+        // Instantiate generators for all fields once
+        let mut generators = Vec::new();
+        for field_def in &doc.fields {
+            match registry.create_from_ast(&field_def.generator) {
+                Ok(generator) => generators.push(generator),
+                Err(e) => {
+                    self.generation_error = Some(format!(
+                        "Generator creation error for field '{}': {}",
+                        field_def.name, e
+                    ));
+                    self.is_generating = false;
+                    return;
+                }
+            }
+        }
+
         // Use a single context and increment iteration once per row
-        let mut context = Context::new();
+        let context = Context::new();
         for _ in 0..self.generate_row_count {
             if let Err(e) = context.increment_iteration() {
                 self.generation_error = Some(format!("Context error: {}", e));
@@ -806,20 +909,15 @@ impl DadagenApp {
                 return;
             }
             let mut row = Vec::new();
-            for field_def in &doc.fields {
-                match registry.create_from_ast(&field_def.generator) {
-                    Ok(generator) => {
-                        match generator.generate(&mut context) {
-                            Ok(value) => row.push(value),
-                            Err(e) => {
-                                self.generation_error = Some(format!("Generation error for field '{}': {}", field_def.name, e));
-                                self.is_generating = false;
-                                return;
-                            }
-                        }
-                    }
+            for (i, generator) in generators.iter().enumerate() {
+                match generator.generate(&context) {
+                    Ok(value) => row.push(value),
                     Err(e) => {
-                        self.generation_error = Some(format!("Generator creation error for field '{}': {}", field_def.name, e));
+                        let field_name = &doc.fields[i].name;
+                        self.generation_error = Some(format!(
+                            "Generation error for field '{}': {}",
+                            field_name, e
+                        ));
                         self.is_generating = false;
                         return;
                     }
@@ -827,23 +925,23 @@ impl DadagenApp {
             }
             rows.push(row);
         }
-        
+
         self.generated_data = ParsedData {
             headers,
             rows,
             total_rows: self.generate_row_count,
         };
-        
+
         self.tab_selected = TabbedDataView::Generated;
         self.is_generating = false;
         tracing::info!("Generated {} rows of fake data", self.generate_row_count);
     }
-    
+
     fn export_generated_data(&self) {
         if self.generated_data.headers.is_empty() {
             return;
         }
-        
+
         if let Some(path) = rfd::FileDialog::new()
             .add_filter("CSV Files", &["csv"])
             .add_filter("JSON Files", &["json"])
@@ -851,41 +949,41 @@ impl DadagenApp {
             .save_file()
         {
             let extension = path.extension().and_then(|e| e.to_str()).unwrap_or("csv");
-            
+
             let result = match extension {
                 "json" => self.export_as_json(&path),
                 _ => self.export_as_csv(&path),
             };
-            
+
             match result {
                 Ok(_) => tracing::info!("Data exported to: {}", path.display()),
                 Err(e) => tracing::error!("Export error: {}", e),
             }
         }
     }
-    
+
     fn export_as_csv(&self, path: &PathBuf) -> Result<()> {
         use csv::Writer;
-        
+
         let mut writer = Writer::from_path(path)?;
-        
+
         // Write headers
         writer.write_record(&self.generated_data.headers)?;
-        
+
         // Write rows
         for row in &self.generated_data.rows {
             writer.write_record(row)?;
         }
-        
+
         writer.flush()?;
         Ok(())
     }
-    
+
     fn export_as_json(&self, path: &PathBuf) -> Result<()> {
-        use serde_json::{json, Value};
-        
+        use serde_json::{Value, json};
+
         let mut records: Vec<Value> = Vec::new();
-        
+
         for row in &self.generated_data.rows {
             let mut obj = serde_json::Map::new();
             for (idx, header) in self.generated_data.headers.iter().enumerate() {
@@ -899,7 +997,7 @@ impl DadagenApp {
         std::fs::write(path, json_output)?;
         Ok(())
     }
-    
+
     fn handle_drag_drop(&mut self, ctx: &egui::Context) {
         ctx.input(|i| {
             if !i.raw.dropped_files.is_empty() {
@@ -911,28 +1009,29 @@ impl DadagenApp {
             }
         });
     }
-    
+
     // File parsing implementations
     fn parse_csv(&mut self, path: &PathBuf) -> Result<()> {
         let file_content = fs::read_to_string(path)
             .with_context(|| format!("Failed to read CSV file: {}", path.display()))?;
-        
+
         let mut reader = ReaderBuilder::new()
             .has_headers(true)
             .flexible(true)
             .from_reader(file_content.as_bytes());
-        
+
         // Read headers
-        let headers = reader.headers()
+        let headers = reader
+            .headers()
             .context("Failed to read CSV headers")?
             .iter()
             .map(|h| h.to_string())
             .collect::<Vec<_>>();
-        
+
         // Read rows (limit to max_preview_rows for performance)
         let mut rows = Vec::new();
         let mut total_rows = 0;
-        
+
         for result in reader.records() {
             total_rows += 1;
             if rows.len() < self.max_preview_rows {
@@ -940,13 +1039,13 @@ impl DadagenApp {
                 rows.push(record.iter().map(|s| s.to_string()).collect());
             }
         }
-        
+
         self.parsed_data = ParsedData {
             headers,
             rows,
             total_rows,
         };
-        
+
         // Update file content preview
         self.file_content = format!(
             "CSV file with {} columns and {} rows\nShowing first {} rows\n\nColumns: {}",
@@ -955,37 +1054,38 @@ impl DadagenApp {
             self.parsed_data.rows.len(),
             self.parsed_data.headers.join(", ")
         );
-        
+
         Ok(())
     }
-    
+
     fn parse_json(&mut self, path: &PathBuf) -> Result<()> {
         let file_content = fs::read_to_string(path)
             .with_context(|| format!("Failed to read JSON file: {}", path.display()))?;
-        
-        let json: JsonValue = serde_json::from_str(&file_content)
-            .context("Failed to parse JSON")?;
-        
+
+        let json: JsonValue =
+            serde_json::from_str(&file_content).context("Failed to parse JSON")?;
+
         // Convert JSON to tabular format
         match json {
             JsonValue::Array(arr) => {
                 if arr.is_empty() {
                     return Err(anyhow::anyhow!("JSON array is empty"));
                 }
-                
+
                 // Extract headers from first object
                 if let Some(JsonValue::Object(first_obj)) = arr.first() {
                     let headers: Vec<String> = first_obj.keys().cloned().collect();
-                    
+
                     // Extract rows
                     let mut rows = Vec::new();
                     for (idx, item) in arr.iter().enumerate() {
                         if idx >= self.max_preview_rows {
                             break;
                         }
-                        
+
                         if let JsonValue::Object(obj) = item {
-                            let row: Vec<String> = headers.iter()
+                            let row: Vec<String> = headers
+                                .iter()
                                 .map(|h| {
                                     obj.get(h)
                                         .map(|v| match v {
@@ -1001,13 +1101,13 @@ impl DadagenApp {
                             rows.push(row);
                         }
                     }
-                    
+
                     self.parsed_data = ParsedData {
                         headers,
                         rows,
                         total_rows: arr.len(),
                     };
-                    
+
                     self.file_content = format!(
                         "JSON array with {} objects\nShowing first {} objects\n\nFields: {}",
                         arr.len(),
@@ -1019,35 +1119,41 @@ impl DadagenApp {
                 }
             }
             JsonValue::Object(_) => {
-                return Err(anyhow::anyhow!("JSON object not supported yet. Please provide an array of objects."));
+                return Err(anyhow::anyhow!(
+                    "JSON object not supported yet. Please provide an array of objects."
+                ));
             }
             _ => {
-                return Err(anyhow::anyhow!("Unsupported JSON format. Expected array of objects."));
+                return Err(anyhow::anyhow!(
+                    "Unsupported JSON format. Expected array of objects."
+                ));
             }
         }
-        
+
         Ok(())
     }
-    
+
     fn parse_excel(&mut self, path: &PathBuf) -> Result<()> {
         let mut workbook: Xlsx<_> = open_workbook(path)
             .with_context(|| format!("Failed to open Excel file: {}", path.display()))?;
-        
+
         // Get first sheet
         let sheet_names = workbook.sheet_names();
         if sheet_names.is_empty() {
             return Err(anyhow::anyhow!("Excel file has no sheets"));
         }
-        
+
         let sheet_name = sheet_names[0].clone();
-        let range = workbook.worksheet_range(&sheet_name)
+        let range = workbook
+            .worksheet_range(&sheet_name)
             .with_context(|| format!("Failed to read sheet: {}", sheet_name))?;
-        
+
         let mut rows_iter = range.rows();
-        
+
         // Extract headers from first row
         let headers = if let Some(header_row) = rows_iter.next() {
-            header_row.iter()
+            header_row
+                .iter()
                 .map(|cell| match cell {
                     Data::String(s) => s.clone(),
                     Data::Int(i) => i.to_string(),
@@ -1063,15 +1169,16 @@ impl DadagenApp {
         } else {
             return Err(anyhow::anyhow!("Excel sheet is empty"));
         };
-        
+
         // Extract data rows
         let mut rows = Vec::new();
         let mut total_rows = 0;
-        
+
         for row in rows_iter {
             total_rows += 1;
             if rows.len() < self.max_preview_rows {
-                let row_data: Vec<String> = row.iter()
+                let row_data: Vec<String> = row
+                    .iter()
                     .map(|cell| match cell {
                         Data::String(s) => s.clone(),
                         Data::Int(i) => i.to_string(),
@@ -1087,13 +1194,13 @@ impl DadagenApp {
                 rows.push(row_data);
             }
         }
-        
+
         self.parsed_data = ParsedData {
             headers,
             rows,
             total_rows,
         };
-        
+
         self.file_content = format!(
             "Excel file: {}\nColumns: {}, Rows: {}\nShowing first {} rows\n\nColumns: {}",
             sheet_name,
@@ -1102,20 +1209,20 @@ impl DadagenApp {
             self.parsed_data.rows.len(),
             self.parsed_data.headers.join(", ")
         );
-        
+
         Ok(())
     }
-    
+
     // Type inference
     fn infer_column_types(&self) -> Vec<InferredType> {
         let mut types = vec![InferredType::Unknown; self.parsed_data.headers.len()];
-        
+
         // Sample first N rows for type inference
         let sample_size = self.parsed_data.rows.len().min(100);
-        
+
         for col_idx in 0..self.parsed_data.headers.len() {
             let mut sample_values: Vec<&str> = Vec::new();
-            
+
             for row in self.parsed_data.rows.iter().take(sample_size) {
                 if let Some(val) = row.get(col_idx) {
                     if !val.is_empty() {
@@ -1123,58 +1230,61 @@ impl DadagenApp {
                     }
                 }
             }
-            
+
             if sample_values.is_empty() {
                 continue;
             }
-            
+
             types[col_idx] = self.infer_type_from_samples(&sample_values);
         }
-        
+
         types
     }
-    
+
     fn infer_type_from_samples(&self, samples: &[&str]) -> InferredType {
         if samples.is_empty() {
             return InferredType::Unknown;
         }
-        
+
         let mut all_integers = true;
         let mut all_floats = true;
         let mut all_bools = true;
         let mut all_emails = true;
         let mut all_urls = true;
         let mut all_dates = true;
-        
+
         for &sample in samples {
             // Check integer
             if all_integers && sample.parse::<i64>().is_err() {
                 all_integers = false;
             }
-            
+
             // Check float
             if all_floats && sample.parse::<f64>().is_err() {
                 all_floats = false;
             }
-            
+
             // Check boolean
             if all_bools {
                 let lower = sample.to_lowercase();
-                if !matches!(lower.as_str(), "true" | "false" | "yes" | "no" | "1" | "0" | "t" | "f") {
+                if !matches!(
+                    lower.as_str(),
+                    "true" | "false" | "yes" | "no" | "1" | "0" | "t" | "f"
+                ) {
                     all_bools = false;
                 }
             }
-            
+
             // Check email (simple check)
             if all_emails && !(sample.contains('@') && sample.contains('.')) {
                 all_emails = false;
             }
-            
+
             // Check URL (simple check)
             if all_urls && !sample.starts_with("http://") && !sample.starts_with("https://") {
                 all_urls = false;
             }
-            
+
             // Check date (simple patterns)
             if all_dates {
                 let has_dash = sample.matches('-').count() >= 2;
@@ -1184,7 +1294,7 @@ impl DadagenApp {
                 }
             }
         }
-        
+
         // Return most specific type
         match () {
             _ if all_bools => InferredType::Boolean,

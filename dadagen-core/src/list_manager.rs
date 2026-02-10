@@ -2,8 +2,8 @@ use crate::config::DadagenConfig;
 use anyhow::{Context, Result};
 use csv::{Error, ReaderBuilder};
 use lazy_static::lazy_static;
-use rand::thread_rng;
 use rand::Rng;
+use rand::thread_rng;
 use serde_yaml;
 use std::collections::HashMap;
 use std::env;
@@ -49,7 +49,7 @@ impl ListManager {
     pub fn import_data_with_discriminator(
         &self,
         list_name: &str,
-        values: Vec<(String,String)>, // rows of Value + Discriminator
+        values: Vec<(String, String)>, // rows of Value + Discriminator
     ) {
         if !self.list_data.write().unwrap().contains_key(list_name) {
             self.list_data
@@ -272,10 +272,7 @@ impl DadagenConfigSupport {
                         tuple_values.push((value.clone(), discriminator.clone()));
                     }
                 }
-                GLOBAL_LIST_MANAGER.import_data_with_discriminator(
-                    list_key_name,
-                    tuple_values,
-                );
+                GLOBAL_LIST_MANAGER.import_data_with_discriminator(list_key_name, tuple_values);
             }
         }
 
@@ -303,7 +300,6 @@ impl DadagenConfigSupport {
     }
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -314,27 +310,51 @@ mod tests {
     fn test_import_file() {
         // Clear any existing data to ensure test isolation
         GLOBAL_LIST_MANAGER.list_data.write().unwrap().clear();
-        
+
         let file_contents = "foo\nbar\nbaz\n";
         let mut file = NamedTempFile::new().unwrap();
         write!(file, "{}", file_contents).unwrap();
         let file_path = file.path().to_str().unwrap();
 
-        GLOBAL_LIST_MANAGER.import_file("test_list", file_path).unwrap();
+        GLOBAL_LIST_MANAGER
+            .import_file("test_list", file_path)
+            .unwrap();
 
         let list_data = GLOBAL_LIST_MANAGER.list_data.read().unwrap();
-        assert_eq!(list_data.get("test_list"), Some(&vec!["foo".to_string(), "bar".to_string(), "baz".to_string()]));
+        assert_eq!(
+            list_data.get("test_list"),
+            Some(&vec![
+                "foo".to_string(),
+                "bar".to_string(),
+                "baz".to_string()
+            ])
+        );
     }
 
     #[test]
     fn test_import_data() {
         // Clear any existing data to ensure test isolation
         GLOBAL_LIST_MANAGER.list_data.write().unwrap().clear();
-        
-        GLOBAL_LIST_MANAGER.import_data("test_list", vec![vec!["foo".to_string()], vec!["bar".to_string()], vec!["baz".to_string()]], false);
+
+        GLOBAL_LIST_MANAGER.import_data(
+            "test_list",
+            vec![
+                vec!["foo".to_string()],
+                vec!["bar".to_string()],
+                vec!["baz".to_string()],
+            ],
+            false,
+        );
 
         let list_data = GLOBAL_LIST_MANAGER.list_data.read().unwrap();
-        assert_eq!(list_data.get("test_list"), Some(&vec!["foo".to_string(), "bar".to_string(), "baz".to_string()]));
+        assert_eq!(
+            list_data.get("test_list"),
+            Some(&vec![
+                "foo".to_string(),
+                "bar".to_string(),
+                "baz".to_string()
+            ])
+        );
     }
 
     // #[test]

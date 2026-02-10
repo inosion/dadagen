@@ -1,5 +1,4 @@
-use rand::{thread_rng, Rng};
-
+use rand::{Rng, thread_rng};
 
 /**
  * Pull a random value from a comma-separated list of strings.

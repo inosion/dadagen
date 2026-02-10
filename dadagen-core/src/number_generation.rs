@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 
+use crate::common::{Context, Generator};
 use rand::Rng;
-use crate::common::{Generator, Context};
 use rand::rngs::ThreadRng;
 
 struct IntegerGenerator {
@@ -30,11 +30,7 @@ impl Generator<i32, ThreadRng> for IntegerGenerator {
 
 impl IntegerGenerator {
     fn new(name: String, min: i32, max: i32) -> Self {
-        Self {
-            name,
-            min,
-            max,
-        }
+        Self { name, min, max }
     }
 }
 struct DoubleGenerator {
@@ -100,11 +96,7 @@ impl Generator<i64, ThreadRng> for LongGenerator {
 
 impl LongGenerator {
     fn new(name: String, min: i64, max: i64) -> Self {
-        Self {
-            name,
-            min,
-            max,
-        }
+        Self { name, min, max }
     }
 }
 #[cfg(test)]
@@ -114,7 +106,7 @@ mod tests {
     #[test]
     fn test_integer_generator() {
         let mut context = Context::new();
-        let generator = IntegerGenerator::new("number".to_string(),0, 100);
+        let generator = IntegerGenerator::new("number".to_string(), 0, 100);
 
         let dependant_list: &[String] = &Vec::new();
 
@@ -145,5 +137,5 @@ mod tests {
         let generated_value = generator.generate(&mut context, dependant_list);
 
         assert!(generated_value >= 0.0 && generated_value <= 100.0);
-    }    
+    }
 }

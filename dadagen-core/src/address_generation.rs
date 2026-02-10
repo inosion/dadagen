@@ -1,8 +1,8 @@
 #![allow(dead_code)]
 
 use rand::Rng;
-use std::collections::HashMap;
 use regex::Regex;
+use std::collections::HashMap;
 
 pub enum CountryCode {
     GBR,
@@ -23,7 +23,6 @@ impl CountryCode {
         }
     }
 }
-
 
 pub struct Context {
     // Define the context fields here
@@ -62,12 +61,16 @@ pub enum AddressStyle {
 pub struct AddressGenerator {
     name: String,
     style: AddressStyle,
-    country_field: Option<CountryCode>, // Add the country_field    
+    country_field: Option<CountryCode>, // Add the country_field
 }
 
 impl AddressGenerator {
     pub fn new(name: String, style: AddressStyle, country_field: Option<CountryCode>) -> Self {
-        Self { name, style, country_field }
+        Self {
+            name,
+            style,
+            country_field,
+        }
     }
 
     pub fn internal_generate(&self, _context: &Context) -> String {

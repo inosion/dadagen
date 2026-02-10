@@ -5,7 +5,6 @@
 
 use crate::ast::*;
 use crate::dsl::{DslGrammarParser, Rule};
-use pest::Parser;
 use pest::iterators::Pair;
 
 /// Parse a DSL string into an AST document
@@ -49,12 +48,36 @@ pub fn parse_dsl(input: &str) -> AstResult<DslDocument> {
 
             if !in_quote {
                 match ch {
-                    '(' => { paren_depth += 1; out.push(ch); }
-                    ')' => { if paren_depth > 0 { paren_depth -= 1; } out.push(ch); }
-                    '{' => { brace_depth += 1; out.push(ch); }
-                    '}' => { if brace_depth > 0 { brace_depth -= 1; } out.push(ch); }
-                    '[' => { bracket_depth += 1; out.push(ch); }
-                    ']' => { if bracket_depth > 0 { bracket_depth -= 1; } out.push(ch); }
+                    '(' => {
+                        paren_depth += 1;
+                        out.push(ch);
+                    }
+                    ')' => {
+                        if paren_depth > 0 {
+                            paren_depth -= 1;
+                        }
+                        out.push(ch);
+                    }
+                    '{' => {
+                        brace_depth += 1;
+                        out.push(ch);
+                    }
+                    '}' => {
+                        if brace_depth > 0 {
+                            brace_depth -= 1;
+                        }
+                        out.push(ch);
+                    }
+                    '[' => {
+                        bracket_depth += 1;
+                        out.push(ch);
+                    }
+                    ']' => {
+                        if bracket_depth > 0 {
+                            bracket_depth -= 1;
+                        }
+                        out.push(ch);
+                    }
                     ',' => {
                         if paren_depth == 0 && brace_depth == 0 && bracket_depth == 0 {
                             // top-level comma: convert to newline
@@ -63,8 +86,14 @@ pub fn parse_dsl(input: &str) -> AstResult<DslDocument> {
                             out.push(ch);
                         }
                     }
-                    '\\' => { out.push(ch); prev_backslash = !prev_backslash; }
-                    _ => { out.push(ch); prev_backslash = false; }
+                    '\\' => {
+                        out.push(ch);
+                        prev_backslash = !prev_backslash;
+                    }
+                    _ => {
+                        out.push(ch);
+                        prev_backslash = false;
+                    }
                 }
             } else {
                 // inside quote
@@ -77,18 +106,14 @@ pub fn parse_dsl(input: &str) -> AstResult<DslDocument> {
 
     let normalized = normalize_top_level_commas(input);
 
-    // Debug: show normalized input when running tests to help diagnose parsing
-    // issues with comma-separation (removed once verified).
-    eprintln!("[dsl normalized]\n{}", normalized);
-
-    let mut pairs = DslGrammarParser::parse(Rule::dsl, &normalized)
-        .map_err(|e| AstError::InvalidValue {
+    let mut pairs =
+        DslGrammarParser::parse(Rule::dsl, &normalized).map_err(|e| AstError::InvalidValue {
             message: format!("Parse error: {}", e),
             span: None,
         })?;
 
     let mut fields = Vec::new();
-    
+
     // The dsl rule contains either schema_block or field_list
     if let Some(dsl_pair) = pairs.next() {
         for pair in dsl_pair.into_inner() {
@@ -125,14 +150,11 @@ pub fn parse_dsl(input: &str) -> AstResult<DslDocument> {
         }
     }
 
-    let doc = DslDocument {
-        fields,
-        span: None,
-    };
+    let doc = DslDocument { fields, span: None };
 
     // Validate the document
     doc.validate()?;
-    
+
     Ok(doc)
 }
 
@@ -151,8 +173,12 @@ fn parse_field(pair: Pair<Rule>) -> AstResult<FieldDefinition> {
                 // named_field contains a quoted field_name and a generator inside
                 for p in inner_pair.into_inner() {
                     match p.as_rule() {
-                        Rule::field_name => { name = p.as_str().to_string(); }
-                        _ => { generator = Some(parse_generator(p)?); }
+                        Rule::field_name => {
+                            name = p.as_str().to_string();
+                        }
+                        _ => {
+                            generator = Some(parse_generator(p)?);
+                        }
                     }
                 }
             }
@@ -160,7 +186,9 @@ fn parse_field(pair: Pair<Rule>) -> AstResult<FieldDefinition> {
                 // Hidden seed: produce a synthetic name for now and parse generator
                 // Name will be empty and treated as hidden by later AST updates.
                 let mut idx = 0usize;
-                for _ in 0..1 { idx += 1; }
+                for _ in 0..1 {
+                    idx += 1;
+                }
                 name = format!("__hidden_{}", idx);
                 for p in inner_pair.into_inner() {
                     generator = Some(parse_generator(p)?);
@@ -188,7 +216,7 @@ fn parse_field(pair: Pair<Rule>) -> AstResult<FieldDefinition> {
 
 fn parse_generator(pair: Pair<Rule>) -> AstResult<Generator> {
     let span = create_span(&pair);
-    
+
     match pair.as_rule() {
         Rule::concat_expr => {
             // Build a TemplateGenerator by concatenating term parts. Terms may be
@@ -210,19 +238,28 @@ fn parse_generator(pair: Pair<Rule>) -> AstResult<Generator> {
                         var_idx += 1;
                         let var_name = format!("__g{}", var_idx);
                         template.push_str(&format!("{{{{{}}}}}", var_name));
-                        let gen = parse_generator(term_pair)?;
-                        variables.push(TemplateVariable { name: var_name.clone(), generator: Some(Box::new(gen)) });
+                        let generator = parse_generator(term_pair)?;
+                        variables.push(TemplateVariable {
+                            name: var_name.clone(),
+                            generator: Some(Box::new(generator)),
+                        });
                     }
                 }
             }
 
-            let tg = TemplateGenerator { template, variables, span: Some(span) };
+            let tg = TemplateGenerator {
+                template,
+                variables,
+                span: Some(span),
+            };
             return Ok(Generator::Template(tg));
         }
         Rule::string_generator => Ok(Generator::String(parse_string_generator(pair)?)),
         Rule::boolean_generator => Ok(Generator::Boolean(parse_boolean_generator(pair)?)),
         Rule::number_generator => Ok(Generator::Number(parse_number_generator(pair)?)),
-        Rule::double_number_generator => Ok(Generator::Number(parse_double_number_generator(pair)?)),
+        Rule::double_number_generator => {
+            Ok(Generator::Number(parse_double_number_generator(pair)?))
+        }
         Rule::datetime_generator => Ok(Generator::DateTime(parse_datetime_generator(pair)?)),
         Rule::date_generator => Ok(Generator::Date(parse_date_generator(pair)?)),
         Rule::time_generator => Ok(Generator::Time(parse_time_generator(pair)?)),
@@ -254,7 +291,7 @@ fn parse_generator(pair: Pair<Rule>) -> AstResult<Generator> {
 
 fn parse_string_generator(pair: Pair<Rule>) -> AstResult<StringGenerator> {
     let span = create_span(&pair);
-    let mut gen = StringGenerator {
+    let mut generator = StringGenerator {
         span: Some(span),
         ..Default::default()
     };
@@ -262,39 +299,39 @@ fn parse_string_generator(pair: Pair<Rule>) -> AstResult<StringGenerator> {
     for inner_pair in pair.into_inner() {
         match inner_pair.as_rule() {
             Rule::string_constraints => {
-                parse_string_constraints(&mut gen, inner_pair)?;
+                parse_string_constraints(&mut generator, inner_pair)?;
             }
             _ => {}
         }
     }
 
-    gen.validate()?;
-    Ok(gen)
+    generator.validate()?;
+    Ok(generator)
 }
 
-fn parse_string_constraints(gen: &mut StringGenerator, pair: Pair<Rule>) -> AstResult<()> {
+fn parse_string_constraints(generator: &mut StringGenerator, pair: Pair<Rule>) -> AstResult<()> {
     for constraint_pair in pair.into_inner() {
         match constraint_pair.as_rule() {
             Rule::string_length_constraint => {
                 let value = extract_number_value(constraint_pair)?;
-                gen.length = Some(value as usize);
+                generator.length = Some(value as usize);
             }
             Rule::string_min_length_constraint => {
                 let value = extract_number_value(constraint_pair)?;
-                gen.min_length = Some(value as usize);
+                generator.min_length = Some(value as usize);
             }
             Rule::string_max_length_constraint => {
                 let value = extract_number_value(constraint_pair)?;
-                gen.max_length = Some(value as usize);
+                generator.max_length = Some(value as usize);
             }
             Rule::string_charset_constraint => {
-                gen.charset = extract_charset_value(constraint_pair)?;
+                generator.charset = extract_charset_value(constraint_pair)?;
             }
             Rule::string_case_constraint => {
-                gen.case = extract_case_value(constraint_pair)?;
+                generator.case = extract_case_value(constraint_pair)?;
             }
             Rule::string_pattern_constraint => {
-                gen.pattern = Some(extract_string_value(constraint_pair)?);
+                generator.pattern = Some(extract_string_value(constraint_pair)?);
             }
             _ => {}
         }
@@ -304,7 +341,7 @@ fn parse_string_constraints(gen: &mut StringGenerator, pair: Pair<Rule>) -> AstR
 
 fn parse_boolean_generator(pair: Pair<Rule>) -> AstResult<BooleanGenerator> {
     let span = create_span(&pair);
-    let mut gen = BooleanGenerator {
+    let mut generator = BooleanGenerator {
         span: Some(span),
         ..Default::default()
     };
@@ -313,69 +350,69 @@ fn parse_boolean_generator(pair: Pair<Rule>) -> AstResult<BooleanGenerator> {
         if inner_pair.as_rule() == Rule::boolean_constraints {
             for constraint_pair in inner_pair.into_inner() {
                 if constraint_pair.as_rule() == Rule::boolean_true_probability {
-                    gen.true_probability = extract_float_value(constraint_pair)?;
+                    generator.true_probability = extract_float_value(constraint_pair)?;
                 }
             }
         }
     }
 
-    gen.validate()?;
-    Ok(gen)
+    generator.validate()?;
+    Ok(generator)
 }
 
 fn parse_number_generator(pair: Pair<Rule>) -> AstResult<NumberGenerator> {
     let span = create_span(&pair);
-    let mut gen = NumberGenerator {
+    let mut generator = NumberGenerator {
         span: Some(span),
         ..Default::default()
     };
 
     for inner_pair in pair.into_inner() {
         if inner_pair.as_rule() == Rule::number_constraints {
-            parse_number_constraints(&mut gen, inner_pair)?;
+            parse_number_constraints(&mut generator, inner_pair)?;
         }
     }
 
-    gen.validate()?;
-    Ok(gen)
+    generator.validate()?;
+    Ok(generator)
 }
 
 fn parse_double_number_generator(pair: Pair<Rule>) -> AstResult<NumberGenerator> {
     let span = create_span(&pair);
-    let mut gen = NumberGenerator {
+    let mut generator = NumberGenerator {
         span: Some(span),
         ..Default::default()
     };
 
     for inner_pair in pair.into_inner() {
         if inner_pair.as_rule() == Rule::double_constraints {
-            parse_double_constraints(&mut gen, inner_pair)?;
+            parse_double_constraints(&mut generator, inner_pair)?;
         }
     }
 
-    gen.validate()?;
-    Ok(gen)
+    generator.validate()?;
+    Ok(generator)
 }
 
-fn parse_number_constraints(gen: &mut NumberGenerator, pair: Pair<Rule>) -> AstResult<()> {
+fn parse_number_constraints(generator: &mut NumberGenerator, pair: Pair<Rule>) -> AstResult<()> {
     for constraint_pair in pair.into_inner() {
         match constraint_pair.as_rule() {
             Rule::number_min_constraint => {
-                gen.min = Some(extract_float_value(constraint_pair)?);
+                generator.min = Some(extract_float_value(constraint_pair)?);
             }
             Rule::number_max_constraint => {
-                gen.max = Some(extract_float_value(constraint_pair)?);
+                generator.max = Some(extract_float_value(constraint_pair)?);
             }
             Rule::number_decimal_places_constraint => {
                 let value = extract_number_value(constraint_pair)?;
-                gen.decimal_places = Some(value as usize);
+                generator.decimal_places = Some(value as usize);
             }
             Rule::number_seed_constraint => {
                 let value = extract_number_value(constraint_pair)?;
-                gen.seed = Some(value as u64);
+                generator.seed = Some(value as u64);
             }
             Rule::number_distribution_constraint => {
-                gen.distribution = extract_distribution_value(constraint_pair)?;
+                generator.distribution = extract_distribution_value(constraint_pair)?;
             }
             _ => {}
         }
@@ -383,25 +420,25 @@ fn parse_number_constraints(gen: &mut NumberGenerator, pair: Pair<Rule>) -> AstR
     Ok(())
 }
 
-fn parse_double_constraints(gen: &mut NumberGenerator, pair: Pair<Rule>) -> AstResult<()> {
+fn parse_double_constraints(generator: &mut NumberGenerator, pair: Pair<Rule>) -> AstResult<()> {
     for constraint_pair in pair.into_inner() {
         match constraint_pair.as_rule() {
             Rule::double_min_constraint => {
-                gen.min = Some(extract_float_value(constraint_pair)?);
+                generator.min = Some(extract_float_value(constraint_pair)?);
             }
             Rule::double_max_constraint => {
-                gen.max = Some(extract_float_value(constraint_pair)?);
+                generator.max = Some(extract_float_value(constraint_pair)?);
             }
             Rule::double_decimal_places_constraint => {
                 let value = extract_number_value(constraint_pair)?;
-                gen.decimal_places = Some(value as usize);
+                generator.decimal_places = Some(value as usize);
             }
             Rule::number_seed_constraint => {
                 let value = extract_number_value(constraint_pair)?;
-                gen.seed = Some(value as u64);
+                generator.seed = Some(value as u64);
             }
             Rule::number_distribution_constraint => {
-                gen.distribution = extract_distribution_value(constraint_pair)?;
+                generator.distribution = extract_distribution_value(constraint_pair)?;
             }
             _ => {}
         }
@@ -411,7 +448,7 @@ fn parse_double_constraints(gen: &mut NumberGenerator, pair: Pair<Rule>) -> AstR
 
 fn parse_datetime_generator(pair: Pair<Rule>) -> AstResult<DateTimeGenerator> {
     let span = create_span(&pair);
-    let mut gen = DateTimeGenerator {
+    let mut generator = DateTimeGenerator {
         span: Some(span),
         ..Default::default()
     };
@@ -421,13 +458,13 @@ fn parse_datetime_generator(pair: Pair<Rule>) -> AstResult<DateTimeGenerator> {
             for constraint_pair in inner_pair.into_inner() {
                 match constraint_pair.as_rule() {
                     Rule::datetime_start_constraint => {
-                        gen.start = Some(extract_string_value(constraint_pair)?);
+                        generator.start = Some(extract_string_value(constraint_pair)?);
                     }
                     Rule::datetime_end_constraint => {
-                        gen.end = Some(extract_string_value(constraint_pair)?);
+                        generator.end = Some(extract_string_value(constraint_pair)?);
                     }
                     Rule::datetime_format_constraint => {
-                        gen.format = Some(extract_string_value(constraint_pair)?);
+                        generator.format = Some(extract_string_value(constraint_pair)?);
                     }
                     _ => {}
                 }
@@ -435,13 +472,13 @@ fn parse_datetime_generator(pair: Pair<Rule>) -> AstResult<DateTimeGenerator> {
         }
     }
 
-    gen.validate()?;
-    Ok(gen)
+    generator.validate()?;
+    Ok(generator)
 }
 
 fn parse_date_generator(pair: Pair<Rule>) -> AstResult<DateGenerator> {
     let span = create_span(&pair);
-    let mut gen = DateGenerator {
+    let mut generator = DateGenerator {
         span: Some(span),
         ..Default::default()
     };
@@ -451,13 +488,13 @@ fn parse_date_generator(pair: Pair<Rule>) -> AstResult<DateGenerator> {
             for constraint_pair in inner_pair.into_inner() {
                 match constraint_pair.as_rule() {
                     Rule::datetime_start_constraint => {
-                        gen.start = Some(extract_string_value(constraint_pair)?);
+                        generator.start = Some(extract_string_value(constraint_pair)?);
                     }
                     Rule::datetime_end_constraint => {
-                        gen.end = Some(extract_string_value(constraint_pair)?);
+                        generator.end = Some(extract_string_value(constraint_pair)?);
                     }
                     Rule::datetime_format_constraint => {
-                        gen.format = Some(extract_string_value(constraint_pair)?);
+                        generator.format = Some(extract_string_value(constraint_pair)?);
                     }
                     _ => {}
                 }
@@ -465,13 +502,13 @@ fn parse_date_generator(pair: Pair<Rule>) -> AstResult<DateGenerator> {
         }
     }
 
-    gen.validate()?;
-    Ok(gen)
+    generator.validate()?;
+    Ok(generator)
 }
 
 fn parse_time_generator(pair: Pair<Rule>) -> AstResult<TimeGenerator> {
     let span = create_span(&pair);
-    let mut gen = TimeGenerator {
+    let mut generator = TimeGenerator {
         span: Some(span),
         ..Default::default()
     };
@@ -481,13 +518,13 @@ fn parse_time_generator(pair: Pair<Rule>) -> AstResult<TimeGenerator> {
             for constraint_pair in inner_pair.into_inner() {
                 match constraint_pair.as_rule() {
                     Rule::datetime_start_constraint => {
-                        gen.start = Some(extract_string_value(constraint_pair)?);
+                        generator.start = Some(extract_string_value(constraint_pair)?);
                     }
                     Rule::datetime_end_constraint => {
-                        gen.end = Some(extract_string_value(constraint_pair)?);
+                        generator.end = Some(extract_string_value(constraint_pair)?);
                     }
                     Rule::datetime_format_constraint => {
-                        gen.format = Some(extract_string_value(constraint_pair)?);
+                        generator.format = Some(extract_string_value(constraint_pair)?);
                     }
                     _ => {}
                 }
@@ -495,8 +532,8 @@ fn parse_time_generator(pair: Pair<Rule>) -> AstResult<TimeGenerator> {
         }
     }
 
-    gen.validate()?;
-    Ok(gen)
+    generator.validate()?;
+    Ok(generator)
 }
 
 fn parse_choice_generator(pair: Pair<Rule>) -> AstResult<ChoiceGenerator> {
@@ -513,13 +550,13 @@ fn parse_choice_generator(pair: Pair<Rule>) -> AstResult<ChoiceGenerator> {
         }
     }
 
-    let gen = ChoiceGenerator {
+    let generator = ChoiceGenerator {
         options,
         span: Some(span),
     };
 
-    gen.validate()?;
-    Ok(gen)
+    generator.validate()?;
+    Ok(generator)
 }
 
 fn parse_list_generator(pair: Pair<Rule>) -> AstResult<ListGenerator> {
@@ -567,12 +604,13 @@ fn parse_list_generator(pair: Pair<Rule>) -> AstResult<ListGenerator> {
     // Semantic validation: weighted lists cannot be sequential
     if weighted && mode == crate::ast::ListMode::Sequential {
         return Err(AstError::InvalidValue {
-            message: "Invalid list configuration: weighted lists cannot use mode=sequential".to_string(),
+            message: "Invalid list configuration: weighted lists cannot use mode=sequential"
+                .to_string(),
             span: Some(span.clone()),
         });
     }
 
-    let gen = ListGenerator {
+    let generator = ListGenerator {
         name,
         discriminator,
         weighted,
@@ -580,8 +618,8 @@ fn parse_list_generator(pair: Pair<Rule>) -> AstResult<ListGenerator> {
         span: Some(span),
     };
 
-    gen.validate()?;
-    Ok(gen)
+    generator.validate()?;
+    Ok(generator)
 }
 
 fn parse_template_generator(pair: Pair<Rule>) -> AstResult<TemplateGenerator> {
@@ -595,7 +633,10 @@ fn parse_template_generator(pair: Pair<Rule>) -> AstResult<TemplateGenerator> {
                 template.push_str(inner_pair.as_str());
                 // Extract the variable name from {{variable_name}}
                 let var_content = inner_pair.as_str();
-                if let Some(var_name) = var_content.strip_prefix("{{").and_then(|s| s.strip_suffix("}}")) {
+                if let Some(var_name) = var_content
+                    .strip_prefix("{{")
+                    .and_then(|s| s.strip_suffix("}}"))
+                {
                     variables.push(TemplateVariable {
                         name: var_name.to_string(),
                         generator: None,
@@ -609,14 +650,14 @@ fn parse_template_generator(pair: Pair<Rule>) -> AstResult<TemplateGenerator> {
         }
     }
 
-    let gen = TemplateGenerator {
+    let generator = TemplateGenerator {
         template,
         variables,
         span: Some(span),
     };
 
-    gen.validate()?;
-    Ok(gen)
+    generator.validate()?;
+    Ok(generator)
 }
 
 fn parse_regex_generator(pair: Pair<Rule>) -> AstResult<RegexGenerator> {
@@ -634,34 +675,32 @@ fn parse_regex_generator(pair: Pair<Rule>) -> AstResult<RegexGenerator> {
         }
     }
 
-    let gen = RegexGenerator {
+    let generator = RegexGenerator {
         pattern,
         span: Some(span),
     };
 
-    gen.validate()?;
-    Ok(gen)
+    generator.validate()?;
+    Ok(generator)
 }
 
 fn parse_counter_generator(pair: Pair<Rule>) -> AstResult<CounterGenerator> {
     let span = create_span(&pair);
-    let gen = CounterGenerator {
+    let generator = CounterGenerator {
         span: Some(span),
         ..Default::default()
     };
 
-    gen.validate()?;
-    Ok(gen)
+    generator.validate()?;
+    Ok(generator)
 }
 
 fn parse_gender_generator(pair: Pair<Rule>) -> AstResult<GenderGenerator> {
     let span = create_span(&pair);
-    let gen = GenderGenerator {
-        span: Some(span),
-    };
+    let generator = GenderGenerator { span: Some(span) };
 
-    gen.validate()?;
-    Ok(gen)
+    generator.validate()?;
+    Ok(generator)
 }
 
 fn parse_name_generator(pair: Pair<Rule>) -> AstResult<NameGenerator> {
@@ -676,13 +715,13 @@ fn parse_name_generator(pair: Pair<Rule>) -> AstResult<NameGenerator> {
         }
     }
 
-    let gen = NameGenerator {
+    let generator = NameGenerator {
         name_type,
         span: Some(span),
     };
 
-    gen.validate()?;
-    Ok(gen)
+    generator.validate()?;
+    Ok(generator)
 }
 
 fn parse_address_generator(pair: Pair<Rule>) -> AstResult<AddressGenerator> {
@@ -702,25 +741,20 @@ fn parse_address_generator(pair: Pair<Rule>) -> AstResult<AddressGenerator> {
         };
     }
 
-    let gen = AddressGenerator {
+    let generator = AddressGenerator {
         component,
         span: Some(span),
     };
 
-    gen.validate()?;
-    Ok(gen)
+    generator.validate()?;
+    Ok(generator)
 }
 
 // Helper functions for extracting values from Pest pairs
 
 fn create_span(pair: &Pair<Rule>) -> Span {
     let (line, col) = pair.line_col();
-    Span::new(
-        pair.as_span().start(),
-        pair.as_span().end(),
-        line,
-        col,
-    )
+    Span::new(pair.as_span().start(), pair.as_span().end(), line, col)
 }
 
 fn extract_number_value(pair: Pair<Rule>) -> AstResult<i64> {
@@ -759,7 +793,10 @@ fn extract_float_value(pair: Pair<Rule>) -> AstResult<f64> {
 fn extract_string_value(pair: Pair<Rule>) -> AstResult<String> {
     for inner in pair.into_inner() {
         match inner.as_rule() {
-            Rule::pattern_string | Rule::datetime_value | Rule::format_string | Rule::field_name => {
+            Rule::pattern_string
+            | Rule::datetime_value
+            | Rule::format_string
+            | Rule::field_name => {
                 return Ok(inner.as_str().to_string());
             }
             _ => {}
@@ -883,7 +920,7 @@ mod tests {
     fn test_parse_simple_field() {
         let input = r#""test": boolean"#;
         let doc = parse_dsl(input).unwrap();
-        
+
         assert_eq!(doc.fields.len(), 1);
         assert_eq!(doc.fields[0].name, "test");
         assert!(matches!(doc.fields[0].generator, Generator::Boolean(_)));
@@ -893,12 +930,12 @@ mod tests {
     fn test_parse_string_with_constraints() {
         let input = r#""username": string(min_length=5, max_length=15, charset="alphanumeric")"#;
         let doc = parse_dsl(input).unwrap();
-        
+
         assert_eq!(doc.fields.len(), 1);
-        if let Generator::String(gen) = &doc.fields[0].generator {
-            assert_eq!(gen.min_length, Some(5));
-            assert_eq!(gen.max_length, Some(15));
-            assert_eq!(gen.charset, CharacterSet::AlphaNumeric);
+        if let Generator::String(generator) = &doc.fields[0].generator {
+            assert_eq!(generator.min_length, Some(5));
+            assert_eq!(generator.max_length, Some(15));
+            assert_eq!(generator.charset, CharacterSet::AlphaNumeric);
         } else {
             panic!("Expected string generator");
         }
@@ -908,11 +945,11 @@ mod tests {
     fn test_parse_number_with_constraints() {
         let input = r#""age": number(min=18, max=99)"#;
         let doc = parse_dsl(input).unwrap();
-        
+
         assert_eq!(doc.fields.len(), 1);
-        if let Generator::Number(gen) = &doc.fields[0].generator {
-            assert_eq!(gen.min, Some(18.0));
-            assert_eq!(gen.max, Some(99.0));
+        if let Generator::Number(generator) = &doc.fields[0].generator {
+            assert_eq!(generator.min, Some(18.0));
+            assert_eq!(generator.max, Some(99.0));
         } else {
             panic!("Expected number generator");
         }
@@ -922,13 +959,13 @@ mod tests {
     fn test_parse_choice_generator() {
         let input = r#""status": choice("pending", "active", "closed")"#;
         let doc = parse_dsl(input).unwrap();
-        
+
         assert_eq!(doc.fields.len(), 1);
-        if let Generator::Choice(gen) = &doc.fields[0].generator {
-            assert_eq!(gen.options.len(), 3);
-            assert_eq!(gen.options[0], "pending");
-            assert_eq!(gen.options[1], "active");
-            assert_eq!(gen.options[2], "closed");
+        if let Generator::Choice(generator) = &doc.fields[0].generator {
+            assert_eq!(generator.options.len(), 3);
+            assert_eq!(generator.options[0], "pending");
+            assert_eq!(generator.options[1], "active");
+            assert_eq!(generator.options[2], "closed");
         } else {
             panic!("Expected choice generator");
         }
@@ -938,11 +975,11 @@ mod tests {
     fn test_parse_list_generator() {
         let input = r#""city": list(name="cities", discriminator="country")"#;
         let doc = parse_dsl(input).unwrap();
-        
+
         assert_eq!(doc.fields.len(), 1);
-        if let Generator::List(gen) = &doc.fields[0].generator {
-            assert_eq!(gen.name, "cities");
-            assert_eq!(gen.discriminator, Some("country".to_string()));
+        if let Generator::List(generator) = &doc.fields[0].generator {
+            assert_eq!(generator.name, "cities");
+            assert_eq!(generator.discriminator, Some("country".to_string()));
         } else {
             panic!("Expected list generator");
         }
@@ -956,7 +993,7 @@ mod tests {
             "age": number(min=18, max=99)
         "#;
         let doc = parse_dsl(input).unwrap();
-        
+
         assert_eq!(doc.fields.len(), 3);
         assert_eq!(doc.fields[0].name, "id");
         assert_eq!(doc.fields[1].name, "name");

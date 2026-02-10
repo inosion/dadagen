@@ -9,55 +9,41 @@ use syn;
 /// Validate a generator configuration at compile time
 pub fn validate_generator_config(config: &FieldConfig) -> syn::Result<()> {
     match &config.generator_type {
-        GeneratorSpec::String { 
-            length, 
-            min_length, 
+        GeneratorSpec::String {
+            length,
+            min_length,
             max_length,
             charset,
             case,
         } => validate_string_config(length, min_length, max_length, charset, case)?,
-        
-        GeneratorSpec::Number { 
-            min, 
-            max, 
-            decimal_places 
+
+        GeneratorSpec::Number {
+            min,
+            max,
+            decimal_places,
         } => validate_number_config(min, max, decimal_places)?,
-        
-        GeneratorSpec::Boolean { true_probability } => {
-            validate_boolean_config(true_probability)?
-        },
-        
-        GeneratorSpec::Choice { options } => {
-            validate_choice_config(options)?
-        },
-        
-        GeneratorSpec::Template { pattern } => {
-            validate_template_config(pattern)?
-        },
-        
-        GeneratorSpec::Regex { pattern } => {
-            validate_regex_config(pattern)?
-        },
-        
+
+        GeneratorSpec::Boolean { true_probability } => validate_boolean_config(true_probability)?,
+
+        GeneratorSpec::Choice { options } => validate_choice_config(options)?,
+
+        GeneratorSpec::Template { pattern } => validate_template_config(pattern)?,
+
+        GeneratorSpec::Regex { pattern } => validate_regex_config(pattern)?,
+
         GeneratorSpec::Counter { start: _, step: _ } => {
             // Counter parameters are always valid
-        },
-        
-        GeneratorSpec::Name { name_type } => {
-            validate_name_config(name_type)?
-        },
-        
-        GeneratorSpec::Address { components } => {
-            validate_address_config(components)?
-        },
-        
-        GeneratorSpec::List { name: _ } |
-        GeneratorSpec::Gender |
-        GeneratorSpec::Inferred => {
+        }
+
+        GeneratorSpec::Name { name_type } => validate_name_config(name_type)?,
+
+        GeneratorSpec::Address { components } => validate_address_config(components)?,
+
+        GeneratorSpec::List { name: _ } | GeneratorSpec::Gender | GeneratorSpec::Inferred => {
             // These have no compile-time validation constraints
-        },
+        }
     }
-    
+
     Ok(())
 }
 
@@ -76,21 +62,24 @@ fn validate_string_config(
             "Cannot specify both 'length' and 'min_length/max_length'. Use either fixed length or range.",
         ));
     }
-    
+
     // Validate min < max
     if let (Some(min), Some(max)) = (min_length, max_length) {
         if min > max {
             return Err(syn::Error::new(
                 proc_macro2::Span::call_site(),
-                format!("min_length ({}) must be less than or equal to max_length ({})", min, max),
+                format!(
+                    "min_length ({}) must be less than or equal to max_length ({})",
+                    min, max
+                ),
             ));
         }
     }
-    
+
     // Validate charset
     if let Some(cs) = charset {
         match cs.as_str() {
-            "alpha" | "numeric" | "alphanumeric" | "hex" | "ascii" | "unicode" => {},
+            "alpha" | "numeric" | "alphanumeric" | "hex" | "ascii" | "unicode" => {}
             _ => {
                 return Err(syn::Error::new(
                     proc_macro2::Span::call_site(),
@@ -102,11 +91,11 @@ fn validate_string_config(
             }
         }
     }
-    
+
     // Validate case
     if let Some(c) = case {
         match c.as_str() {
-            "lower" | "upper" | "title" | "mixed" => {},
+            "lower" | "upper" | "title" | "mixed" => {}
             _ => {
                 return Err(syn::Error::new(
                     proc_macro2::Span::call_site(),
@@ -118,7 +107,7 @@ fn validate_string_config(
             }
         }
     }
-    
+
     Ok(())
 }
 
@@ -133,11 +122,14 @@ fn validate_number_config(
         if min_val > max_val {
             return Err(syn::Error::new(
                 proc_macro2::Span::call_site(),
-                format!("min ({}) must be less than or equal to max ({})", min_val, max_val),
+                format!(
+                    "min ({}) must be less than or equal to max ({})",
+                    min_val, max_val
+                ),
             ));
         }
     }
-    
+
     // Validate decimal_places is reasonable
     if let Some(dp) = decimal_places {
         if *dp > 15 {
@@ -147,7 +139,7 @@ fn validate_number_config(
             ));
         }
     }
-    
+
     Ok(())
 }
 
@@ -180,31 +172,31 @@ fn validate_template_config(pattern: &str) -> syn::Result<()> {
     // Check for balanced {{}} placeholders
     let mut depth = 0;
     let mut in_placeholder = false;
-    
+
     for (i, c) in pattern.chars().enumerate() {
         match c {
             '{' if pattern.chars().nth(i + 1) == Some('{') => {
                 in_placeholder = true;
                 depth += 1;
                 // skip next brace in counting loop logic handled by chars iteration
-            },
+            }
             '}' if in_placeholder => {
                 depth -= 1;
                 if depth == 0 {
                     in_placeholder = false;
                 }
-            },
+            }
             _ => {}
         }
     }
-    
+
     if depth != 0 {
         return Err(syn::Error::new(
             proc_macro2::Span::call_site(),
             format!("Unbalanced placeholders in template pattern: '{}'", pattern),
         ));
     }
-    
+
     // Check for empty placeholders
     if pattern.contains("{{}}") {
         return Err(syn::Error::new(
@@ -212,7 +204,7 @@ fn validate_template_config(pattern: &str) -> syn::Result<()> {
             "Template contains empty placeholder '{{}}'. Field name required.",
         ));
     }
-    
+
     Ok(())
 }
 
@@ -225,12 +217,12 @@ fn validate_regex_config(pattern: &str) -> syn::Result<()> {
             "Regex pattern cannot be empty",
         ));
     }
-    
+
     // Check for unbalanced brackets
     let mut square_depth = 0;
     let mut paren_depth = 0;
     let mut curly_depth = 0;
-    
+
     for c in pattern.chars() {
         match c {
             '[' => square_depth += 1,
@@ -241,7 +233,7 @@ fn validate_regex_config(pattern: &str) -> syn::Result<()> {
             '}' => curly_depth -= 1,
             _ => {}
         }
-        
+
         // Catch negative depths (closing before opening)
         if square_depth < 0 || paren_depth < 0 || curly_depth < 0 {
             return Err(syn::Error::new(
@@ -250,14 +242,14 @@ fn validate_regex_config(pattern: &str) -> syn::Result<()> {
             ));
         }
     }
-    
+
     if square_depth != 0 || paren_depth != 0 || curly_depth != 0 {
         return Err(syn::Error::new(
             proc_macro2::Span::call_site(),
             format!("Unbalanced brackets in regex pattern: '{}'", pattern),
         ));
     }
-    
+
     Ok(())
 }
 
@@ -265,7 +257,7 @@ fn validate_regex_config(pattern: &str) -> syn::Result<()> {
 fn validate_name_config(name_type: &Option<String>) -> syn::Result<()> {
     if let Some(nt) = name_type {
         match nt.as_str() {
-            "given" | "surname" | "full" => {},
+            "given" | "surname" | "full" => {}
             _ => {
                 return Err(syn::Error::new(
                     proc_macro2::Span::call_site(),
@@ -289,11 +281,11 @@ fn validate_address_config(components: &Option<Vec<String>>) -> syn::Result<()> 
                 "Address generator components list cannot be empty",
             ));
         }
-        
+
         // Validate each component is a known address component
         for comp in comps {
             match comp.as_str() {
-                "street" | "city" | "state" | "zip" | "country" | "full" => {},
+                "street" | "city" | "state" | "zip" | "country" | "full" => {}
                 _ => {
                     return Err(syn::Error::new(
                         proc_macro2::Span::call_site(),
@@ -315,25 +307,13 @@ mod tests {
 
     #[test]
     fn test_string_validation_conflicting_lengths() {
-        let result = validate_string_config(
-            &Some(10),
-            &Some(5),
-            &Some(15),
-            &None,
-            &None,
-        );
+        let result = validate_string_config(&Some(10), &Some(5), &Some(15), &None, &None);
         assert!(result.is_err());
     }
 
     #[test]
     fn test_string_validation_min_greater_than_max() {
-        let result = validate_string_config(
-            &None,
-            &Some(20),
-            &Some(10),
-            &None,
-            &None,
-        );
+        let result = validate_string_config(&None, &Some(20), &Some(10), &None, &None);
         assert!(result.is_err());
     }
 

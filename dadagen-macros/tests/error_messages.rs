@@ -9,7 +9,7 @@
 fn test_error_message_tests_exist() {
     // This is a placeholder test that always passes
     // The actual compile-fail tests should be run with trybuild
-    // 
+    //
     // Example usage:
     // ```
     // #[test]
@@ -137,7 +137,7 @@ use dadagen_macros::DataGenerator;
 struct CircularDependency {
     #[dadagen(template(pattern = "{{field_b}}"))]
     field_a: String,
-    
+
     #[dadagen(template(pattern = "{{field_a}}"))]  // Error: circular reference
     field_b: String,
 }

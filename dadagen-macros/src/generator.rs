@@ -3,17 +3,19 @@
 //! This module implements the `#[derive(DataGenerator)]` macro which analyzes
 //! struct definitions and generates corresponding data generators at compile time.
 
-use syn::{
-    DeriveInput, Data, Fields, Field, Meta, Lit, Type, Ident, Expr, ExprLit,
-    MetaList, punctuated::Punctuated, Token
-};
-use quote::{quote, format_ident};
-use proc_macro2::TokenStream;
 use crate::utils;
+use proc_macro2::TokenStream;
+use quote::{format_ident, quote};
+use syn::{
+    Data, DeriveInput, Expr, ExprLit, Field, Fields, Ident, Lit, Meta, MetaList, Token, Type,
+    punctuated::Punctuated,
+};
 
 mod codegen;
 mod validation;
-pub use codegen::{generate_generator_struct, generate_generator_impl, generate_datagen_trait_impl};
+pub use codegen::{
+    generate_datagen_trait_impl, generate_generator_impl, generate_generator_struct,
+};
 use validation::validate_generator_config;
 
 /// Configuration for a generated field extracted from attributes
@@ -45,25 +47,15 @@ pub enum GeneratorSpec {
         decimal_places: Option<usize>,
     },
     /// Boolean generator with probability
-    Boolean {
-        true_probability: Option<f64>,
-    },
+    Boolean { true_probability: Option<f64> },
     /// Choice from static list
-    Choice {
-        options: Vec<String>,
-    },
+    Choice { options: Vec<String> },
     /// List from named data file
-    List {
-        name: String,
-    },
+    List { name: String },
     /// Template with field references
-    Template {
-        pattern: String,
-    },
+    Template { pattern: String },
     /// Regex pattern generator
-    Regex {
-        pattern: String,
-    },
+    Regex { pattern: String },
     /// Counter with start and step
     Counter {
         start: Option<i64>,
@@ -88,10 +80,10 @@ pub fn expand_generator_derive(input: &DeriveInput) -> syn::Result<TokenStream> 
     let struct_name = &input.ident;
     let generics = &input.generics;
     let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
-    
+
     // Validate that generic parameters have appropriate bounds if used with generators
     validate_generic_parameters(&generics)?;
-    
+
     match &input.data {
         Data::Struct(data_struct) => {
             let generator_impl = generate_struct_impl(
@@ -102,24 +94,19 @@ pub fn expand_generator_derive(input: &DeriveInput) -> syn::Result<TokenStream> 
                 where_clause,
                 generics,
             )?;
-            
+
             Ok(generator_impl)
-        },
-        Data::Enum(_) => {
-            Err(syn::Error::new_spanned(
-                struct_name, 
-                "DataGenerator derive is not supported for enums yet"
-            ))
-        },
-        Data::Union(_) => {
-            Err(syn::Error::new_spanned(
-                struct_name, 
-                "DataGenerator derive is not supported for unions"
-            ))
-        },
+        }
+        Data::Enum(_) => Err(syn::Error::new_spanned(
+            struct_name,
+            "DataGenerator derive is not supported for enums yet",
+        )),
+        Data::Union(_) => Err(syn::Error::new_spanned(
+            struct_name,
+            "DataGenerator derive is not supported for unions",
+        )),
     }
 }
-
 
 /// Generate implementation for struct types
 fn generate_struct_impl(
@@ -134,15 +121,16 @@ fn generate_struct_impl(
         Fields::Named(fields_named) => {
             // Analyze all fields and extract configurations
             let field_configs = analyze_fields(&fields_named.named)?;
-            
+
             // TODO: Re-enable validation after debugging
             // Validate all generator configurations at compile time
             // for config in &field_configs {
             //     validate_generator_config(config)?;
             // }
-            
+
             // Generate the generator struct and implementation
-            let generator_struct = generate_generator_struct(struct_name, &field_configs, generics)?;
+            let generator_struct =
+                generate_generator_struct(struct_name, &field_configs, generics)?;
             let generator_impl = generate_generator_impl(
                 struct_name,
                 &field_configs,
@@ -158,19 +146,17 @@ fn generate_struct_impl(
                 &ty_generics,
                 where_clause,
             )?;
-            
+
             Ok(quote! {
                 #generator_struct
                 #generator_impl
                 #datagen_impl
             })
-        },
-        Fields::Unnamed(_) => {
-            Err(syn::Error::new_spanned(
-                fields,
-                "DataGenerator derive for tuple structs is not implemented yet"
-            ))
-        },
+        }
+        Fields::Unnamed(_) => Err(syn::Error::new_spanned(
+            fields,
+            "DataGenerator derive for tuple structs is not implemented yet",
+        )),
         Fields::Unit => {
             // Unit structs don't need generators
             let generator_name = format_ident!("{}Generator", struct_name);
@@ -178,14 +164,14 @@ fn generate_struct_impl(
                 /// Auto-generated generator for unit struct #struct_name
                 #[derive(Debug, Clone)]
                 pub struct #generator_name;
-                
+
                 impl #generator_name {
                     pub fn new() -> Self {
                         Self
                     }
-                    
-                    pub fn generate(&self, _context: &dadagen_core::context::Context) 
-                        -> dadagen_core::errors::Result<#struct_name> 
+
+                    pub fn generate(&self, _context: &dadagen_core::context::Context)
+                        -> dadagen_core::errors::Result<#struct_name>
                     {
                         Ok(#struct_name)
                     }
@@ -196,33 +182,33 @@ fn generate_struct_impl(
 }
 
 /// Analyze struct fields and extract generator configurations
-fn analyze_fields(
-    fields: &Punctuated<Field, Token![,]>
-) -> syn::Result<Vec<FieldConfig>> {
+fn analyze_fields(fields: &Punctuated<Field, Token![,]>) -> syn::Result<Vec<FieldConfig>> {
     let mut configs = Vec::new();
-    
+
     for field in fields {
-        let field_name = field.ident.as_ref()
+        let field_name = field
+            .ident
+            .as_ref()
             .ok_or_else(|| syn::Error::new_spanned(field, "Field must have a name"))?
             .to_string();
-        
+
         // Skip phantom data fields (used for generics)
         if field_name.starts_with("_phantom") {
             continue;
         }
-        
+
         let field_type = field.ty.clone();
-        
+
         // Check if field is Option<T> or Vec<T>
         let is_optional = utils::is_option_type(&field_type);
         let is_vec = utils::is_vec_type(&field_type);
-        
+
         // Check if field type might be a nested DataGenerator
         let is_nested_generator = is_nested_generator_type(&field_type);
-        
+
         // Parse dadagen attributes to determine generator type
         let generator_type = parse_field_attributes(field, &field_type)?;
-        
+
         configs.push(FieldConfig {
             field_name,
             field_type,
@@ -232,7 +218,7 @@ fn analyze_fields(
             is_nested_generator,
         });
     }
-    
+
     Ok(configs)
 }
 
@@ -244,37 +230,40 @@ fn parse_field_attributes(field: &Field, field_type: &Type) -> syn::Result<Gener
             return parse_dadagen_attribute(attr, field_type);
         }
     }
-    
+
     // If no attribute, infer from type
     Ok(GeneratorSpec::Inferred)
 }
 
 /// Parse the #[dadagen(...)] attribute structure
-fn parse_dadagen_attribute(attr: &syn::Attribute, _field_type: &Type) -> syn::Result<GeneratorSpec> {
+fn parse_dadagen_attribute(
+    attr: &syn::Attribute,
+    _field_type: &Type,
+) -> syn::Result<GeneratorSpec> {
     match &attr.meta {
         // #[dadagen(string(length = 10, ...))]
-        Meta::List(meta_list) => {
-            parse_meta_list(meta_list)
-        },
+        Meta::List(meta_list) => parse_meta_list(meta_list),
         // #[dadagen = "template"]
         Meta::NameValue(name_value) => {
-            if let Expr::Lit(ExprLit { lit: Lit::Str(lit_str), .. }) = &name_value.value {
+            if let Expr::Lit(ExprLit {
+                lit: Lit::Str(lit_str),
+                ..
+            }) = &name_value.value
+            {
                 Ok(GeneratorSpec::Template {
                     pattern: lit_str.value(),
                 })
             } else {
                 Err(syn::Error::new_spanned(
                     attr,
-                    "Expected string literal for dadagen attribute"
+                    "Expected string literal for dadagen attribute",
                 ))
             }
-        },
-        Meta::Path(_) => {
-            Err(syn::Error::new_spanned(
-                attr,
-                "dadagen attribute requires parameters: #[dadagen(...)]"
-            ))
         }
+        Meta::Path(_) => Err(syn::Error::new_spanned(
+            attr,
+            "dadagen attribute requires parameters: #[dadagen(...)]",
+        )),
     }
 }
 
@@ -282,7 +271,7 @@ fn parse_dadagen_attribute(attr: &syn::Attribute, _field_type: &Type) -> syn::Re
 fn parse_meta_list(meta_list: &MetaList) -> syn::Result<GeneratorSpec> {
     let tokens = &meta_list.tokens;
     let tokens_str = tokens.to_string();
-    
+
     // Parse the generator type from the first identifier
     if tokens_str.starts_with("string") {
         parse_string_config(&tokens_str)
@@ -309,11 +298,10 @@ fn parse_meta_list(meta_list: &MetaList) -> syn::Result<GeneratorSpec> {
     } else {
         Err(syn::Error::new_spanned(
             meta_list,
-            format!("Unknown generator type: {}", tokens_str)
+            format!("Unknown generator type: {}", tokens_str),
         ))
     }
 }
-
 
 // ============================================================================
 // Configuration Parsers
@@ -361,21 +349,21 @@ fn parse_list_config(config: &str) -> syn::Result<GeneratorSpec> {
     } else {
         Err(syn::Error::new(
             proc_macro2::Span::call_site(),
-            "list generator requires 'name' parameter"
+            "list generator requires 'name' parameter",
         ))
     }
 }
 
 /// Parse template generator configuration
 fn parse_template_config(config: &str) -> syn::Result<GeneratorSpec> {
-    if let Some(pattern) = extract_string_param(config, "pattern")
-        .or_else(|| extract_string_param(config, "template")) 
+    if let Some(pattern) =
+        extract_string_param(config, "pattern").or_else(|| extract_string_param(config, "template"))
     {
         Ok(GeneratorSpec::Template { pattern })
     } else {
         Err(syn::Error::new(
             proc_macro2::Span::call_site(),
-            "template generator requires 'pattern' or 'template' parameter"
+            "template generator requires 'pattern' or 'template' parameter",
         ))
     }
 }
@@ -387,7 +375,7 @@ fn parse_regex_config(config: &str) -> syn::Result<GeneratorSpec> {
     } else {
         Err(syn::Error::new(
             proc_macro2::Span::call_site(),
-            "regex generator requires 'pattern' parameter"
+            "regex generator requires 'pattern' parameter",
         ))
     }
 }
@@ -428,7 +416,8 @@ fn extract_usize_param(config: &str, param_name: &str) -> Option<usize> {
     let pattern = format!("{} =", param_name);
     if let Some(start) = config.find(&pattern) {
         let after = &config[start + pattern.len()..];
-        let num_str = after.trim()
+        let num_str = after
+            .trim()
             .split(|c: char| c == ',' || c == ')' || c.is_whitespace())
             .next()?
             .trim();
@@ -443,7 +432,8 @@ fn extract_f64_param(config: &str, param_name: &str) -> Option<f64> {
     let pattern = format!("{} =", param_name);
     if let Some(start) = config.find(&pattern) {
         let after = &config[start + pattern.len()..];
-        let num_str = after.trim()
+        let num_str = after
+            .trim()
             .split(|c: char| c == ',' || c == ')' || c.is_whitespace())
             .next()?
             .trim();
@@ -458,7 +448,8 @@ fn extract_i64_param(config: &str, param_name: &str) -> Option<i64> {
     let pattern = format!("{} =", param_name);
     if let Some(start) = config.find(&pattern) {
         let after = &config[start + pattern.len()..];
-        let num_str = after.trim()
+        let num_str = after
+            .trim()
             .split(|c: char| c == ',' || c == ')' || c.is_whitespace())
             .next()?
             .trim();
@@ -493,29 +484,29 @@ fn extract_string_array_param(config: &str, param_name: &str) -> syn::Result<Vec
             let end = after.find(']').ok_or_else(|| {
                 syn::Error::new(
                     proc_macro2::Span::call_site(),
-                    format!("Unclosed array for parameter {}", param_name)
+                    format!("Unclosed array for parameter {}", param_name),
                 )
             })?;
             let array_str = &after[1..end];
-            
+
             let mut items = Vec::new();
             for part in array_str.split(',') {
                 let trimmed = part.trim();
                 if trimmed.starts_with('"') && trimmed.ends_with('"') {
-                    items.push(trimmed[1..trimmed.len()-1].to_string());
+                    items.push(trimmed[1..trimmed.len() - 1].to_string());
                 }
             }
             Ok(items)
         } else {
             Err(syn::Error::new(
                 proc_macro2::Span::call_site(),
-                format!("Expected array for parameter {}", param_name)
+                format!("Expected array for parameter {}", param_name),
             ))
         }
     } else {
         Err(syn::Error::new(
             proc_macro2::Span::call_site(),
-            format!("Parameter {} not found", param_name)
+            format!("Parameter {} not found", param_name),
         ))
     }
 }
@@ -542,18 +533,41 @@ fn is_nested_generator_type(ty: &Type) -> bool {
             if let Some(segment) = type_path.path.segments.last() {
                 let ident = &segment.ident;
                 let ident_str = ident.to_string();
-                
+
                 // Skip known primitive/standard types
-                !matches!(ident_str.as_str(), 
-                    "String" | "str" | "i8" | "i16" | "i32" | "i64" | "i128" |
-                    "u8" | "u16" | "u32" | "u64" | "u128" | "f32" | "f64" |
-                    "bool" | "char" | "Vec" | "Option" | "Result" | "Box" |
-                    "Arc" | "Rc" | "HashMap" | "HashSet" | "BTreeMap" | "BTreeSet"
+                !matches!(
+                    ident_str.as_str(),
+                    "String"
+                        | "str"
+                        | "i8"
+                        | "i16"
+                        | "i32"
+                        | "i64"
+                        | "i128"
+                        | "u8"
+                        | "u16"
+                        | "u32"
+                        | "u64"
+                        | "u128"
+                        | "f32"
+                        | "f64"
+                        | "bool"
+                        | "char"
+                        | "Vec"
+                        | "Option"
+                        | "Result"
+                        | "Box"
+                        | "Arc"
+                        | "Rc"
+                        | "HashMap"
+                        | "HashSet"
+                        | "BTreeMap"
+                        | "BTreeSet"
                 )
             } else {
                 false
             }
-        },
+        }
         _ => false,
     }
 }

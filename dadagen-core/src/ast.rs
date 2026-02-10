@@ -3,9 +3,9 @@
 //! This module defines the complete AST representation of the dadagen DSL,
 //! including all generator types, constraints, and metadata for error reporting.
 
-use std::collections::HashMap;
-use serde::{Deserialize, Serialize};
 use regex;
+use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
 /// Location information for error reporting
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -18,7 +18,12 @@ pub struct Span {
 
 impl Span {
     pub fn new(start: usize, end: usize, line: usize, column: usize) -> Self {
-        Self { start, end, line, column }
+        Self {
+            start,
+            end,
+            line,
+            column,
+        }
     }
 }
 
@@ -346,7 +351,7 @@ pub trait Validate {
 impl Validate for DslDocument {
     fn validate(&self) -> AstResult<()> {
         let mut field_names = HashMap::new();
-        
+
         for field in &self.fields {
             // Check for duplicate field names
             if let Some(_prev_span) = field_names.insert(&field.name, &field.span) {
@@ -355,11 +360,11 @@ impl Validate for DslDocument {
                     span: field.span.clone(),
                 });
             }
-            
+
             // Validate individual field
             field.validate()?;
         }
-        
+
         Ok(())
     }
 }
@@ -373,7 +378,7 @@ impl Validate for FieldDefinition {
                 span: self.span.clone(),
             });
         }
-        
+
         // Validate generator
         self.generator.validate()
     }
@@ -406,27 +411,32 @@ impl Validate for StringGenerator {
         if let (Some(min), Some(max)) = (self.min_length, self.max_length) {
             if min > max {
                 return Err(AstError::InvalidConstraint {
-                    message: format!("min_length ({}) cannot be greater than max_length ({})", min, max),
+                    message: format!(
+                        "min_length ({}) cannot be greater than max_length ({})",
+                        min, max
+                    ),
                     span: self.span.clone(),
                 });
             }
         }
-        
+
         if let Some(_length) = self.length {
             if self.min_length.is_some() || self.max_length.is_some() {
                 return Err(AstError::InvalidConstraint {
-                    message: "Cannot specify both 'length' and 'min_length'/'max_length'".to_string(),
+                    message: "Cannot specify both 'length' and 'min_length'/'max_length'"
+                        .to_string(),
                     span: self.span.clone(),
                 });
             }
         }
-        
+
         // Validate placeholders in the string
         if let Some(pattern) = &self.pattern {
-            let placeholder_re = regex::Regex::new(r"\{\{([^}]*)\}\}").map_err(|e| AstError::InvalidConstraint {
-                message: format!("Invalid regex for placeholder validation: {}", e),
-                span: self.span.clone(),
-            })?;
+            let placeholder_re =
+                regex::Regex::new(r"\{\{([^}]*)\}\}").map_err(|e| AstError::InvalidConstraint {
+                    message: format!("Invalid regex for placeholder validation: {}", e),
+                    span: self.span.clone(),
+                })?;
             for caps in placeholder_re.captures_iter(pattern) {
                 let name = caps.get(1).map(|m| m.as_str().trim()).unwrap_or("");
                 if name.is_empty() {
@@ -436,19 +446,24 @@ impl Validate for StringGenerator {
                     });
                 }
                 // Check if name matches the required regex
-                let name_re = regex::Regex::new(r"^[A-Za-z_][A-Za-z0-9_.-]*$").map_err(|e| AstError::InvalidConstraint {
-                    message: format!("Invalid regex for name validation: {}", e),
-                    span: self.span.clone(),
+                let name_re = regex::Regex::new(r"^[A-Za-z_][A-Za-z0-9_.-]*$").map_err(|e| {
+                    AstError::InvalidConstraint {
+                        message: format!("Invalid regex for name validation: {}", e),
+                        span: self.span.clone(),
+                    }
                 })?;
                 if !name_re.is_match(name) {
                     return Err(AstError::InvalidConstraint {
-                        message: format!("Invalid placeholder name '{}'. Placeholder names must match [A-Za-z_][A-Za-z0-9_.-]*", name),
+                        message: format!(
+                            "Invalid placeholder name '{}'. Placeholder names must match [A-Za-z_][A-Za-z0-9_.-]*",
+                            name
+                        ),
                         span: self.span.clone(),
                     });
                 }
             }
         }
-        
+
         Ok(())
     }
 }
@@ -464,7 +479,7 @@ impl Validate for NumberGenerator {
                 });
             }
         }
-        
+
         Ok(())
     }
 }
@@ -474,7 +489,10 @@ impl Validate for BooleanGenerator {
         // Validate probability is in [0, 1]
         if !(0.0..=1.0).contains(&self.true_probability) {
             return Err(AstError::InvalidConstraint {
-                message: format!("true_probability ({}) must be between 0.0 and 1.0", self.true_probability),
+                message: format!(
+                    "true_probability ({}) must be between 0.0 and 1.0",
+                    self.true_probability
+                ),
                 span: self.span.clone(),
             });
         }
@@ -537,10 +555,11 @@ impl Validate for TemplateGenerator {
         }
 
         // Validate placeholders
-        let placeholder_re = regex::Regex::new(r"\{\{([^}]*)\}\}").map_err(|e| AstError::InvalidConstraint {
-            message: format!("Invalid regex for placeholder validation: {}", e),
-            span: self.span.clone(),
-        })?;
+        let placeholder_re =
+            regex::Regex::new(r"\{\{([^}]*)\}\}").map_err(|e| AstError::InvalidConstraint {
+                message: format!("Invalid regex for placeholder validation: {}", e),
+                span: self.span.clone(),
+            })?;
         for caps in placeholder_re.captures_iter(&self.template) {
             let name = caps.get(1).map(|m| m.as_str().trim()).unwrap_or("");
             if name.is_empty() {
@@ -606,54 +625,54 @@ mod tests {
 
     #[test]
     fn test_string_generator_validation() {
-        let mut gen = StringGenerator::default();
-        gen.min_length = Some(10);
-        gen.max_length = Some(5);
-        
-        assert!(gen.validate().is_err());
-        
-        gen.max_length = Some(20);
-        assert!(gen.validate().is_ok());
+        let mut generator = StringGenerator::default();
+        generator.min_length = Some(10);
+        generator.max_length = Some(5);
+
+        assert!(generator.validate().is_err());
+
+        generator.max_length = Some(20);
+        assert!(generator.validate().is_ok());
     }
 
     #[test]
     fn test_number_generator_validation() {
-        let mut gen = NumberGenerator::default();
-        gen.min = Some(100.0);
-        gen.max = Some(50.0);
-        
-        assert!(gen.validate().is_err());
-        
-        gen.max = Some(200.0);
-        assert!(gen.validate().is_ok());
+        let mut generator = NumberGenerator::default();
+        generator.min = Some(100.0);
+        generator.max = Some(50.0);
+
+        assert!(generator.validate().is_err());
+
+        generator.max = Some(200.0);
+        assert!(generator.validate().is_ok());
     }
 
     #[test]
     fn test_boolean_generator_validation() {
-        let mut gen = BooleanGenerator::default();
-        gen.true_probability = 1.5;
-        
-        assert!(gen.validate().is_err());
-        
-        gen.true_probability = 0.75;
-        assert!(gen.validate().is_ok());
+        let mut generator = BooleanGenerator::default();
+        generator.true_probability = 1.5;
+
+        assert!(generator.validate().is_err());
+
+        generator.true_probability = 0.75;
+        assert!(generator.validate().is_ok());
     }
 
     #[test]
     fn test_choice_generator_validation() {
-        let gen = ChoiceGenerator {
+        let generator = ChoiceGenerator {
             options: vec![],
             span: None,
         };
-        
-        assert!(gen.validate().is_err());
-        
-        let gen = ChoiceGenerator {
+
+        assert!(generator.validate().is_err());
+
+        let generator = ChoiceGenerator {
             options: vec!["option1".to_string(), "option2".to_string()],
             span: None,
         };
-        
-        assert!(gen.validate().is_ok());
+
+        assert!(generator.validate().is_ok());
     }
 
     #[test]
@@ -673,7 +692,7 @@ mod tests {
             ],
             span: None,
         };
-        
+
         assert!(doc.validate().is_err());
     }
 }

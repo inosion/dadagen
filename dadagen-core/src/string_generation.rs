@@ -1,9 +1,9 @@
 #![allow(dead_code)]
 
+use crate::common::{Context, Generator};
 use rand::Rng;
-use regex::Regex;
-use crate::common::{Generator, Context};
 use rand::rngs::ThreadRng;
+use regex::Regex;
 
 struct GenderGenerator {
     name: String,
@@ -46,14 +46,9 @@ impl Generator<String, ThreadRng> for GenderGenerator {
 
 impl GenderGenerator {
     fn new(name: String, style: String) -> Self {
-        Self {
-            name,
-            style,
-        }
+        Self { name, style }
     }
 }
-
-
 
 #[derive(Debug)]
 pub struct TemplateGenerator {
@@ -65,8 +60,14 @@ pub struct TemplateGenerator {
 impl TemplateGenerator {
     pub fn new(name: String, template: String) -> Self {
         let var_regex = Regex::new(r#"(\{\{(\w+)\}\})"#).unwrap();
-        let dependencies = var_regex.find_iter(&template)
-            .map(|m| m.as_str().trim_start_matches("{{").trim_end_matches("}}").to_string())
+        let dependencies = var_regex
+            .find_iter(&template)
+            .map(|m| {
+                m.as_str()
+                    .trim_start_matches("{{")
+                    .trim_end_matches("}}")
+                    .to_string()
+            })
             .collect();
 
         Self {
@@ -78,18 +79,19 @@ impl TemplateGenerator {
 }
 
 impl Generator<String, ThreadRng> for TemplateGenerator {
-
     fn name(&self) -> String {
         self.name.clone()
     }
 
     fn internal_generate(&self, _context: &Context<String>) -> String {
         let var_regex = Regex::new(r#"(\{\{(\w+)\}\})"#).unwrap();
-        var_regex.replace_all(&self.template, |caps: &regex::Captures| {
-            let field_name = caps.get(2).unwrap().as_str();
-            // context.data_field_state(field_name).to_string()
-            field_name.to_string()
-        }).to_string()
+        var_regex
+            .replace_all(&self.template, |caps: &regex::Captures| {
+                let field_name = caps.get(2).unwrap().as_str();
+                // context.data_field_state(field_name).to_string()
+                field_name.to_string()
+            })
+            .to_string()
     }
 
     fn dependencies(&self) -> &[String] {
@@ -103,7 +105,8 @@ impl Generator<String, ThreadRng> for TemplateGenerator {
 
 impl Described for TemplateGenerator {
     fn get_description(&self) -> String {
-        "Template Variable. Use {{..}} names for other fields to build up a custom value".to_string()
+        "Template Variable. Use {{..}} names for other fields to build up a custom value"
+            .to_string()
     }
 }
 
@@ -130,5 +133,3 @@ mod tests {
         assert!(generated_value == "Male" || generated_value == "Female");
     }
 }
-
-

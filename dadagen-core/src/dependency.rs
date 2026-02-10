@@ -57,7 +57,7 @@ impl DependencyGraph {
         // Second pass: extract dependencies
         for field in &doc.fields {
             let deps = Self::extract_dependencies(&field.generator);
-            
+
             // Validate dependencies
             for dep in &deps {
                 // Check for self-reference
@@ -81,7 +81,8 @@ impl DependencyGraph {
 
             // Update reverse dependencies
             for dep in deps {
-                dependents.entry(dep.clone())
+                dependents
+                    .entry(dep.clone())
                     .or_insert_with(HashSet::new)
                     .insert(field.name.clone());
             }
@@ -109,7 +110,7 @@ impl DependencyGraph {
                 for var in &template_gen.variables {
                     // Variable names in templates reference other fields
                     deps.insert(var.name.clone());
-                    
+
                     // If the variable has a nested generator, extract its deps
                     if let Some(nested_gen) = &var.generator {
                         deps.extend(Self::extract_dependencies(nested_gen));
@@ -133,12 +134,13 @@ impl DependencyGraph {
     fn detect_cycles(&self) -> DependencyResult<()> {
         #[derive(PartialEq, Eq)]
         enum Color {
-            White,   // Not visited
-            Gray,    // Being processed (in current DFS path)
-            Black,   // Fully processed
+            White, // Not visited
+            Gray,  // Being processed (in current DFS path)
+            Black, // Fully processed
         }
 
-        let mut colors: HashMap<String, Color> = self.fields
+        let mut colors: HashMap<String, Color> = self
+            .fields
             .iter()
             .map(|f| (f.clone(), Color::White))
             .collect();
@@ -204,7 +206,7 @@ impl DependencyGraph {
         for field in &self.fields {
             let degree = self.dependencies.get(field).map(|d| d.len()).unwrap_or(0);
             in_degree.insert(field.clone(), degree);
-            
+
             // Add nodes with no dependencies to queue
             if degree == 0 {
                 queue.push_back(field.clone());
@@ -220,7 +222,7 @@ impl DependencyGraph {
                 for dependent in deps {
                     let degree = in_degree.get_mut(dependent).unwrap();
                     *degree -= 1;
-                    
+
                     if *degree == 0 {
                         queue.push_back(dependent.clone());
                     }
@@ -379,7 +381,7 @@ mod tests {
         let field1_pos = order.iter().position(|f| f == "field1").unwrap();
         let field2_pos = order.iter().position(|f| f == "field2").unwrap();
         let field3_pos = order.iter().position(|f| f == "field3").unwrap();
-        
+
         assert!(field1_pos < field2_pos);
         assert!(field2_pos < field3_pos);
     }
@@ -406,11 +408,11 @@ mod tests {
         let field2_pos = order.iter().position(|f| f == "field2").unwrap();
         let field3_pos = order.iter().position(|f| f == "field3").unwrap();
         let field4_pos = order.iter().position(|f| f == "field4").unwrap();
-        
+
         // field1 must come first
         assert!(field1_pos < field2_pos);
         assert!(field1_pos < field3_pos);
-        
+
         // field2 and field3 must come before field4
         assert!(field2_pos < field4_pos);
         assert!(field3_pos < field4_pos);
@@ -450,8 +452,11 @@ mod tests {
         };
 
         let result = DependencyGraph::from_document(&doc);
-        assert!(matches!(result, Err(DependencyError::CircularDependency { .. })));
-        
+        assert!(matches!(
+            result,
+            Err(DependencyError::CircularDependency { .. })
+        ));
+
         if let Err(DependencyError::CircularDependency { cycle }) = result {
             assert!(cycle.contains("field1"));
             assert!(cycle.contains("field2"));
@@ -471,15 +476,16 @@ mod tests {
         };
 
         let result = DependencyGraph::from_document(&doc);
-        assert!(matches!(result, Err(DependencyError::CircularDependency { .. })));
+        assert!(matches!(
+            result,
+            Err(DependencyError::CircularDependency { .. })
+        ));
     }
 
     #[test]
     fn test_self_reference() {
         let doc = DslDocument {
-            fields: vec![
-                create_template_field("field1", vec!["field1"]),
-            ],
+            fields: vec![create_template_field("field1", vec!["field1"])],
             span: None,
         };
 
@@ -498,8 +504,11 @@ mod tests {
         };
 
         let result = DependencyGraph::from_document(&doc);
-        assert!(matches!(result, Err(DependencyError::UndefinedReference { .. })));
-        
+        assert!(matches!(
+            result,
+            Err(DependencyError::UndefinedReference { .. })
+        ));
+
         if let Err(DependencyError::UndefinedReference { field, referrer }) = result {
             assert_eq!(field, "nonexistent");
             assert_eq!(referrer, "field2");
@@ -530,7 +539,7 @@ mod tests {
 
         // Verify ordering constraints
         let get_pos = |name: &str| order.iter().position(|f| f == name).unwrap();
-        
+
         assert!(get_pos("first_name") < get_pos("full_name"));
         assert!(get_pos("last_name") < get_pos("full_name"));
         assert!(get_pos("first_name") < get_pos("email"));
@@ -550,7 +559,7 @@ mod tests {
         };
 
         let graph = DependencyGraph::from_document(&doc).unwrap();
-        
+
         let base_dependents = graph.get_dependents("base").unwrap();
         assert_eq!(base_dependents.len(), 2);
         assert!(base_dependents.contains("derived1"));
@@ -570,7 +579,7 @@ mod tests {
         };
 
         let graph = DependencyGraph::from_document(&doc).unwrap();
-        
+
         let deps = graph.get_dependencies("combined").unwrap();
         assert_eq!(deps.len(), 3);
         assert!(deps.contains("var1"));

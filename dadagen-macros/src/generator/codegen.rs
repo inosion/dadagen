@@ -4,9 +4,9 @@
 //! structs and trait implementations from analyzed field configurations.
 
 use super::{FieldConfig, GeneratorSpec};
-use syn::Ident;
-use quote::{quote, format_ident};
 use proc_macro2::TokenStream;
+use quote::{format_ident, quote};
+use syn::Ident;
 
 /// Generate the generator struct definition
 pub fn generate_generator_struct(
@@ -15,10 +15,10 @@ pub fn generate_generator_struct(
     generics: &syn::Generics,
 ) -> syn::Result<TokenStream> {
     let generator_name = format_ident!("{}Generator", struct_name);
-    
+
     // Add phantom data for generics if needed
     let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
-    
+
     // Generate field declarations for generator struct
     let generator_fields: Vec<TokenStream> = field_configs
         .iter()
@@ -30,7 +30,7 @@ pub fn generate_generator_struct(
             }
         })
         .collect();
-    
+
     // Add PhantomData for generic parameters if present
     let phantom_field = if !generics.params.is_empty() {
         quote! {
@@ -39,7 +39,7 @@ pub fn generate_generator_struct(
     } else {
         quote! {}
     };
-    
+
     Ok(quote! {
         /// Auto-generated data generator for #struct_name
         ///
@@ -64,10 +64,10 @@ pub fn generate_generator_impl(
     generics: &syn::Generics,
 ) -> syn::Result<TokenStream> {
     let generator_name = format_ident!("{}Generator", struct_name);
-    
+
     // Check if we have generics (to add PhantomData)
     let has_generics = !generics.params.is_empty();
-    
+
     // Generate field initializations
     let field_inits: Vec<TokenStream> = field_configs
         .iter()
@@ -79,14 +79,14 @@ pub fn generate_generator_impl(
             })
         })
         .collect::<syn::Result<Vec<_>>>()?;
-    
+
     // Add PhantomData initialization if generics present
     let phantom_init = if has_generics {
         quote! { _phantom: std::marker::PhantomData, }
     } else {
         quote! {}
     };
-    
+
     // Generate field generation code
     let field_generations: Vec<TokenStream> = field_configs
         .iter()
@@ -95,7 +95,7 @@ pub fn generate_generator_impl(
             generate_field_generation(config, &field_name)
         })
         .collect::<syn::Result<Vec<_>>>()?;
-    
+
     // Extract dependencies from template fields for the dependencies() method
     let template_deps: Vec<String> = field_configs
         .iter()
@@ -108,13 +108,13 @@ pub fn generate_generator_impl(
         })
         .flatten()
         .collect();
-    
+
     let deps_literal = if template_deps.is_empty() {
         quote! { vec![] }
     } else {
         quote! { vec![#(#template_deps.to_string()),*] }
     };
-    
+
     Ok(quote! {
         impl #impl_generics #generator_name #ty_generics #where_clause {
             /// Create a new generator for #struct_name
@@ -124,22 +124,22 @@ pub fn generate_generator_impl(
                     #phantom_init
                 }
             }
-            
+
             /// Generate a new instance of #struct_name
-            pub fn generate(&self, context: &dadagen_core::context::Context) 
-                -> dadagen_core::errors::Result<#struct_name #ty_generics> 
+            pub fn generate(&self, context: &dadagen_core::context::Context)
+                -> dadagen_core::errors::Result<#struct_name #ty_generics>
             {
                 Ok(#struct_name {
                     #(#field_generations,)*
                 })
             }
-            
+
             /// Get list of field dependencies
             pub fn dependencies(&self) -> Vec<String> {
                 #deps_literal
             }
         }
-        
+
         impl #impl_generics Default for #generator_name #ty_generics #where_clause {
             fn default() -> Self {
                 Self::new()
@@ -157,7 +157,7 @@ pub fn generate_datagen_trait_impl(
     where_clause: Option<&syn::WhereClause>,
 ) -> syn::Result<TokenStream> {
     let generator_name = format_ident!("{}Generator", struct_name);
-    
+
     // Extract dependencies from template fields
     let template_deps: Vec<String> = field_configs
         .iter()
@@ -170,42 +170,42 @@ pub fn generate_datagen_trait_impl(
         })
         .flatten()
         .collect();
-    
+
     let deps_literal = if template_deps.is_empty() {
         quote! { vec![] }
     } else {
         quote! { vec![#(#template_deps.to_string()),*] }
     };
-    
+
     Ok(quote! {
         impl #impl_generics dadagen_core::generator_trait::DataGenerator for #generator_name #ty_generics #where_clause {
-            fn generate(&self, context: &dadagen_core::context::Context) 
-                -> dadagen_core::errors::Result<String> 
+            fn generate(&self, context: &dadagen_core::context::Context)
+                -> dadagen_core::errors::Result<String>
             {
                 let instance = self.generate(context)?;
                 // Serialize to JSON for string representation
                 Ok(format!("{:?}", instance))
             }
-            
+
             fn dependencies(&self) -> Vec<String> {
                 #deps_literal
             }
-            
+
             fn generator_type(&self) -> dadagen_core::generator_trait::GeneratorType {
                 dadagen_core::generator_trait::GeneratorType::String
             }
-            
+
             fn clone_box(&self) -> Box<dyn dadagen_core::generator_trait::DataGenerator> {
                 Box::new(Self::new())
             }
         }
-        
+
         impl #impl_generics std::fmt::Debug for #generator_name #ty_generics #where_clause {
             fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
                 f.debug_struct(stringify!(#generator_name)).finish()
             }
         }
-        
+
         impl #impl_generics Clone for #generator_name #ty_generics #where_clause {
             fn clone(&self) -> Self {
                 Self::new()
@@ -217,11 +217,17 @@ pub fn generate_datagen_trait_impl(
 /// Generate initialization expression for a field's generator
 fn generate_generator_init(config: &FieldConfig) -> syn::Result<TokenStream> {
     use crate::generator::GeneratorSpec::*;
-    
+
     let _field_name = &config.field_name;
-    
+
     match &config.generator_type {
-        String { length, min_length, max_length, charset, case } => {
+        String {
+            length,
+            min_length,
+            max_length,
+            charset,
+            case,
+        } => {
             let length_init = length.map(|l| quote! { length: Some(#l), });
             let min_init = min_length.map(|m| quote! { min_length: Some(#m), });
             let max_init = max_length.map(|m| quote! { max_length: Some(#m), });
@@ -245,7 +251,7 @@ fn generate_generator_init(config: &FieldConfig) -> syn::Result<TokenStream> {
                 };
                 quote! { case: #cs, }
             });
-            
+
             Ok(quote! {
                 dadagen_core::generator_trait::StringDataGenerator::new(
                     dadagen_core::ast::StringGenerator {
@@ -260,13 +266,17 @@ fn generate_generator_init(config: &FieldConfig) -> syn::Result<TokenStream> {
                     }
                 )
             })
-        },
-        
-        Number { min, max, decimal_places } => {
+        }
+
+        Number {
+            min,
+            max,
+            decimal_places,
+        } => {
             let min_init = min.map(|m| quote! { min: Some(#m), });
             let max_init = max.map(|m| quote! { max: Some(#m), });
             let dec_init = decimal_places.map(|d| quote! { decimal_places: Some(#d), });
-            
+
             Ok(quote! {
                 dadagen_core::generator_trait::NumberDataGenerator::new(
                     dadagen_core::ast::NumberGenerator {
@@ -277,8 +287,8 @@ fn generate_generator_init(config: &FieldConfig) -> syn::Result<TokenStream> {
                     }
                 )
             })
-        },
-        
+        }
+
         Boolean { true_probability } => {
             let prob = true_probability.unwrap_or(0.5);
             Ok(quote! {
@@ -289,8 +299,8 @@ fn generate_generator_init(config: &FieldConfig) -> syn::Result<TokenStream> {
                     }
                 )
             })
-        },
-        
+        }
+
         Choice { options } => {
             let opts = options.iter().map(|o| quote! { #o.to_string() });
             Ok(quote! {
@@ -301,48 +311,46 @@ fn generate_generator_init(config: &FieldConfig) -> syn::Result<TokenStream> {
                     }
                 )
             })
-        },
-        
-        List { name } => {
-            Ok(quote! {
-                dadagen_core::generator_trait::ListDataGenerator::new(
-                    dadagen_core::ast::ListGenerator {
-                        name: #name.to_string(),
-                        discriminator: None,
-                        weighted: false,
-                        mode: dadagen_core::ast::ListMode::Random,
-                        span: None,
-                    }
-                )
-            })
-        },
-        
-        Template { pattern } => {
-            Ok(quote! {
-                dadagen_core::generator_trait::TemplateDataGenerator::new(
-                    dadagen_core::ast::TemplateGenerator {
-                        template: #pattern.to_string(),
-                        variables: vec![],
-                        span: None,
-                    }
-                )
-            })
-        },
-        
-        Regex { pattern } => {
-            Ok(quote! {
-                dadagen_core::generator_trait::RegexDataGenerator::new(
-                    dadagen_core::ast::RegexGenerator {
-                        pattern: #pattern.to_string(),
-                        span: None,
-                    }
-                )
-            })
-        },
-        
+        }
+
+        List { name } => Ok(quote! {
+            dadagen_core::generator_trait::ListDataGenerator::new(
+                dadagen_core::ast::ListGenerator {
+                    name: #name.to_string(),
+                    discriminator: None,
+                    weighted: false,
+                    mode: dadagen_core::ast::ListMode::Random,
+                    span: None,
+                }
+            )
+        }),
+
+        Template { pattern } => Ok(quote! {
+            dadagen_core::generator_trait::TemplateDataGenerator::new(
+                dadagen_core::ast::TemplateGenerator {
+                    template: #pattern.to_string(),
+                    variables: vec![],
+                    span: None,
+                }
+            )
+        }),
+
+        Regex { pattern } => Ok(quote! {
+            dadagen_core::generator_trait::RegexDataGenerator::new(
+                dadagen_core::ast::RegexGenerator {
+                    pattern: #pattern.to_string(),
+                    span: None,
+                }
+            )
+        }),
+
         Counter { start, step } => {
-            let start_opt = start.map(|s| quote! { Some(#s) }).unwrap_or_else(|| quote! { Some(0) });
-            let step_opt = step.map(|s| quote! { Some(#s) }).unwrap_or_else(|| quote! { Some(1) });
+            let start_opt = start
+                .map(|s| quote! { Some(#s) })
+                .unwrap_or_else(|| quote! { Some(0) });
+            let step_opt = step
+                .map(|s| quote! { Some(#s) })
+                .unwrap_or_else(|| quote! { Some(1) });
             Ok(quote! {
                 dadagen_core::generator_trait::CounterDataGenerator::new(
                     dadagen_core::ast::CounterGenerator {
@@ -352,8 +360,8 @@ fn generate_generator_init(config: &FieldConfig) -> syn::Result<TokenStream> {
                     }
                 )
             })
-        },
-        
+        }
+
         Name { name_type } => {
             let nt = name_type.as_ref().map(|s| s.as_str()).unwrap_or("full");
             let name_type_enum = match nt {
@@ -369,18 +377,16 @@ fn generate_generator_init(config: &FieldConfig) -> syn::Result<TokenStream> {
                     }
                 )
             })
-        },
-        
-        Gender => {
-            Ok(quote! {
-                dadagen_core::generator_trait::GenderDataGenerator::new(
-                    dadagen_core::ast::GenderGenerator {
-                        span: None,
-                    }
-                )
-            })
-        },
-        
+        }
+
+        Gender => Ok(quote! {
+            dadagen_core::generator_trait::GenderDataGenerator::new(
+                dadagen_core::ast::GenderGenerator {
+                    span: None,
+                }
+            )
+        }),
+
         Address { components } => {
             // AddressGenerator uses component field (singular AddressComponent enum)
             // For now, default to CityTown if no specific component requested
@@ -397,7 +403,7 @@ fn generate_generator_init(config: &FieldConfig) -> syn::Result<TokenStream> {
             } else {
                 quote! { dadagen_core::ast::AddressComponent::CityTown }
             };
-            
+
             Ok(quote! {
                 dadagen_core::generator_trait::AddressDataGenerator::new(
                     dadagen_core::ast::AddressGenerator {
@@ -406,8 +412,8 @@ fn generate_generator_init(config: &FieldConfig) -> syn::Result<TokenStream> {
                     }
                 )
             })
-        },
-        
+        }
+
         Inferred => {
             // Infer based on Rust type
             let type_name = crate::utils::type_name(&config.field_type);
@@ -417,8 +423,8 @@ fn generate_generator_init(config: &FieldConfig) -> syn::Result<TokenStream> {
                         dadagen_core::ast::StringGenerator::default()
                     )
                 }),
-                "i8" | "i16" | "i32" | "i64" | "i128" | "isize" |
-                "u8" | "u16" | "u32" | "u64" | "u128" | "usize" => Ok(quote! {
+                "i8" | "i16" | "i32" | "i64" | "i128" | "isize" | "u8" | "u16" | "u32" | "u64"
+                | "u128" | "usize" => Ok(quote! {
                     dadagen_core::generator_trait::NumberDataGenerator::new(
                         dadagen_core::ast::NumberGenerator {
                             decimal_places: Some(0),
@@ -442,7 +448,7 @@ fn generate_generator_init(config: &FieldConfig) -> syn::Result<TokenStream> {
                     )
                 }),
             }
-        },
+        }
     }
 }
 
@@ -454,7 +460,7 @@ fn generate_field_generation(
     let gen_call = quote! {
         self.#field_ident.generate(context)?
     };
-    
+
     if config.is_optional {
         // For Option<T>, wrap in Some()
         Ok(quote! {
@@ -471,7 +477,7 @@ fn generate_field_generation(
                 let value_str = #gen_call;
                 value_str.parse().map_err(|e| {
                     dadagen_core::errors::DadagenError::GenerationError {
-                        message: format!("Failed to parse generated value for field '{}': {:?}", 
+                        message: format!("Failed to parse generated value for field '{}': {:?}",
                             stringify!(#field_ident), e),
                     }
                 })?
@@ -484,7 +490,7 @@ fn generate_field_generation(
                 let value_str = #gen_call;
                 value_str.parse().map_err(|e| {
                     dadagen_core::errors::DadagenError::GenerationError {
-                        message: format!("Failed to parse generated value for field '{}': {:?}", 
+                        message: format!("Failed to parse generated value for field '{}': {:?}",
                             stringify!(#field_ident), e),
                     }
                 })?
@@ -496,7 +502,7 @@ fn generate_field_generation(
 /// Get the AST type for a generator spec
 fn get_generator_ast_type(spec: &GeneratorSpec) -> TokenStream {
     use crate::generator::GeneratorSpec::*;
-    
+
     match spec {
         String { .. } => quote! { dadagen_core::ast::StringGenerator },
         Number { .. } => quote! { dadagen_core::ast::NumberGenerator },
@@ -517,7 +523,7 @@ fn get_generator_ast_type(spec: &GeneratorSpec) -> TokenStream {
 fn extract_template_dependencies(pattern: &str) -> Vec<String> {
     let mut deps = Vec::new();
     let mut chars = pattern.chars().peekable();
-    
+
     while let Some(ch) = chars.next() {
         if ch == '{' && chars.peek() == Some(&'{') {
             chars.next(); // consume second '{'
@@ -534,6 +540,6 @@ fn extract_template_dependencies(pattern: &str) -> Vec<String> {
             }
         }
     }
-    
+
     deps
 }
